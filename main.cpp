@@ -12,6 +12,8 @@ int main(int argc, char* argv[])
 {
     printf("Starting the TPR_6809 Application...\n");	
 	printf("Chunky Tom doesn't quit fit in the door!.\n"); 
+	printf("\n");
+	printf("Changed by PI400\n");
 
 	Bus* bus = Bus::getInstance();
 	bus->run();
