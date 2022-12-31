@@ -36,23 +36,17 @@ MemoryMap::MemoryMap()
 	v_mem.push_back({ offset, "SOFT_RSRVD", "Software Motorola Reserved Vector" }); offset += 2;
 
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Zero-Page Variables:" });
-	v_mem.push_back({ offset, "SYSTEM_VARS", "start of system zero page variables" }); offset += 0x0f0;
+	v_mem.push_back({ offset, "", "Zero-Page Kernal Variables:" });
+	v_mem.push_back({ offset, "SYSTEM_VARS", "start kernal vectors and variables" }); offset += 0x0f0;
 
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Stack Frames:" });
 	v_mem.push_back({ offset, "U_STK_BTM", "256 bytes default user stack space" }); offset += 0x100;
 	v_mem.push_back({ offset, "U_STK_TOP", "User Stack initial address" });
-	v_mem.push_back({ offset, "S_STK_BTM", "512 bytes default system stack space" }); offset += 0x100;
+	v_mem.push_back({ offset, "S_STK_BTM", "512 bytes default system stack space" }); offset += 0x200;
 	v_mem.push_back({ offset, "S_STK_TOP", "System Stack initial address" }); 
-
-	// System Hardware Registers
-	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "System Hardware Registers:" });
-	v_mem.push_back({ offset, "HDW_TEMP", "Begin System Registers -- Temporary Placeholder" }); offset += 0x100;
-
+	
 	// 5K video buffer ($0400 - $1800) 
-	if (offset != 0x0400) {	Bus::Err("Hardware register bank size invalid"); bError = true; }
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Video Buffer Memory (target = $0400):" });
 	v_mem.push_back({ offset, "VIDEO_START", "Start of Video Buffer Memory" }); offset += 0x1400 - 1;
@@ -60,35 +54,44 @@ MemoryMap::MemoryMap()
 
 	// Graphics Hardware Registers
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Graphics Hardware Registers:" });
-	v_mem.push_back({ offset, "GRH_TEMP", "Begin Graphics Registers -- Temporary Placeholder" }); offset += 0x100;
+	v_mem.push_back({ offset, "", "Hardware Registers:" });
+	//v_mem.push_back({ offset, "HWD_TEMP", "Begin Hardware Registers -- Temporary Placeholder" }); offset += 0;
+
+
+
+
+
+	// TODO:  Added Device dependant memory map allocation here...
+	// ...
+
+
+
+
 
 	// Reserved for future Hardware Expansion
-	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Future Hardware Expansion:" });
-	Word _n = (0x2000 - 4);
+	Word _n = (0x2000 - 5);
 	std::string _future_expansion = "Reserved ($" + hex(offset, 4) + "-$" + hex(_n, 4) + ")"; 
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
 	offset = 0x2000 - 4;
 
 	// Memory Bank Select(s)
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Memory Bank Selects:" });
+	v_mem.push_back({ offset, "", "Memory Bank Selects (16MB):" });
 	v_mem.push_back({ offset, "RAMBANK_SEL_1", "(Word)Indexes 65536 x 8kb banks" }); offset += 2;
 	v_mem.push_back({ offset, "RAMBANK_SEL_2", "(Word)Indexes 65536 x 8kb banks" }); offset += 2;
 
 	// Begin System Ram ($2000-AFFF)
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Standard Usable RAM:" });
+	v_mem.push_back({ offset, "", "Standard Usable (from FAST STATIC 32KB) RAM:" });
 	v_mem.push_back({ offset, "RAM_START", "Begin System RAM (32k)" }); offset += 0x8000-1;
 	v_mem.push_back({ offset, "RAM_END", "End System RAM" }); offset += 1;
 
 	// Switchable Memory Bank(s)
 	Word _size = 0xe000 - offset;
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Switchable RAM Banks:" });
-	v_mem.push_back({ offset, "RAM_BANK_1", "switched ram bank 1" }); offset += _size / 2;
-	v_mem.push_back({ offset, "RAM_BANK_2", "switched ram bank 2" }); offset += _size / 2;
+	v_mem.push_back({ offset, "", "Switchable RAM Banks (from SLOW SERIAL 16MB):" });
+	v_mem.push_back({ offset, "RAM_BANK_1", "switched 8KB ram bank 1" }); offset += _size / 2;
+	v_mem.push_back({ offset, "RAM_BANK_2", "switched 8KB ram bank 2" }); offset += _size / 2;
 
 	// Bios Kernal ROM:
 	v_mem.push_back({ offset, "", "" });
