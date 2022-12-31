@@ -14,6 +14,8 @@ int main(int argc, char* argv[])
 	printf("Perhaps it works?\n");
 	printf("Apparently it does!\n");
 
+	printf("Final commit test from the laptop\n");
+
 
 	Bus* bus = Bus::getInstance();
 	bus->run();

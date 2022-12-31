@@ -8,7 +8,7 @@
 .vscode/
 /Bus
 /GFX
-/Main
+/main
 *.sln
 *.filters
 *.user
