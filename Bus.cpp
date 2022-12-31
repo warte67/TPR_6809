@@ -37,8 +37,10 @@ Bus::Bus()
     {
         // create the graphics device:
         m_gfx = new GFX();
-        if (m_gfx)
-            _devices.push_back(m_gfx);
+        if (m_gfx)  _devices.push_back(m_gfx);
+
+        // add more devices here:
+        // ...
     }
 
     // map the memory for all attached devices
@@ -60,6 +62,15 @@ Bus::~Bus()
 	// final shutdown of SDL, TTF, IMAGE, MIXER, etc...
 	SDL_Quit();
 }
+
+std::string Bus::hex(uint32_t n, uint8_t d)
+{
+    std::string s(d, '0');
+    for (int i = d - 1; i >= 0; i--, n >>= 4)
+        s[i] = "0123456789ABCDEF"[n & 0xF];
+    return s;
+};
+
 bool Bus::Err(const char* msg)
 {
     printf("\n\nERROR: %s\n\n", msg);

@@ -13,13 +13,8 @@ MemoryMap::MemoryMap()
 
 Word MemoryMap::start()
 {
-	auto hex = [](uint32_t n, uint8_t d)
-	{
-		std::string s(d, '0');
-		for (int i = d - 1; i >= 0; i--, n >>= 4)
-			s[i] = "0123456789ABCDEF"[n & 0xF];
-		return s;
-	};
+	if (!OUTPUT_MEMORY_MAP)
+		return 0;
 
 	bool bError = false;
 	Word offset = 0;
@@ -61,13 +56,8 @@ Word MemoryMap::start()
 
 Word MemoryMap::end(Word offset)
 {
-	auto hex = [](uint32_t n, uint8_t d)
-	{
-		std::string s(d, '0');
-		for (int i = d - 1; i >= 0; i--, n >>= 4)
-			s[i] = "0123456789ABCDEF"[n & 0xF];
-		return s;
-	};
+	if (!OUTPUT_MEMORY_MAP)
+		return 0;
 
 	bool bError = false;
 
@@ -80,7 +70,7 @@ Word MemoryMap::end(Word offset)
 	}
 
 	// Reserved for future Hardware Expansion
-	std::string _future_expansion = "Reserved ($" + hex(offset, 4) + "-$" + hex(_n, 4) + ")";
+	std::string _future_expansion = "Reserved ($" + Bus::hex(offset, 4) + "-$" + Bus::hex(_n, 4) + ")";
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
 	offset = 0x2000 - 4;
 
@@ -92,7 +82,7 @@ Word MemoryMap::end(Word offset)
 
 	// Begin System Ram ($2000-AFFF)
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Standard Usable (from FAST STATIC 32KB) RAM:" });
+	v_mem.push_back({ offset, "", "Standard Usable (from FAST static 32KB) RAM:" });
 	v_mem.push_back({ offset, "RAM_START", "Begin System RAM (32k)" }); offset += 0x8000 - 1;
 	v_mem.push_back({ offset, "RAM_END", "End System RAM" }); offset += 1;
 
@@ -129,13 +119,11 @@ Word MemoryMap::end(Word offset)
 	v_mem.push_back({ offset, "HARD_NMI", "NMI Hardware Interrupt Vector" }); offset += 2;
 	v_mem.push_back({ offset, "HARD_RESET", "RESET Hardware Interrupt Vector" }); offset += 2;
 
-
 	if (bError)
 	{
 		printf("\n\n");
 		return offset;
 	}
-
 	if (MEMORY_MAP_CPP)
 	{
 		// C++ Style enum
@@ -183,7 +171,5 @@ Word MemoryMap::end(Word offset)
 		}
 	}
 	printf("\n\n");
-
-
 	return offset;
 }

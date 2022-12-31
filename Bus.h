@@ -56,6 +56,8 @@ private:
     int m_fps = 0;
 
 public:
+    static std::string hex(Uint32 n, Uint8 d);
+
     // Error system
     static bool Err(const char* msg);
 
