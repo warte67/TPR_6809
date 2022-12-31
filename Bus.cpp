@@ -18,7 +18,7 @@ bool Bus::s_bIsRunning = false;
 
 Bus::Bus()
 {
-    printf("Bus::Bus()\n");
+    //printf("Bus::Bus()\n");
     // Initialize SDL, TTF, IMAGE, MIXER, etc...
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -36,7 +36,7 @@ Bus::Bus()
 }
 Bus::~Bus() 
 {
-    printf("Bus::~Bus()\n");
+    //printf("Bus::~Bus()\n");
 
     // finally, destroy all of the attached devices
     // for(auto& a: _devices)
@@ -52,7 +52,6 @@ bool Bus::Err(const char* msg)
     if (s_instance != nullptr)
     {
         printf("\n\nERROR: %s\n\n", msg);
-
         GFX* gfx = s_instance->m_gfx;
         if (gfx == nullptr)
         {
@@ -173,7 +172,7 @@ Bus* Bus::getInstance()
 
 void Bus::run()
 {
-    printf("Bus::run()\n");
+    //printf("Bus::run()\n");
 
     // call OnInitialize() for all devices
     // (this is called after all device objects are created)
