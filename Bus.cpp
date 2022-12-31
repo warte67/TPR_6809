@@ -39,8 +39,6 @@ Bus::~Bus()
     //printf("Bus::~Bus()\n");
 
     // finally, destroy all of the attached devices
-    // for(auto& a: _devices)
-	// 	delete a;
 	if (_devices.size()>0)
 		_devices.clear();
 
