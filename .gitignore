@@ -6,12 +6,15 @@
 /x64
 /vscode
 .vscode/
+.vscode
 /Bus
 /GFX
 /main
 /Main
+main
 *.sln
 *.filters
 *.user
 *.vcxproj
 *.dll
+*.json
