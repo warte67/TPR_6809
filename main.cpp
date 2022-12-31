@@ -10,7 +10,7 @@
 int main(int argc, char* argv[])
 {
     printf("Starting the TPR_6809 Application...\n");
-	printf("Wishful thinking???\n");
+	printf("Is it wishful thinking???\n");
 
 	Bus* bus = Bus::getInstance();
 	bus->run();
