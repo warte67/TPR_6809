@@ -33,18 +33,17 @@ Bus::Bus()
     MemoryMap* memmap = new MemoryMap();
     Word mem_offset = memmap->start();
 
-    // create all of the attached devices
-    // ...
+    // Create all of the attached devices:
+    {
+        // create the graphics device:
+        m_gfx = new GFX();
+        if (m_gfx)
+            _devices.push_back(m_gfx);
+    }
 
-    memmap->push({ mem_offset, "", "" });
-    memmap->push({ mem_offset, "", "Hardware Registers:" });
-
-
-
-    // NOTE: Be sure to push the GFX object last
-	m_gfx = new GFX();
-	if (m_gfx)
-		_devices.push_back(m_gfx);
+    // map the memory for all attached devices
+    for (auto& a : _devices)
+        mem_offset = a->MapDevice(memmap, mem_offset);
 
     // close memory mapping
     mem_offset = memmap->end(mem_offset);

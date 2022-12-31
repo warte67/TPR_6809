@@ -56,11 +56,6 @@ Word MemoryMap::start()
 	v_mem.push_back({ offset, "VIDEO_START", "Start of Video Buffer Memory" }); offset += 0x1400 - 1;
 	v_mem.push_back({ offset, "VIDEO_END", "Last Byte of Video Buffer Memory" }); offset += 1;
 
-	//// Graphics Hardware Registers
-	//v_mem.push_back({ offset, "", "" });
-	//v_mem.push_back({ offset, "", "Hardware Registers:" });
-	//v_mem.push_back({ offset, "HWD_TEMP", "Begin Hardware Registers -- Temporary Placeholder" }); offset += 0;
-
 	return offset;
 }
 
@@ -104,7 +99,7 @@ Word MemoryMap::end(Word offset)
 	// Switchable Memory Bank(s)
 	Word _size = 0xe000 - offset;
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Switchable RAM Banks (from SLOW SERIAL 16MB):" });
+	v_mem.push_back({ offset, "", "Switchable RAM Banks (from SLOW external serial 16MB RAM chip):" });
 	v_mem.push_back({ offset, "RAM_BANK_1", "switched 8KB ram bank 1" }); offset += _size / 2;
 	v_mem.push_back({ offset, "RAM_BANK_2", "switched 8KB ram bank 2" }); offset += _size / 2;
 

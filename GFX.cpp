@@ -16,6 +16,18 @@ GFX::~GFX()
 {    
 }
 
+Word GFX::MapDevice(MemoryMap* memmap, Word offset)
+{
+    // Defined only to serve as a template for inherited device objects.
+    // (this will never be called due to being an abstract base type.)
+    memmap->push({ offset, "", "" }); offset += 0;
+    memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
+    memmap->push({ offset, "BASE_GFX_REG",	"Base GFX Hardware Register" }); offset += 2;
+
+    return offset;
+}
+
+
 void GFX::OnInitialize() {}
 
 void GFX::OnEvent(SDL_Event *evnt) {}

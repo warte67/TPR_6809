@@ -8,6 +8,7 @@
 #define __DEVICE_H__
 
 #include "types.h"
+#include "MemoryMap.h"
 #include <string>
 
 class Bus;
@@ -19,6 +20,8 @@ class Device
 public:
 	Device(std::string name);
 	virtual ~Device() {}
+
+	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;		// map this devices hardware registers
 
 	virtual void OnInitialize() = 0;				// runs once after all devices are created
 	virtual void OnEvent(SDL_Event* evnt) = 0;		// fires per SDL_Event
