@@ -9,7 +9,8 @@
 /Bus
 /GFX
 /main
-/Main
+/
+main
 *.sln
 *.filters
 *.user
