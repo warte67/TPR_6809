@@ -21,6 +21,7 @@ public:
 	Device(std::string name);
 	virtual ~Device() {}
 
+	// TODO: This should only be included in memory based devices
 	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;		// map this devices hardware registers
 
 	virtual void OnInitialize() = 0;				// runs once after all devices are created
