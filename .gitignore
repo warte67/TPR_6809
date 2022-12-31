@@ -9,5 +9,8 @@
 /Bus
 /GFX
 /Main
-
+*.sln
+*.filters
+*.user
+*.vcxproj
 *.dll
