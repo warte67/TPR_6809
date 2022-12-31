@@ -6,6 +6,7 @@
 /x64
 /vscode
 .vscode/
+.vscode
 /Bus
 /GFX
 /main
