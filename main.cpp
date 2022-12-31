@@ -11,7 +11,9 @@ int main(int argc, char* argv[])
 {
     printf("Starting the TPR_6809 Application...\n");
 	printf("Is it wishful thinking???\n");
-	printf("Perhaps it works\n");
+	printf("Perhaps it works?\n");
+	printf("Apparently it does!\n");
+
 
 	Bus* bus = Bus::getInstance();
 	bus->run();
