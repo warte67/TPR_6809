@@ -16,3 +16,4 @@ main
 *.user
 *.vcxproj
 *.dll
+*.json
