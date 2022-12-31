@@ -21,9 +21,10 @@ public:
 	Device(std::string name);
 	virtual ~Device() {}
 
-	// TODO: This should only be included in memory based devices
-	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;		// map this devices hardware registers
+	// map this devices hardware registers
+	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; }
 
+	// abstract members
 	virtual void OnInitialize() = 0;				// runs once after all devices are created
 	virtual void OnEvent(SDL_Event* evnt) = 0;		// fires per SDL_Event
 	virtual void OnCreate() = 0;					// fires when the object is created/recreated
