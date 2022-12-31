@@ -9,8 +9,8 @@
 
 int main(int argc, char* argv[])
 {
-    printf("Starting the TPR_6809 Application...\n");
-	printf("Final commit test from the laptop\n"); 
+    printf("Starting the TPR_6809 Application...\n");	
+	printf("Chunky John\n"); 
 
 	Bus* bus = Bus::getInstance();
 	bus->run();
