@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 {
     printf("Starting the TPR_6809 Application...\n");	
 	printf("Chunky Tom's butt doesn't quite fit\n");
-	printf("through the garage door!.\n"); 
+	printf("through the garage door!\n"); 
 	printf("\n");
 	printf("********************************\n");
 	printf("* Changed by PI400 & AsusMint  *\n");
