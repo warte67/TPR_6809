@@ -13,6 +13,7 @@ int main(int argc, char* argv[])
     printf("Starting the TPR_6809 Application...\n");	
 	printf("Chunky Tom doesn't quit fit in the door!.\n"); 
 	printf("\n");
+	printf("********************\n\n");
 	printf("Changed by PI400\n");
 	printf("********************\n\n");
 
