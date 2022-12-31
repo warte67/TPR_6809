@@ -1,7 +1,8 @@
 // main.cpp
+// windows build: use Visual C++
 //
-// build:   g++ -Werror -std=c++17 *.cpp -o main -lSDL2 -DLINUX
-// run:     ./main
+// linux build:   g++ -Werror -std=c++17 *.cpp -o main -lSDL2 -DLINUX
+// linux run:     ./main
 //
 
 #include "dep_SDL.h"
