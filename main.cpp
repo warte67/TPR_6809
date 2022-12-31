@@ -10,10 +10,6 @@
 int main(int argc, char* argv[])
 {
     printf("Starting the TPR_6809 Application...\n");
-	printf("Is it wishful thinking???\n");
-	printf("Perhaps it works?\n");
-	printf("Apparently it does!\n");
-
 	printf("Final commit test from the laptop\n"); 
 
 	Bus* bus = Bus::getInstance();
