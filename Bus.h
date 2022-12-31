@@ -34,6 +34,7 @@
 
 class Device;
 class GFX;
+class Memory;
 
 class Bus
 {
@@ -56,6 +57,18 @@ private:
     int m_fps = 0;
 
 public:
+    Byte read(Word offset);
+    void write(Word offset, Byte data);
+    Word read_word(Word offset);
+    void write_word(Word offset, Word data);
+
+    Byte debug_read(Word offset);
+    void debug_write(Word offset, Byte data);
+    Word debug_read_word(Word offset);
+    void debug_write_word(Word offset, Word data);
+
+
+public:
     static std::string hex(Uint32 n, Uint8 d);
 
     // Error system
@@ -69,7 +82,9 @@ public:
     static void run();
     static int getFPS();
 
-	GFX *m_gfx;
+
+    Memory* m_memory;
+    GFX *m_gfx;
 };
 
 #endif // __BUS_H__

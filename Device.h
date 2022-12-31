@@ -19,9 +19,9 @@ class Device
 
 public:
 	Device(std::string name);
-	virtual ~Device() {}
+	virtual ~Device();
 
-	// map this devices hardware registers
+	// map this devices hardware registers (TODO: move to class Memory)
 	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; }
 
 	// abstract members
@@ -33,9 +33,31 @@ public:
 	virtual void OnRender() = 0;					// render the current frames texture
     virtual void OnQuit() = 0;						// fires on exit -- reverses OnInitialize()
 
+	// virtual accessors
+	virtual Byte read(Word offset) = 0;
+	virtual void write(Word offset, Byte data) = 0;
+	virtual Word read_word(Word offset) = 0;
+	virtual void write_word(Word offset, Word data) = 0;
+	virtual Byte debug_read(Word offset) = 0;
+	virtual void debug_write(Word offset, Byte data) = 0;
+	virtual Word debug_read_word(Word offset) = 0;
+	virtual void debug_write_word(Word offset, Word data) = 0;
+
+	// virtual getters/setters
+	virtual const char* Name() { return _deviceName.c_str(); }
+	virtual void Name(std::string& text) { _deviceName = text; }
+	virtual Word Base() { return base; }
+	virtual void Base(Word ofs) { base = ofs; }
+	virtual Word Size() { return size; }
+	virtual void Size(Word pSize) { size = pSize; }
+
 protected:
     std::string _deviceName = "??DEV??";
     Bus* bus = nullptr;
+
+	Word base = 0;
+	Word size = 0;
+	std::vector<Byte> memory;	// memory mapped to this device
 };
 
 #endif // __DEVICE_H__

@@ -30,4 +30,9 @@ const bool MEMORY_MAP_CPP = true;		// display memory map as C++ not ASM
 	typedef Uint16 Word;
 #endif
 
+#ifndef __DEFINED_DWORD__ 
+	#define __DEFINED_DWORD__
+	typedef uint32_t	DWord;
+#endif
+
 #endif // __DEP_SDL_H__

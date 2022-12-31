@@ -7,6 +7,7 @@
 #include "Device.h"
 #include "GFX.h"
 #include "MemoryMap.h"      // move this to the Memory.h when available
+#include "Memory.h"
 #include "Bus.h"
 
 // initialize staatics
@@ -31,25 +32,66 @@ Bus::Bus()
 
     // open memory mapping
     MemoryMap* memmap = new MemoryMap();
-    Word mem_offset = memmap->start();
+    DWord mem_offset = memmap->start();
 
     // Create all of the attached devices:
     {
+        // create the memory map device:
+        m_memory = new Memory();
+        _devices.push_back(m_memory);
+
         // create the graphics device:
         m_gfx = new GFX();
-        if (m_gfx)  _devices.push_back(m_gfx);
+        _devices.push_back(m_gfx);
 
         // add more devices here:
         // ...
     }
 
-    // map the memory for all attached devices
-    for (auto& a : _devices)
-        mem_offset = a->MapDevice(memmap, mem_offset);
+    // map low RAM $0000-$17ff (VIDEO_END)
+    m_memory->AssignRAM("Low RAM", 0x1800);
+    mem_offset = 0x1800;
+
+    //// map the memory for all attached devices
+    //for (auto& a : _devices)
+    //    mem_offset = a->MapDevice(memmap, mem_offset);
+
+    // map temporary RAM to fillin where the hardware definitions lack
+    int gfx_size = 0x2000 - mem_offset;
+    mem_offset += m_memory->AssignRAM("Gfx Hardware", gfx_size);
+
 
     // close memory mapping
-    mem_offset = memmap->end(mem_offset);
+    //mem_offset += memmap->end(mem_offset);
+    memmap->end(mem_offset);
     delete memmap;
+
+    // map temporary
+    mem_offset += m_memory->AssignRAM("System RAM", 0x8000);
+    mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
+    mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
+    mem_offset += m_memory->AssignRAM("BIOS_ROM", 0x2000);
+
+    printf("Final Memory Offset: $%08X\n\n", mem_offset);
+
+
+
+    // Memory Device Allocation ERROR???
+    if (mem_offset != 0x10000) {
+        printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
+            " $%04X bytes remain.\n", 0x10000 - mem_offset);
+        std::string err = "$" + hex(0x10000 - mem_offset, 4) + " bytes remain.";
+
+        Bus::Err("Memory::AssignMemory() failed to fill map to 0xFFFF!");        
+        // Bus::getInstance()->IsRunning(false);
+        for (auto& a : m_memory->m_memBlocks) {
+            printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+        }
+        return;
+    }
+    for (auto& a : m_memory->m_memBlocks) {
+        printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+    }
 }
 Bus::~Bus() 
 {
@@ -181,6 +223,49 @@ void Bus::_OnQuit()
 		a->OnQuit();
     s_instance->_devices.clear();
 }
+
+Byte Bus::read(Word offset) {
+    if (m_memory)
+        return m_memory->read(offset);
+    return 0xcc;
+}
+void Bus::write(Word offset, Byte data) {
+    if (m_memory)
+        m_memory->write(offset, data);
+}
+
+Word Bus::read_word(Word offset) {
+    Word data = (read(offset) << 8) & 0xFF00;
+    data |= read(offset + 1);
+    return data;
+}
+
+void Bus::write_word(Word offset, Word data) {
+    write(offset, (data & 0xff00) >> 8);
+    write(offset + 1, data & 0xff);
+}
+
+Byte Bus::debug_read(Word offset)
+{
+    return m_memory->debug_read(offset);
+}
+
+void Bus::debug_write(Word offset, Byte data)
+{
+    m_memory->debug_write(offset, data);
+}
+
+Word Bus::debug_read_word(Word offset)
+{
+    return m_memory->debug_read_word(offset);
+}
+
+void Bus::debug_write_word(Word offset, Word data)
+{
+    m_memory->debug_write_word(offset, data);
+}
+
+
 
 
 

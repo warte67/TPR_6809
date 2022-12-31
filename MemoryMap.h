@@ -30,8 +30,6 @@ public:
 	Word end(Word offset);		// end mapping memory
 
 private:
-
-
 	std::vector<MemNode> v_mem;
 
 };

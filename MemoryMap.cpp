@@ -61,13 +61,13 @@ Word MemoryMap::end(Word offset)
 
 	bool bError = false;
 
-	// Hardware Register Upper Bounds Checking:
+	//// Hardware Register Upper Bounds Checking:
 	Word _n = (0x2000 - 5);
-	if (offset >= _n)
-	{
-		Bus::Err("Hardware register upper bounds limit exceeded!");
-		bError = true;
-	}
+	//if (offset >= _n)
+	//{
+	//	Bus::Err("Hardware register upper bounds limit exceeded!");
+	//	bError = true;
+	//}
 
 	// Reserved for future Hardware Expansion
 	std::string _future_expansion = "Reserved ($" + Bus::hex(offset, 4) + "-$" + Bus::hex(_n, 4) + ")";

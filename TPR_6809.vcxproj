@@ -147,10 +147,12 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="GFX.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bus.h" />
+    <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="GFX.h" />

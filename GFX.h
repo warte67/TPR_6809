@@ -11,8 +11,9 @@
 
 #include "types.h"
 #include "Device.h"
+#include "Memory.h"
 
-class GFX : public Device
+class GFX : public Memory   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
 

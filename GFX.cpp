@@ -6,11 +6,13 @@
 // ************************************
 
 #include "Bus.h"
+#include "Memory.h"
 #include "Device.h"
 #include "GFX.h"
 
-GFX::GFX() : Device ("GFX") 
+GFX::GFX()
 {
+	Device::_deviceName = "GFX";
 }
 GFX::~GFX()
 {    
@@ -23,6 +25,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
     memmap->push({ offset, "", "" }); offset += 0;
     memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
     memmap->push({ offset, "BASE_GFX_REG",	"Base GFX Hardware Register" }); offset += 2;
+
 
     return offset;
 }
