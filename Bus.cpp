@@ -1,11 +1,12 @@
 // Bus.cpp
 //
-#include "dep_SDL.h"
+#include "types.h"
 #include <chrono>
 #include <cstdlib>
 #include <stdio.h>
 #include "Device.h"
 #include "GFX.h"
+#include "MemoryMap.h"      // move this to the Memory.h when available
 #include "Bus.h"
 
 // initialize staatics
@@ -26,6 +27,8 @@ Bus::Bus()
     s_bIsRunning = true;
     std::atexit(_OnQuit);
 
+    m_fps = 0;
+
     // create all of the attached devices
     // ...
 
@@ -33,6 +36,12 @@ Bus::Bus()
 	m_gfx = new GFX();
 	if (m_gfx)
 		_devices.push_back(m_gfx);
+
+    // establish the 64k memory map long enough to copy/paste into source
+    MemoryMap* _mm = new MemoryMap();
+    delete _mm;
+
+
 }
 Bus::~Bus() 
 {
@@ -47,9 +56,9 @@ Bus::~Bus()
 }
 bool Bus::Err(const char* msg)
 {
+    printf("\n\nERROR: %s\n\n", msg);
     if (s_instance != nullptr)
     {
-        printf("\n\nERROR: %s\n\n", msg);
         GFX* gfx = s_instance->m_gfx;
         if (gfx == nullptr)
         {
@@ -67,6 +76,8 @@ bool Bus::Err(const char* msg)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ERROR!!", msg, ptrWindow);
         s_instance->s_bIsRunning = false;
     }
+    // exit(999);
+    s_instance->s_bIsRunning = false;
     return false;
 }
 void Bus::_OnInitialize() 

@@ -5,7 +5,7 @@
 // linux run:     ./main
 //
 
-#include "dep_SDL.h"
+#include "types.h"
 #include "Bus.h"
 
 int main(int argc, char* argv[])
@@ -45,7 +45,7 @@ Using two PI PICO's:
 		- Main Video Display
 			- Aspect Ratio 16/10 or 1.6f with main video timing set to 
 				512x320 (emulation runs at 1536x960 or 1280x800)
-		- Main Video Display Buffer
+		- Main Video Display Buffer (5k total)
 			- GLYPH MODE
 				- pixel resolution = 512x320
 				- Font Size = 8x8

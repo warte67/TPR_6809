@@ -7,7 +7,7 @@
 #ifndef __DEVICE_H__
 #define __DEVICE_H__
 
-#include "dep_SDL.h"
+#include "types.h"
 #include <string>
 
 class Bus;

@@ -9,7 +9,7 @@
 #ifndef __GFX_H__
 #define __GFX_H__
 
-#include "dep_SDL.h"
+#include "types.h"
 #include "Device.h"
 
 class GFX : public Device

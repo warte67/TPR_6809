@@ -23,7 +23,7 @@ void GFX::OnEvent(SDL_Event *evnt) {}
 void GFX::OnCreate() 
 {
 	_window_width = 1366;
-	_window_height = _window_width / _aspect;
+	_window_height = int(float(_window_width) / _aspect);
 
 	Uint32 window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
 	_window = SDL_CreateWindow("SDL Window",

@@ -28,7 +28,7 @@
 #ifndef __BUS_H__
 #define __BUS_H__
 
-#include "dep_SDL.h"
+#include "types.h"
 #include <vector>
 #include "GFX.h"
 
@@ -53,7 +53,7 @@ private:
     static void _OnQuit();                 // fires on exit -- reverses OnInitialize()
 
 	std::vector<Device *> _devices;
-	int m_fps;
+    int m_fps = 0;
 
 public:
     // Error system
