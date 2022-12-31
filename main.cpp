@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
 	printf("Chunky Tom doesn't quit fit in the door!.\n"); 
 	printf("\n");
 	printf("Changed by PI400\n");
+	printf("********************\n\n");
 
 	Bus* bus = Bus::getInstance();
 	bus->run();
