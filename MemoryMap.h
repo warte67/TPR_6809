@@ -19,13 +19,18 @@ public:
 	MemoryMap();
 	~MemoryMap() { v_mem.clear(); }
 
-private:
-
 	struct MemNode {
 		Word address;
 		std::string symbol;
 		std::string comment;
 	};
+
+	void push(MemNode mem_node) { v_mem.push_back(mem_node); }
+	Word start();				// begin mapping memory
+	Word end(Word offset);		// end mapping memory
+
+private:
+
 
 	std::vector<MemNode> v_mem;
 

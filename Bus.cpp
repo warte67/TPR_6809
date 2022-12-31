@@ -29,19 +29,26 @@ Bus::Bus()
 
     m_fps = 0;
 
+    // open memory mapping
+    MemoryMap* memmap = new MemoryMap();
+    Word mem_offset = memmap->start();
+
     // create all of the attached devices
     // ...
+
+    memmap->push({ mem_offset, "", "" });
+    memmap->push({ mem_offset, "", "Hardware Registers:" });
+
+
 
     // NOTE: Be sure to push the GFX object last
 	m_gfx = new GFX();
 	if (m_gfx)
 		_devices.push_back(m_gfx);
 
-    // establish the 64k memory map long enough to copy/paste into source
-    MemoryMap* _mm = new MemoryMap();
-    delete _mm;
-
-
+    // close memory mapping
+    mem_offset = memmap->end(mem_offset);
+    delete memmap;
 }
 Bus::~Bus() 
 {

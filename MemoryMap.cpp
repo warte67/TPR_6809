@@ -9,6 +9,10 @@
 
 MemoryMap::MemoryMap()
 {
+}
+
+Word MemoryMap::start()
+{
 	auto hex = [](uint32_t n, uint8_t d)
 	{
 		std::string s(d, '0');
@@ -18,7 +22,7 @@ MemoryMap::MemoryMap()
 	};
 
 	bool bError = false;
-	Word offset = 0;	
+	Word offset = 0;
 	v_mem.push_back({ offset, "", "**********************************************" });
 	v_mem.push_back({ offset, "", "* Allocated 64k Memory Mapped System Symbols *" });
 	v_mem.push_back({ offset, "", "**********************************************" });
@@ -44,33 +48,44 @@ MemoryMap::MemoryMap()
 	v_mem.push_back({ offset, "U_STK_BTM", "256 bytes default user stack space" }); offset += 0x100;
 	v_mem.push_back({ offset, "U_STK_TOP", "User Stack initial address" });
 	v_mem.push_back({ offset, "S_STK_BTM", "512 bytes default system stack space" }); offset += 0x200;
-	v_mem.push_back({ offset, "S_STK_TOP", "System Stack initial address" }); 
-	
+	v_mem.push_back({ offset, "S_STK_TOP", "System Stack initial address" });
+
 	// 5K video buffer ($0400 - $1800) 
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Video Buffer Memory (target = $0400):" });
 	v_mem.push_back({ offset, "VIDEO_START", "Start of Video Buffer Memory" }); offset += 0x1400 - 1;
 	v_mem.push_back({ offset, "VIDEO_END", "Last Byte of Video Buffer Memory" }); offset += 1;
 
-	// Graphics Hardware Registers
-	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Hardware Registers:" });
+	//// Graphics Hardware Registers
+	//v_mem.push_back({ offset, "", "" });
+	//v_mem.push_back({ offset, "", "Hardware Registers:" });
 	//v_mem.push_back({ offset, "HWD_TEMP", "Begin Hardware Registers -- Temporary Placeholder" }); offset += 0;
 
+	return offset;
+}
 
+Word MemoryMap::end(Word offset)
+{
+	auto hex = [](uint32_t n, uint8_t d)
+	{
+		std::string s(d, '0');
+		for (int i = d - 1; i >= 0; i--, n >>= 4)
+			s[i] = "0123456789ABCDEF"[n & 0xF];
+		return s;
+	};
 
+	bool bError = false;
 
-
-	// TODO:  Added Device dependant memory map allocation here...
-	// ...
-
-
-
-
+	// Hardware Register Upper Bounds Checking:
+	Word _n = (0x2000 - 5);
+	if (offset >= _n)
+	{
+		Bus::Err("Hardware register upper bounds limit exceeded!");
+		bError = true;
+	}
 
 	// Reserved for future Hardware Expansion
-	Word _n = (0x2000 - 5);
-	std::string _future_expansion = "Reserved ($" + hex(offset, 4) + "-$" + hex(_n, 4) + ")"; 
+	std::string _future_expansion = "Reserved ($" + hex(offset, 4) + "-$" + hex(_n, 4) + ")";
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
 	offset = 0x2000 - 4;
 
@@ -83,7 +98,7 @@ MemoryMap::MemoryMap()
 	// Begin System Ram ($2000-AFFF)
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Standard Usable (from FAST STATIC 32KB) RAM:" });
-	v_mem.push_back({ offset, "RAM_START", "Begin System RAM (32k)" }); offset += 0x8000-1;
+	v_mem.push_back({ offset, "RAM_START", "Begin System RAM (32k)" }); offset += 0x8000 - 1;
 	v_mem.push_back({ offset, "RAM_END", "End System RAM" }); offset += 1;
 
 	// Switchable Memory Bank(s)
@@ -120,11 +135,10 @@ MemoryMap::MemoryMap()
 	v_mem.push_back({ offset, "HARD_RESET", "RESET Hardware Interrupt Vector" }); offset += 2;
 
 
-
 	if (bError)
 	{
 		printf("\n\n");
-		return;
+		return offset;
 	}
 
 	if (MEMORY_MAP_CPP)
@@ -174,5 +188,7 @@ MemoryMap::MemoryMap()
 		}
 	}
 	printf("\n\n");
-	
+
+
+	return offset;
 }
