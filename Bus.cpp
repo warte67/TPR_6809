@@ -20,6 +20,8 @@ bool Bus::s_bIsRunning = false;
 
 Bus::Bus()
 {
+    s_instance = this; 
+
     //printf("Bus::Bus()\n");
     // Initialize SDL, TTF, IMAGE, MIXER, etc...
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -53,18 +55,16 @@ Bus::Bus()
     m_memory->bus = this;
     mem_offset = 0x1800;
 
-    //// map the memory for all attached devices
-    //for (auto& a : _devices)
-    //    mem_offset = a->MapDevice(memmap, mem_offset);
+    // map memory for all attached devices
+    for (auto& a : _devices)
+        mem_offset = a->MapDevice(memmap, mem_offset);
 
-    // map temporary RAM to fillin where the hardware definitions lack
+    // reserve RAM to fill in vacancy where the hardware registers lack
     int gfx_size = 0x2000 - mem_offset;
-    mem_offset += m_memory->AssignRAM("Gfx Hardware", gfx_size);
-
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
 
     // close memory mapping
-    //mem_offset += memmap->end(mem_offset);
-    memmap->end(mem_offset);
+    mem_offset += memmap->end(mem_offset);    
     delete memmap;
 
     // map temporary
@@ -72,6 +72,7 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, nullptr);
+
 
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {
@@ -86,6 +87,7 @@ Bus::Bus()
         }
         return;
     }
+
     for (auto& a : m_memory->m_memBlocks) {
         printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
     }

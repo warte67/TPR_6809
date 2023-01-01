@@ -20,12 +20,16 @@ GFX::~GFX()
 
 Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 {
+	DWord st_offset = offset;
     // Defined only to serve as a template for inherited device objects.
     // (this will never be called due to being an abstract base type.)
     memmap->push({ offset, "", "" }); offset += 0;
     memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
-    memmap->push({ offset, "BASE_GFX_REG",	"Base GFX Hardware Register" }); offset += 2;
+	memmap->push({ offset, "BASE_GFX_REG",	"Base GFX Hardware Register" }); offset += 2;
+	memmap->push({ offset, "GFX_REG2",		"GFX Register Number Two" }); offset += 2;
+	memmap->push({ offset, "GFX_REG3",		"GFX Register Number Three" }); offset += 2;
 
+	offset += bus->m_memory->AssignREG("GFX System", offset - st_offset, nullptr);
 
     return offset;
 }

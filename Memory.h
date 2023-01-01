@@ -27,7 +27,7 @@ public:
 	}	virtual ~Memory();
 
 	// map this devices hardware registers (TODO: move to class Memory)
-	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; }
+	virtual Word MapDevice(MemoryMap* memmap, Word offset)  { return offset; }
 
 	// abstract members
 	virtual void OnInitialize() override;				// runs once after all devices are created

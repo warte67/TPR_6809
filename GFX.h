@@ -21,7 +21,7 @@ public:
     GFX();
     virtual ~GFX();
 
-    virtual Word MapDevice(MemoryMap* memmap, Word offset);		// map this devices hardware registers
+    virtual Word MapDevice(MemoryMap* memmap, Word offset) override;
 
     virtual void OnInitialize();				// runs once after all devices are created
     virtual void OnEvent(SDL_Event *evnt);		// fires per SDL_Event

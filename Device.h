@@ -7,7 +7,6 @@
 #ifndef __DEVICE_H__
 #define __DEVICE_H__
 
-
 #include "types.h"
 #include "MemoryMap.h"
 #include <string>
@@ -20,14 +19,11 @@ class Device
 
 public:
 	Device(std::string name);
-	Device(Word offset, Word size) : base(offset), size(size), memory(size) { 
-		_deviceName = "Device"; 
-		//bus = Bus::getInstance();
-	}
+	Device(Word offset, Word size);
 	virtual ~Device();
-
-	// map this devices hardware registers (TODO: move to class Memory)
-	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; }
+	 
+	// map this devices hardware registers
+	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;
 
 	// abstract members
 	virtual void OnInitialize() = 0;				// runs once after all devices are created

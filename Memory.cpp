@@ -10,7 +10,9 @@
 
 Memory::Memory() : Device("Memory") 
 {
+	bus = Bus::getInstance();
 }
+
 Memory::~Memory()
 {
 	for (auto& a : m_memBlocks)
@@ -70,8 +72,8 @@ DWord Memory::AssignRAM(std::string cDesc, DWord size) {
 }
 RAM::RAM(Word _offset, Word _size) : Memory(_offset, _size)
 {
-	Device::Base(_offset);
-	Device::Size(_size);
+	//Device::Base(_offset);
+	//Device::Size(_size);
 	_deviceName = "RAM";
 }
 
@@ -105,11 +107,11 @@ DWord Memory::AssignROM(std::string cDesc, Word size, const char* file = nullptr
 	}	
 	return size;
 }
-ROM::ROM(Word offset, Word size)
+ROM::ROM(Word offset, Word size) : Memory(offset, size)
 {
 	_deviceName = "ROM";
-	Device::Base(offset);
-	Device::Size(size);
+	//Device::Base(offset);
+	//Device::Size(size);
 }
 
 ROM::~ROM()
@@ -204,7 +206,8 @@ void ROM::load_hex(const char* filename, Word base) {
 
 
 
-DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Word ofs, Byte data, bool bWasRead)) {
+DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Word ofs, Byte data, bool bWasRead)) 
+{
 	REG* reg = new REG(nextAddress, size, cb);
 	reg->_deviceName = cDesc;
 	reg->base = nextAddress;
@@ -215,11 +218,11 @@ DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Wor
 	}	
 	return size;
 }
-REG::REG(Word offset, Word size, Byte(*cb_callback)(REG*, Word, Byte, bool))
+REG::REG(Word offset, Word size, Byte(*cb_callback)(REG*, Word, Byte, bool)) : Memory(offset, size)
 {
 	callback = cb_callback;
-	Device::Base(offset);
-	Device::Size(size);
+	//Device::Base(offset);
+	//Device::Size(size);
 }
 
 REG::~REG()
