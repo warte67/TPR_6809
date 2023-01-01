@@ -10,6 +10,7 @@
 
 #pragma once
 #include "Bus.h"
+#include <list>
 #include <unordered_map>
 
 class Bus;

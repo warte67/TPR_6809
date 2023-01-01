@@ -1,7 +1,7 @@
 // main.cpp
 // windows build: use Visual C++
 //
-// linux build:   g++ -Werror -std=c++17 *.cpp -o main -lSDL2 -DLINUX
+// linux build:   g++ -Werror -pthread -std=c++17 *.cpp -o main -lSDL2 -DLINUX
 // linux run:     ./main
 //
 
