@@ -1,23 +1,28 @@
 // Bus.cpp
 //
-#include "dep_SDL.h"
+#include "types.h"
 #include <chrono>
+#include <thread>
 #include <cstdlib>
 #include <stdio.h>
 #include "Device.h"
 #include "GFX.h"
+#include "MemoryMap.h"      // move this to the Memory.h when available
+#include "Memory.h"
+#include "C6809.h"
 #include "Bus.h"
 
 // initialize staatics
 
 Bus* Bus::s_instance = nullptr;
 bool Bus::s_bIsRunning = false;
-//GFX* Bus::s_gfx = nullptr;
 
 //// private /////////////////////////
 
 Bus::Bus()
 {
+    s_instance = this; 
+
     //printf("Bus::Bus()\n");
     // Initialize SDL, TTF, IMAGE, MIXER, etc...
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -26,13 +31,82 @@ Bus::Bus()
     s_bIsRunning = true;
     std::atexit(_OnQuit);
 
-    // create all of the attached devices
-    // ...
+    m_fps = 0;
 
-    // NOTE: Be sure to push the GFX object last
-	m_gfx = new GFX();
-	if (m_gfx)
-		_devices.push_back(m_gfx);
+    // open memory mapping
+    MemoryMap* memmap = new MemoryMap();
+    DWord mem_offset = memmap->start();
+
+    // Create all of the attached devices:
+    {
+        // create the memory map device:
+        m_memory = new Memory();
+        _devices.push_back(m_memory);
+
+        // create the cpu (clocked via external thread)
+        m_cpu = new C6809(this);    
+        // ... not attached to _devices vector
+
+        // create the graphics device:
+        m_gfx = new GFX();
+        _devices.push_back(m_gfx);
+
+        // add more devices here:
+        // ...
+    }
+
+    // map low RAM $0000-$17ff (VIDEO_END)
+    m_memory->AssignRAM("Low RAM", 0x1800);
+    m_memory->bus = this;
+    mem_offset = 0x1800;
+
+    // map memory for all attached devices
+    for (auto& a : _devices)
+        mem_offset = a->MapDevice(memmap, mem_offset);
+
+    // Reserve RAM to fill in vacancy where the hardware registers lack
+    // this should be close to zero after all of the devices are mapped.
+    // System RAM starts at $2000. This should reserve memory unused by
+    // the hardware register devices. There should be around 2k memory
+    // available to be mapped by register devices.
+    int gfx_size = 0x2000 - mem_offset;
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
+
+    // close memory mapping
+    mem_offset += memmap->end(mem_offset);    
+    delete memmap;
+
+    // map temporary
+    mem_offset += m_memory->AssignRAM("System RAM", 0x8000);
+    mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
+    mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
+    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, ".\\asm\\rom_e000.hex");
+
+    // Memory Device Allocation ERROR???
+    if (mem_offset != 0x10000) {
+        printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
+            " $%04X bytes remain.\n", 0x10000 - mem_offset);
+        std::string err = "$" + hex(0x10000 - mem_offset, 4) + " bytes remain.";
+
+        Bus::Err("Memory::AssignMemory() failed to fill map to 0xFFFF!");        
+        // Bus::getInstance()->IsRunning(false);
+        for (auto& a : m_memory->m_memBlocks) {
+            printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+        }
+        return;
+    }
+    for (auto& a : m_memory->m_memBlocks) {
+        printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+    }
+    printf("\n");
+    //printf("Final Memory Offset: $%08X\n\n", mem_offset);
+
+    Word tw = this->read_word(SCR_WIDTH);
+    Word th = this->read_word(SCR_HEIGHT);
+    printf("window width: %d    window height: %d\n", tw, th);
+    Word pw = this->read_word(PIX_WIDTH);
+    Word ph = this->read_word(PIX_HEIGHT);
+    printf("pixel width: %d    pixel height: %d\n", pw, ph);
 }
 Bus::~Bus() 
 {
@@ -45,11 +119,20 @@ Bus::~Bus()
 	// final shutdown of SDL, TTF, IMAGE, MIXER, etc...
 	SDL_Quit();
 }
+
+std::string Bus::hex(uint32_t n, uint8_t d)
+{
+    std::string s(d, '0');
+    for (int i = d - 1; i >= 0; i--, n >>= 4)
+        s[i] = "0123456789ABCDEF"[n & 0xF];
+    return s;
+};
+
 bool Bus::Err(const char* msg)
 {
+    printf("\n\nERROR: %s\n\n", msg);
     if (s_instance != nullptr)
     {
-        printf("\n\nERROR: %s\n\n", msg);
         GFX* gfx = s_instance->m_gfx;
         if (gfx == nullptr)
         {
@@ -67,6 +150,8 @@ bool Bus::Err(const char* msg)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ERROR!!", msg, ptrWindow);
         s_instance->s_bIsRunning = false;
     }
+    // exit(999);
+    s_instance->s_bIsRunning = false;
     return false;
 }
 void Bus::_OnInitialize() 
@@ -127,9 +212,6 @@ void Bus::_OnUpdate()
     {
         frame_acc -= 1.0f;
 		s_instance->m_fps = frame_count;
-
-		// std::string title = "FPS: " + std::to_string(frame_count);
-		// SDL_SetWindowTitle(s_instance->window, title.c_str());
 		frame_count = 0;
     }
 
@@ -154,6 +236,49 @@ void Bus::_OnQuit()
     s_instance->_devices.clear();
 }
 
+Byte Bus::read(Word offset) {
+    if (m_memory)
+        return m_memory->read(offset);
+    return 0xcc;
+}
+void Bus::write(Word offset, Byte data) {
+    if (m_memory)
+        m_memory->write(offset, data);
+}
+
+Word Bus::read_word(Word offset) {
+    Word data = (read(offset) << 8) & 0xFF00;
+    data |= read(offset + 1);
+    return data;
+}
+
+void Bus::write_word(Word offset, Word data) {
+    write(offset, (data & 0xff00) >> 8);
+    write(offset + 1, data & 0xff);
+}
+
+Byte Bus::debug_read(Word offset)
+{
+    return m_memory->debug_read(offset);
+}
+
+void Bus::debug_write(Word offset, Byte data)
+{
+    m_memory->debug_write(offset, data);
+}
+
+Word Bus::debug_read_word(Word offset)
+{
+    return m_memory->debug_read_word(offset);
+}
+
+void Bus::debug_write_word(Word offset, Word data)
+{
+    m_memory->debug_write_word(offset, data);
+}
+
+
+
 
 
 //// public /////////////////////////
@@ -168,9 +293,30 @@ Bus* Bus::getInstance()
     return s_instance;
 }
 
+
+void Bus::CpuThread()
+{
+    Bus* bus = Bus::getInstance();
+    while (bus->IsRunning())
+    {
+        using clock = std::chrono::system_clock;
+        using sec = std::chrono::duration<double, std::nano>;
+        static auto before_CPU = clock::now();
+        const sec duration = clock::now() - before_CPU;
+        if (duration.count() > 500.0f) {		// 1000.f = 1mhz, 500.0f = 2mhz
+            before_CPU = clock::now();
+            // dont send clocks while changing resolution modes
+            //if (!bus->gfx_restarting)
+                s_instance->m_cpu->clock();
+        }
+    }
+}
 void Bus::run()
 {
     //printf("Bus::run()\n");
+
+    // /start the CPU thread
+    std::thread th = std::thread(&Bus::CpuThread);
 
     // call OnInitialize() for all devices
     // (this is called after all device objects are created)
@@ -209,6 +355,8 @@ void Bus::run()
 
         // call OnRender() for all devices
         _OnRender();
+
+        //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
     }
 
     // call OnDestroy() for all devices
@@ -217,6 +365,8 @@ void Bus::run()
     // call OnQuit() for all devices
     _OnQuit();
 
+    // wait for the CPU thread to close
+    th.join();
 }
 
 int Bus::getFPS() 

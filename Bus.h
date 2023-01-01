@@ -28,12 +28,14 @@
 #ifndef __BUS_H__
 #define __BUS_H__
 
-#include "dep_SDL.h"
+#include "types.h"
 #include <vector>
 #include "GFX.h"
 
 class Device;
 class GFX;
+class Memory;
+class C6809;
 
 class Bus
 {
@@ -44,6 +46,9 @@ private:
     static Bus* s_instance;
     static bool s_bIsRunning;	
 
+    bool IsRunning() { return s_bIsRunning;  }
+    void IsRunning(bool isrunning) { s_bIsRunning = isrunning; }    
+
 	static void _OnInitialize();           // runs once after all devices are created
 	static void _OnEvent(SDL_Event* evnt); // fires per SDL_Event
 	static void _OnCreate();               // fires when the object is created/recreated
@@ -53,9 +58,28 @@ private:
     static void _OnQuit();                 // fires on exit -- reverses OnInitialize()
 
 	std::vector<Device *> _devices;
-	int m_fps;
+    int m_fps = 0;
 
 public:
+    Byte read(Word offset);
+    void write(Word offset, Byte data);
+    Word read_word(Word offset);
+    void write_word(Word offset, Word data);
+
+    Byte debug_read(Word offset);
+    void debug_write(Word offset, Byte data);
+    Word debug_read_word(Word offset);
+    void debug_write_word(Word offset, Word data);
+
+    Memory* getMemoryPtr() { return m_memory; }
+
+    static int getFPS();
+    void run(); // main game loop
+    static void CpuThread();
+
+public:
+    static std::string hex(Uint32 n, Uint8 d);
+
     // Error system
     static bool Err(const char* msg);
 
@@ -63,11 +87,10 @@ public:
     Bus(const Bus& obj) = delete;
     // use to fetch / create the only instance of Bus
     static Bus* getInstance();
-    // main game loop
-    static void run();
-    static int getFPS();
 
-	GFX *m_gfx;
+    Memory* m_memory;
+    GFX *m_gfx;
+    C6809* m_cpu;
 };
 
 #endif // __BUS_H__
