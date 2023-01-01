@@ -2,12 +2,14 @@
 //
 #include "types.h"
 #include <chrono>
+#include <thread>
 #include <cstdlib>
 #include <stdio.h>
 #include "Device.h"
 #include "GFX.h"
 #include "MemoryMap.h"      // move this to the Memory.h when available
 #include "Memory.h"
+#include "C6809.h"
 #include "Bus.h"
 
 // initialize staatics
@@ -42,6 +44,9 @@ Bus::Bus()
         m_memory = new Memory();
         _devices.push_back(m_memory);
 
+        // create the cpu
+        m_cpu = new C6809(this);    // not attached to _devices
+
         // create the graphics device:
         m_gfx = new GFX();
         _devices.push_back(m_gfx);
@@ -72,7 +77,7 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("System RAM", 0x8000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
-    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, nullptr);
+    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, ".\\asm\\rom_e000.hex");
 
 
     // Memory Device Allocation ERROR???
@@ -295,9 +300,30 @@ Bus* Bus::getInstance()
     return s_instance;
 }
 
+
+void Bus::CpuThread()
+{
+    Bus* bus = Bus::getInstance();
+    while (bus->IsRunning())
+    {
+        using clock = std::chrono::system_clock;
+        using sec = std::chrono::duration<double, std::nano>;
+        static auto before_CPU = clock::now();
+        const sec duration = clock::now() - before_CPU;
+        if (duration.count() > 500.0f) {		// 1000.f = 1mhz, 500.0f = 2mhz
+            before_CPU = clock::now();
+            // dont send clocks while changing resolution modes
+            //if (!bus->gfx_restarting)
+                s_instance->m_cpu->clock();
+        }
+    }
+}
 void Bus::run()
 {
     //printf("Bus::run()\n");
+
+    // /start the CPU thread
+    std::thread th = std::thread(&Bus::CpuThread);
 
     // call OnInitialize() for all devices
     // (this is called after all device objects are created)
@@ -336,6 +362,8 @@ void Bus::run()
 
         // call OnRender() for all devices
         _OnRender();
+
+        printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
     }
 
     // call OnDestroy() for all devices
@@ -344,6 +372,8 @@ void Bus::run()
     // call OnQuit() for all devices
     _OnQuit();
 
+    // wait for the CPU thread to close
+    th.join();
 }
 
 int Bus::getFPS() 

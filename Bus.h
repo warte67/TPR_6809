@@ -35,6 +35,7 @@
 class Device;
 class GFX;
 class Memory;
+class C6809;
 
 class Bus
 {
@@ -44,6 +45,9 @@ private:
 
     static Bus* s_instance;
     static bool s_bIsRunning;	
+
+    bool IsRunning() { return s_bIsRunning;  }
+    void IsRunning(bool isrunning) { s_bIsRunning = isrunning; }    
 
 	static void _OnInitialize();           // runs once after all devices are created
 	static void _OnEvent(SDL_Event* evnt); // fires per SDL_Event
@@ -67,6 +71,11 @@ public:
     Word debug_read_word(Word offset);
     void debug_write_word(Word offset, Word data);
 
+    Memory* getMemoryPtr() { return m_memory; }
+
+    static int getFPS();
+    void run(); // main game loop
+    static void CpuThread();
 
 public:
     static std::string hex(Uint32 n, Uint8 d);
@@ -78,13 +87,10 @@ public:
     Bus(const Bus& obj) = delete;
     // use to fetch / create the only instance of Bus
     static Bus* getInstance();
-    // main game loop
-    static void run();
-    static int getFPS();
-
 
     Memory* m_memory;
     GFX *m_gfx;
+    C6809* m_cpu;
 };
 
 #endif // __BUS_H__
