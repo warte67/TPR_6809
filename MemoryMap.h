@@ -36,6 +36,8 @@ private:
 
 
 
+
+
 enum MEMMAP
 {
 // **** ********************************************** ****
@@ -67,9 +69,10 @@ enum MEMMAP
      VIDEO_END = 0x17ff,        // Last Byte of Video Buffer Memory
 
 // **** Graphics Hardware Registers: ****
-  BASE_GFX_REG = 0x1800,        // Base GFX Hardware Register
-      GFX_REG2 = 0x1802,        // GFX Register Number Two
-      GFX_REG3 = 0x1804,        // GFX Register Number Three
+     SCR_WIDTH = 0x1800,        // (Word) timing width
+    SCR_HEIGHT = 0x1802,        // (Word) timing height
+     PIX_WIDTH = 0x1804,        // (Word) pixel width
+    PIX_HEIGHT = 0x1806,        // (Word) pixel height
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 
 // **** Memory Bank Selects (16MB): ****
@@ -97,6 +100,7 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
 
 
 

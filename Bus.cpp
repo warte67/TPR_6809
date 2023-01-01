@@ -101,25 +101,12 @@ Bus::Bus()
     printf("\n");
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
-
-    //// memory test
-    //for (Word data = 1; data < 256; data++)
-    //{
-    //    for (DWord adr = 0; adr < 0x10000; adr++)
-    //    {
-    //        this->write(adr, (Byte)data);
-    //        Byte data = this->read(adr);
-    //        printf("$%04x $%02X\n", adr, data);
-    //    }
-    //}
-
-    // basic GFX callback testing
-    this->write(BASE_GFX_REG, 0x12);
-    this->read(BASE_GFX_REG);
-    this->write(GFX_REG2, 0x34);
-    this->read(GFX_REG2);
-    this->write(GFX_REG3, 0x56);
-    this->read(GFX_REG3);
+    Word tw = this->read_word(SCR_WIDTH);
+    Word th = this->read_word(SCR_HEIGHT);
+    printf("window width: %d    window height: %d\n", tw, th);
+    Word pw = this->read_word(PIX_WIDTH);
+    Word ph = this->read_word(PIX_HEIGHT);
+    printf("pixel width: %d    pixel height: %d\n", pw, ph);
 }
 Bus::~Bus() 
 {

@@ -11,6 +11,46 @@
 #include "GFX.h"
 
 
+Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+{
+	//printf("GFX::OnCallback()\n");
+
+	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
+	if (ptrGfx)
+	{
+		if (bWasRead)
+		{	// READ FROM
+			//Word wh = int(float(ptrGfx->_window_width + 0.5f) / ptrGfx->_aspect);
+			//ptrGfx->_window_height = wh;
+			if (ofs == SCR_WIDTH)
+				return (ptrGfx->_window_width >> 8) & 0x00ff;
+			if (ofs == SCR_WIDTH + 1)
+				return ptrGfx->_window_width & 0x00ff;
+			if (ofs == SCR_HEIGHT)
+				return (ptrGfx->_window_height >> 8) & 0x00ff;
+			if (ofs == SCR_HEIGHT + 1)
+				return ptrGfx->_window_height & 0x00ff;
+
+			if (ofs == PIX_WIDTH)
+				return (ptrGfx->_res_width >> 8) & 0x00ff;
+			if (ofs == PIX_WIDTH + 1)
+				return ptrGfx->_res_width & 0x00ff;
+			if (ofs == PIX_HEIGHT)
+				return (ptrGfx->_res_height >> 8) & 0x00ff;
+			if (ofs == PIX_HEIGHT + 1)
+				return ptrGfx->_res_height & 0x00ff;
+		}
+		else
+		{	// WRITTEN TO
+			if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
+				return data;	// read only
+		}
+	}
+	return data;
+}
+
+
+
 GFX::GFX() : REG(0,0)
 {
 	Device::_deviceName = "GFX";
@@ -27,26 +67,6 @@ GFX::~GFX()
 {    
 }
 
-Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
-{
-	//printf("GFX::OnCallback()\n");
-
-	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
-	if (ptrGfx)
-	{
-		if (bWasRead)
-		{	// READ FROM
-			Byte d = ptrGfx->debug_read(ofs);
-			printf("GFX::OnCallback() --> read($%04x) == $%02X\n", ofs, d);
-		}
-		else
-		{	// WRITTEN TO
-			printf("GFX::OnCallback() --> write($%-4x, $%02X)\n", ofs, data);
-			ptrGfx->debug_write(ofs, data);
-		}
-	}
-	return data;
-}
 
 Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 {
@@ -56,9 +76,10 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
     // (this will never be called due to being an abstract base type.)
     memmap->push({ offset, "", "" }); offset += 0;
     memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
-	memmap->push({ offset, "BASE_GFX_REG",	"Base GFX Hardware Register" }); offset += 2;
-	memmap->push({ offset, "GFX_REG2",		"GFX Register Number Two" }); offset += 2;
-	memmap->push({ offset, "GFX_REG3",		"GFX Register Number Three" }); offset += 2;
+	memmap->push({ offset, "SCR_WIDTH", "(Word) timing width" }); offset += 2;
+	memmap->push({ offset, "SCR_HEIGHT", "(Word) timing height" }); offset += 2;
+	memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
+	memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
 
 	Word size = offset - st_offset;
 	offset += bus->m_memory->AssignREG(reg_name, size, GFX::OnCallback);
@@ -69,15 +90,14 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
     return offset;
 }
 
-
 void GFX::OnInitialize() {}
 
 void GFX::OnEvent(SDL_Event *evnt) {}
 
 void GFX::OnCreate() 
 {
-	_window_width = 1366;
-	_window_height = int(float(_window_width) / _aspect);
+	//_window_width = 1366;
+	//_window_height = int(float((_window_width) + 0.5f) / _aspect);
 
 	Uint32 window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
 	_window = SDL_CreateWindow("SDL Window",

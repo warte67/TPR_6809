@@ -40,14 +40,33 @@ protected:
 	SDL_Renderer *_renderer = nullptr;
     SDL_Texture* _texture = nullptr;
 
-	int _window_width = 0;
-	int _window_height = 0;
-	int _res_width = 256;
-	int _res_height = 160;
-	float _aspect = 1.6f;
+    // default screen size
+    const float _aspect = 1.6f;
+	const int _window_width = 512 * 2;        // aka "timing"
+	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);
+	int _res_width = 512;			// 512 width max
+	int _res_height = int(float((_res_width) + 0.5f) / _aspect);
 
     Bus* bus = nullptr;
     Memory* memory = nullptr;
 };
 
 #endif // __GFX_H__
+
+
+/***********************************************
+
+    Screen Timing Notes:
+
+    Screen Resolution is based on a maximum 512x320 pixel timing.
+        - Text / Glyph Resolutions:
+            - 512x320 x 16-Color (only)
+                - Glyph Data Buffer size = 2.5kb
+                - Color Attribute Data Buffer size = 2.5kb
+        - Possible Pixel Graphics Resolutions include:
+            - 256x160 x 2-Color
+            - 256x80 x 4-Color
+            - 128x160 x 4-Color
+            - 128x80 x 16-Color
+
+************************************************/
