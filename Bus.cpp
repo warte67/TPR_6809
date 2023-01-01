@@ -80,7 +80,12 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("System RAM", 0x8000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
-    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, ".\\asm\\rom_e000.hex");
+
+    std::string rom_path = ".\\asm\\rom_e000.hex";
+    #ifdef LINUX
+        rom_path = "./asm/rom_e000.hex";
+    #endif
+    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, rom_path.c_str());
 
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {

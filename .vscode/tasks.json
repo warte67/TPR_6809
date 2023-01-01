@@ -10,6 +10,9 @@
                 "*.cpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
+                "-std=c++17",
+                "-Werror",
+                "-pthread",
                 "-lSDL2",
                 "-DLINUX"
             ],
