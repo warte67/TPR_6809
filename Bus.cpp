@@ -64,8 +64,11 @@ Bus::Bus()
     for (auto& a : _devices)
         mem_offset = a->MapDevice(memmap, mem_offset);
 
-    // reserve RAM to fill in vacancy where the hardware registers lack
+    // Reserve RAM to fill in vacancy where the hardware registers lack
     // this should be close to zero after all of the devices are mapped.
+    // System RAM starts at $2000. This should reserve memory unused by
+    // the hardware register devices. There should be around 2k memory
+    // available to be mapped by register devices.
     int gfx_size = 0x2000 - mem_offset;
     mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
 
@@ -78,7 +81,6 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, ".\\asm\\rom_e000.hex");
-
 
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {
@@ -93,12 +95,11 @@ Bus::Bus()
         }
         return;
     }
-
     for (auto& a : m_memory->m_memBlocks) {
         printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
     }
-
-    printf("Final Memory Offset: $%08X\n\n", mem_offset);
+    printf("\n");
+    //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
 
     //// memory test
@@ -111,6 +112,14 @@ Bus::Bus()
     //        printf("$%04x $%02X\n", adr, data);
     //    }
     //}
+
+    // basic GFX callback testing
+    this->write(BASE_GFX_REG, 0x12);
+    this->read(BASE_GFX_REG);
+    this->write(GFX_REG2, 0x34);
+    this->read(GFX_REG2);
+    this->write(GFX_REG3, 0x56);
+    this->read(GFX_REG3);
 }
 Bus::~Bus() 
 {
@@ -216,9 +225,6 @@ void Bus::_OnUpdate()
     {
         frame_acc -= 1.0f;
 		s_instance->m_fps = frame_count;
-
-		// std::string title = "FPS: " + std::to_string(frame_count);
-		// SDL_SetWindowTitle(s_instance->window, title.c_str());
 		frame_count = 0;
     }
 

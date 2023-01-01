@@ -10,16 +10,47 @@
 #include "Device.h"
 #include "GFX.h"
 
-GFX::GFX()
+
+GFX::GFX() : REG(0,0)
 {
 	Device::_deviceName = "GFX";
+	bus = Bus::getInstance();
+	memory = bus->getMemoryPtr();
+}
+GFX::GFX(Word offset, Word size) : REG(offset, size)
+{
+	Device::_deviceName = "GFX";
+	bus = Bus::getInstance();
+	memory = bus->getMemoryPtr();
 }
 GFX::~GFX()
 {    
 }
 
+Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+{
+	//printf("GFX::OnCallback()\n");
+
+	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
+	if (ptrGfx)
+	{
+		if (bWasRead)
+		{	// READ FROM
+			Byte d = ptrGfx->debug_read(ofs);
+			printf("GFX::OnCallback() --> read($%04x) == $%02X\n", ofs, d);
+		}
+		else
+		{	// WRITTEN TO
+			printf("GFX::OnCallback() --> write($%-4x, $%02X)\n", ofs, data);
+			ptrGfx->debug_write(ofs, data);
+		}
+	}
+	return data;
+}
+
 Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 {
+	std::string reg_name = "GFX System";
 	DWord st_offset = offset;
     // Defined only to serve as a template for inherited device objects.
     // (this will never be called due to being an abstract base type.)
@@ -29,7 +60,11 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_REG2",		"GFX Register Number Two" }); offset += 2;
 	memmap->push({ offset, "GFX_REG3",		"GFX Register Number Three" }); offset += 2;
 
-	offset += bus->m_memory->AssignREG("GFX System", offset - st_offset, nullptr);
+	Word size = offset - st_offset;
+	offset += bus->m_memory->AssignREG(reg_name, size, GFX::OnCallback);
+	REG* reg = memory->FindRegByName(reg_name);
+	GFX* gfx_temp = new GFX(reg->Base(), offset - st_offset);
+	memory->ReassignReg(reg->Base(), gfx_temp, reg->Name(), size, GFX::OnCallback);
 
     return offset;
 }
@@ -127,7 +162,9 @@ void GFX::OnUpdate(float fElapsedTime)
 	}
 	else
 		SDL_RenderClear(_renderer);
-	// update the fps every second
+
+	// update the fps every second. The SDL_SetWindowTitle seems very slow
+	// in Linux. Only call it once per second.
 	const float cDelay = 1.0f;
 	static float acc = fElapsedTime;
 	acc += fElapsedTime;

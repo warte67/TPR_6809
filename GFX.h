@@ -13,13 +13,16 @@
 #include "Device.h"
 #include "Memory.h"
 
-class GFX : public Memory   // ToDo: Inherit from class Memory instead
+class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
 
 public:
     GFX();
+    GFX(Word offset, Word size);
     virtual ~GFX();
+
+    static Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead);
 
     virtual Word MapDevice(MemoryMap* memmap, Word offset) override;
 
@@ -42,6 +45,9 @@ protected:
 	int _res_width = 256;
 	int _res_height = 160;
 	float _aspect = 1.6f;
+
+    Bus* bus = nullptr;
+    Memory* memory = nullptr;
 };
 
 #endif // __GFX_H__

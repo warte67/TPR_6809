@@ -215,9 +215,60 @@ DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Wor
 	if (nextAddress <= 0xFFFF) {
 		reg->callback = cb;
 		m_memBlocks.push_back(reg);
-	}	
+	}
 	return size;
 }
+
+DWord Memory::ReassignReg(Word offset, REG* reg,
+	std::string cDesc, Word size, Byte(*cb)(REG*, Word, Byte, bool))
+{
+	if (reg)
+	{
+		// out with the old
+		for (std::vector<Memory*>::iterator itr = m_memBlocks.begin(); itr != m_memBlocks.end(); ++itr) {
+			if ((*itr)->Name() == cDesc) {
+				delete* itr;
+				m_memBlocks.erase(itr);
+				break;
+			}
+		}
+		// in with the new
+		reg->Name(cDesc);
+		reg->Size(size);
+		reg->Base(offset);
+		reg->RegisterCallback(cb);
+
+		m_memBlocks.push_back(reg);
+
+		return size;
+	}
+	return size;
+}
+
+REG* Memory::FindRegByName(std::string name)
+{
+	// find the device by name
+	REG* ret = nullptr;
+
+	for (std::vector<Memory*>::iterator itr = m_memBlocks.begin(); itr != m_memBlocks.end(); ++itr) {
+		if ((*itr)->Name() == name) {
+			ret = dynamic_cast<REG*>(*itr);
+			break;
+		}
+	}
+	return ret;
+}
+
+
+
+//RAM::RAM(Word _offset, Word _size) : Memory(_offset, _size)
+//{
+//	//Device::Base(_offset);
+//	//Device::Size(_size);
+//	_deviceName = "RAM";
+//}
+
+
 REG::REG(Word offset, Word size, Byte(*cb_callback)(REG*, Word, Byte, bool)) : Memory(offset, size)
 {
 	callback = cb_callback;
@@ -325,7 +376,8 @@ Byte Memory::debug_read(Word ofs)
 			}
 			REG* reg = dynamic_cast<REG*>(m_memBlocks[t]);
 			if (reg != nullptr) {
-				return reg->read(ofs);
+				Byte d = reg->read(ofs);
+				return d;
 			}
 			return data;
 		}

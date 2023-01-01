@@ -24,7 +24,8 @@ public:
 	Memory(Word offset, Word size) : Device(offset, size) {
 		_deviceName = "Memory";
 		//bus = Bus::getInstance();
-	}	virtual ~Memory();
+	}	
+	virtual ~Memory();
 
 	// map this devices hardware registers (TODO: move to class Memory)
 	virtual Word MapDevice(MemoryMap* memmap, Word offset)  { return offset; }
@@ -43,8 +44,8 @@ public:
 	DWord AssignRAM(std::string cDesc, DWord size);
 	DWord AssignROM(std::string cDesc, Word size, const char* file);
 	DWord AssignREG(std::string cDesc, Word size, Byte(*callback)(REG*, Word, Byte, bool));
-	//DWord ReassignReg(Word, REG*, std::string, Word, Byte(*callback)(REG*, Word, Byte, bool));
-
+	DWord ReassignReg(Word, REG*, std::string, Word, Byte(*callback)(REG*, Word, Byte, bool));
+	REG* FindRegByName(std::string name);
 
 	Byte read(Word offset);
 
@@ -112,6 +113,21 @@ class REG : public Memory
 
 public:
 	REG(Word offset, Word size, Byte(*callback)(REG*, Word, Byte, bool));
+	REG(Word offset, Word size) : Memory(offset, size) {
+		_deviceName = "Memory";
+		//bus = Bus::getInstance();
+	}
+
+	Byte debug_read(Word offset) override {
+		if (offset - base < size)
+			return memory[(Word)(offset - base)];
+		return 0xff;
+	}
+	void debug_write(Word offset, Byte data) override {
+		if (offset - base < size)
+			memory[(Word)(offset - base)] = data;
+	}
+
 	virtual ~REG();
 
 	void RegisterCallback(Byte(*_callback)(REG* module, Word ofs, Byte data, bool bWasRead)) {
