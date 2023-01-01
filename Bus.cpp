@@ -16,7 +16,6 @@
 
 Bus* Bus::s_instance = nullptr;
 bool Bus::s_bIsRunning = false;
-//GFX* Bus::s_gfx = nullptr;
 
 //// private /////////////////////////
 
@@ -44,8 +43,9 @@ Bus::Bus()
         m_memory = new Memory();
         _devices.push_back(m_memory);
 
-        // create the cpu
-        m_cpu = new C6809(this);    // not attached to _devices
+        // create the cpu (clocked via external thread)
+        m_cpu = new C6809(this);    
+        // ... not attached to _devices vector
 
         // create the graphics device:
         m_gfx = new GFX();
