@@ -317,6 +317,7 @@ void Bus::run()
 
     // /start the CPU thread
     std::thread th = std::thread(&Bus::CpuThread);
+    // SDL_CreateThread()
 
     // call OnInitialize() for all devices
     // (this is called after all device objects are created)
@@ -366,6 +367,7 @@ void Bus::run()
     _OnQuit();
 
     // wait for the CPU thread to close
+    //SDL_WaitThread()
     th.join();
 }
 
