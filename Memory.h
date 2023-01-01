@@ -21,7 +21,10 @@ class Memory : public Device
 
 public:
 	Memory();
-	virtual ~Memory();
+	Memory(Word offset, Word size) : Device(offset, size) {
+		_deviceName = "Memory";
+		//bus = Bus::getInstance();
+	}	virtual ~Memory();
 
 	// map this devices hardware registers (TODO: move to class Memory)
 	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; }

@@ -7,6 +7,7 @@
 #ifndef __DEVICE_H__
 #define __DEVICE_H__
 
+
 #include "types.h"
 #include "MemoryMap.h"
 #include <string>
@@ -19,6 +20,10 @@ class Device
 
 public:
 	Device(std::string name);
+	Device(Word offset, Word size) : base(offset), size(size), memory(size) { 
+		_deviceName = "Device"; 
+		//bus = Bus::getInstance();
+	}
 	virtual ~Device();
 
 	// map this devices hardware registers (TODO: move to class Memory)

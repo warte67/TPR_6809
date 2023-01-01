@@ -4,6 +4,7 @@
  * Base Device class
  ******************************/
 
+#include "Bus.h"
 
 #include "Device.h"
 

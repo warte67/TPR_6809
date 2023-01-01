@@ -60,7 +60,6 @@ void Memory::OnQuit()
 
 DWord Memory::AssignRAM(std::string cDesc, DWord size) {
 	RAM* ram = new RAM(nextAddress, size);	
-
 	ram->base = nextAddress;
 	ram->_deviceName = cDesc;
 	nextAddress += size;
@@ -69,7 +68,7 @@ DWord Memory::AssignRAM(std::string cDesc, DWord size) {
 	}	
 	return size;
 }
-RAM::RAM(Word _offset, Word _size)
+RAM::RAM(Word _offset, Word _size) : Memory(_offset, _size)
 {
 	Device::Base(_offset);
 	Device::Size(_size);
@@ -262,29 +261,112 @@ Byte Memory::read(Word ofs)
 	}
 	return 0xCC;
 }
-void Memory::write(Word offset, Byte data)
+void Memory::write(Word ofs, Byte data)
 {
+	for (int t = 0; t < m_memBlocks.size(); t++) {
+		Word base = m_memBlocks[t]->Base();
+		Word size = m_memBlocks[t]->Size();
+		Word flr = ofs - base;
+
+		if (flr < size) {
+			RAM* ram = dynamic_cast<RAM*>(m_memBlocks[t]);
+			if (ram != nullptr) {
+				ram->write(ofs, data);
+				break;
+			}
+			ROM* rom = dynamic_cast<ROM*>(m_memBlocks[t]);
+			if (rom != nullptr) {
+				rom->write(ofs, data);
+				break;
+			}
+			REG* reg = dynamic_cast<REG*>(m_memBlocks[t]);
+			if (reg != nullptr) {
+				if (reg->callback)
+					reg->callback(reg, ofs, data, false);
+				else
+					reg->write(ofs, data);
+				break;
+			}
+		}
+	}
 }
 Word Memory::read_word(Word offset)
 {
-	return (Word)0;
+	Word ret = (read(offset) << 8) | read(offset + 1);
+	return ret;
 }
 void Memory::write_word(Word offset, Word data)
 {
+	Byte lsb = (data >> 8) & 0xFF;
+	Byte msb = data & 0xff;
+
+	write(offset, msb);
+	write(offset + 1, lsb);
 }
-Byte Memory::debug_read(Word offset)
+Byte Memory::debug_read(Word ofs)
 {
-	return (Byte)0;
+	for (int t = 0; t < m_memBlocks.size(); t++) {
+		Word base = m_memBlocks[t]->Base();
+		Word size = m_memBlocks[t]->Size();
+		Word flr = ofs - base;
+
+		if (flr < size) {
+			Byte data = m_memBlocks[t]->read(ofs);
+			RAM* ram = dynamic_cast<RAM*>(m_memBlocks[t]);
+			if (ram != nullptr) {
+				return ram->read(ofs);
+			}
+			ROM* rom = dynamic_cast<ROM*>(m_memBlocks[t]);
+			if (rom != nullptr) {
+				return rom->read(ofs);
+			}
+			REG* reg = dynamic_cast<REG*>(m_memBlocks[t]);
+			if (reg != nullptr) {
+				return reg->read(ofs);
+			}
+			return data;
+		}
+	}
+	return 0xCC;
 }
-void Memory::debug_write(Word offset, Byte data)
+void Memory::debug_write(Word ofs, Byte data)
 {
+	for (int t = 0; t < m_memBlocks.size(); t++) {
+		Word base = m_memBlocks[t]->Base();
+		Word size = m_memBlocks[t]->Size();
+		Word flr = ofs - base;
+
+		if (flr < size) {
+			RAM* ram = dynamic_cast<RAM*>(m_memBlocks[t]);
+			if (ram != nullptr) {
+				ram->write(ofs, data);
+				break;
+			}
+			ROM* rom = dynamic_cast<ROM*>(m_memBlocks[t]);
+			if (rom != nullptr) {
+				rom->write(ofs, data);
+				break;
+			}
+			REG* reg = dynamic_cast<REG*>(m_memBlocks[t]);
+			if (reg != nullptr) {
+				reg->write(ofs, data);
+				break;
+			}
+		}
+	}
 }
 Word Memory::debug_read_word(Word offset)
 {
-	return (Word)0;
+	Word ret = (debug_read(offset) << 8) | debug_read(offset + 1);
+	return ret;
 }
 void Memory::debug_write_word(Word offset, Word data)
 {
+	Byte msb = (data >> 8) & 0xFF;
+	Byte lsb = data & 0xff;
+
+	debug_write(offset, msb);
+	debug_write(offset + 1, lsb);
 }
 
 

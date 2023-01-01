@@ -50,6 +50,7 @@ Bus::Bus()
 
     // map low RAM $0000-$17ff (VIDEO_END)
     m_memory->AssignRAM("Low RAM", 0x1800);
+    m_memory->bus = this;
     mem_offset = 0x1800;
 
     //// map the memory for all attached devices
@@ -70,12 +71,7 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("System RAM", 0x8000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_1", 0x2000);
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
-    mem_offset += m_memory->AssignRAM("BIOS_ROM", 0x2000);
-
-    printf("Final Memory Offset: $%08X\n\n", mem_offset);
-
-
-
+    mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, nullptr);
 
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {
@@ -94,13 +90,19 @@ Bus::Bus()
         printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
     }
 
+    printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
-    // memory test
-    for (DWord adr = 0; adr < 0x10000; adr++)
-    {
-        m_memory->write(adr, 1);
-        Byte data = m_memory->read(adr);
-    }
+
+    //// memory test
+    //for (Word data = 1; data < 256; data++)
+    //{
+    //    for (DWord adr = 0; adr < 0x10000; adr++)
+    //    {
+    //        this->write(adr, (Byte)data);
+    //        Byte data = this->read(adr);
+    //        printf("$%04x $%02X\n", adr, data);
+    //    }
+    //}
 }
 Bus::~Bus() 
 {
