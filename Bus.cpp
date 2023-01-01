@@ -363,7 +363,7 @@ void Bus::run()
         // call OnRender() for all devices
         _OnRender();
 
-        printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
+        //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
     }
 
     // call OnDestroy() for all devices
