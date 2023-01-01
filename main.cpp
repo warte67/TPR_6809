@@ -4,6 +4,13 @@
 // linux build:   g++ -Werror -pthread -std=c++17 *.cpp -o main -lSDL2 -DLINUX
 // linux run:     ./main
 //
+// git push:
+//		git add .
+//		git commit -m "COMMIT_DESCRIPTION"
+//		git push
+//
+// git pull:
+//		git pull 
 
 #include "types.h"
 #include "Bus.h"
