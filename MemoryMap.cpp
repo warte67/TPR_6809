@@ -159,7 +159,7 @@ Word MemoryMap::end(Word offset)
 		{
 			if (a.symbol != "")
 			{
-				printf("%12s\tequ\t$%04x\t%s%s\n",
+				printf("%s\tequ\t$%04x\t%s%s\n",
 					a.symbol.c_str(),
 					a.address,
 					line_comment_character.c_str(),

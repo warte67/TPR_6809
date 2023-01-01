@@ -60,6 +60,7 @@ Bus::Bus()
         mem_offset = a->MapDevice(memmap, mem_offset);
 
     // reserve RAM to fill in vacancy where the hardware registers lack
+    // this should be close to zero after all of the devices are mapped.
     int gfx_size = 0x2000 - mem_offset;
     mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
 

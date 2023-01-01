@@ -36,7 +36,6 @@ private:
 
 
 
-
 enum MEMMAP
 {
 // **** ********************************************** ****
@@ -69,7 +68,9 @@ enum MEMMAP
 
 // **** Graphics Hardware Registers: ****
   BASE_GFX_REG = 0x1800,        // Base GFX Hardware Register
-  RESERVED_HDW = 0x1802,        // Reserved ($1802-$1FFB)
+      GFX_REG2 = 0x1802,        // GFX Register Number Two
+      GFX_REG3 = 0x1804,        // GFX Register Number Three
+  RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 
 // **** Memory Bank Selects (16MB): ****
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -96,8 +97,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
-
 
 
 

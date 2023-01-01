@@ -1,0 +1,150 @@
+                      ; ****************
+                      ; * ROM_E000.asm *
+                      ; ****************
+                              
+                      
+                      ; system call macro to support the Warte variant 
+                      ;               of the MC6809e, the 6809w. This replaces
+                      ;               the SWI3 instruction with the SYS #n OS9 
+                      ;               style system call instruction.
+                      SYS             macro
+                                      SWI3
+                                      fcb             \1              
+                                      endm
+                                              
+                      
+                                              
+                      
+                      ; **************
+                      ; * MEMORY MAP *
+                      ; **************
+0000                                                  org     $0000
+                                                      
+0000  E020            SOFT_RESET      fdb     do_RESET        ; Software RESET Vector
+0002  E00B            SOFT_NMI        fdb     do_NMI          ; Software NMI Vector
+0004  E00E            SOFT_SWI        fdb     do_SWI          ; Software SWI Vector
+0006  E011            SOFT_IRQ        fdb     do_IRQ          ; Software IRQ Vector
+0008  E014            SOFT_FIRQ       fdb     do_FIRQ         ; Software FIRQ Vector
+000A  E017            SOFT_SWI2       fdb     do_SWI2         ; Software SWI2 Vector
+000C  E01A            SOFT_SWI3       fdb     do_SWI3         ; Software SWI3 Vector
+000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
+                      
+                      
+0010  00              var_1                   fcb             $00
+0011  00              var_2                   fcb             $00
+0012  0000            sync                    fdb             $00
+                      
+0014                                          INCLUDE "mem_map.asm"
+                              ; **** ********************************************** ****
+                              ; **** * Allocated 64k Memory Mapped System Symbols * ****
+                              ; **** ********************************************** ****
+                      
+                      
+                              ; **** SOFTWARE Interrupt Vectors: ****
+                              ; (redefined)
+                      
+                              ; **** Zero-Page Kernal Variables: ****
+0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
+                      
+                              ; **** Stack Frames: ****
+0100                  U_STK_BTM       equ     $0100   ; 256 bytes default user stack space
+0200                  U_STK_TOP       equ     $0200   ; User Stack initial address
+0200                  S_STK_BTM       equ     $0200   ; 512 bytes default system stack space
+0400                  S_STK_TOP       equ     $0400   ; System Stack initial address
+                      
+                              ; **** Video Buffer Memory (target = $0400): ****
+0400                  VIDEO_START     equ     $0400   ; Start of Video Buffer Memory
+17FF                  VIDEO_END       equ     $17ff   ; Last Byte of Video Buffer Memory
+                      
+                              ; **** Graphics Hardware Registers: ****
+1800                  BASE_GFX_REG    equ     $1800   ; Base GFX Hardware Register
+1802                  GFX_REG2        equ     $1802   ; GFX Register Number Two
+1804                  GFX_REG3        equ     $1804   ; GFX Register Number Three
+2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
+                      
+                              ; **** Memory Bank Selects (16MB): ****
+1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
+1FFE                  RAMBANK_SEL_2   equ     $1ffe   ; (Word)Indexes 65536 x 8kb banks
+                      
+                              ; **** Standard Usable (from FAST static 32KB) RAM: ****
+2000                  RAM_START       equ     $2000   ; Begin System RAM (32k)
+9FFF                  RAM_END equ     $9fff   ; End System RAM
+                      
+                              ; **** Switchable RAM Banks (from SLOW external serial 16MB RAM chip): ****
+A000                  RAM_BANK_1      equ     $a000   ; switched 8KB ram bank 1
+C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
+                      
+                              ; **** Bios Kernal ROM: ****
+E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+                      
+                              ; **** Hardware Interrupt Vectors: ****
+                              ; (redefined)
+                      
+                      ; ***************************************
+                      ; * Read Only Sytem KERNAL ROM          *
+                      ; ***************************************
+                                            
+                       
+0014                  SECTION.CODE
+E000                                          org     $E000  
+                                  ;* Power On Initialization            
+E000                  ROM_ENTRY   
+E000  CE0201                                  LDU             #U_STK_TOP+1            ; top of user stack     
+E003  10CE0401                                LDS     #S_STK_TOP+1            ; top of stack space            
+E007  6E9F0000                    JMP     [SOFT_RESET]      
+                      
+                                  
+                                  ;* NMI Vector Handler                     
+E00B  7EE023          do_NMI      JMP just_rti
+                                  
+                                  ;* SWI Vector Handler (do_SWI)   
+E00E  7EE023          do_SWI          JMP just_rti
+                      
+                                  ;* IRQ Vector Handler         
+E011  7EE023          do_IRQ      JMP just_rti
+                      
+                                  ;* FIRQ Vector Handler         
+E014  7EE023          do_FIRQ     JMP just_rti
+                      
+                                  ;* SWI2 Vector Handler         
+E017  7EE023          do_SWI2     JMP just_rti
+                      
+                                  ;* SWI3 Vector Handler         
+E01A  7EE023          do_SWI3     JMP just_rti
+                      
+                                  ;* Reserved Vector Handler
+E01D  7EE024          do_RSRV     JMP reset
+                      
+                                  ;* Reset Vector Handler         
+E020  7EE024          do_RESET    JMP reset
+                                  
+                      ;********************
+                      ;* RESET
+                      ;**************************                     
+                                              
+                      ; NOTES:  
+                      ;
+                      ;                       SYNC still needs to be implemented along with NMI, IRQ, and FIRQ handlers
+                      
+E023                  just_rti        
+E023  3B                                      rti 
+                      
+                                              
+E024                  reset           
+                      
+E024  20FE            done            BRA     done                    ; infinate loop
+                      
+                      
+                      
+                      ; interrupt vectors
+FFF0                                                  org  $fff0
+FFF0  E01D            HARD_RSRVD      fdb  do_RSRV    ; Motorola RESERVED Hardware Interrupt Vector
+FFF2  E01A            HARD_SWI3       fdb  do_SWI3    ; SWI3 Hardware Interrupt Vector
+FFF4  E017            HARD_SWI2       fdb  do_SWI2    ; SWI2 Hardware Interrupt Vector
+FFF6  E014            HARD_FIRQ       fdb  do_FIRQ    ; FIRQ Hardware Interrupt Vector
+FFF8  E011            HARD_IRQ        fdb  do_IRQ     ; IRQ Hardware Interrupt Vector
+FFFA  E00E            HARD_SWI        fdb  do_SWI     ; SWI/SYS Hardware Interrupt Vector
+FFFC  E00B            HARD_NMI        fdb  do_NMI     ; NMI Hardware Interrupt Vector
+FFFE  E000            HARD_RESET      fdb  ROM_ENTRY  ; RESET Hardware Interrupt Vector
+                      
+0000                                          END
