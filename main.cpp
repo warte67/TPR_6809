@@ -4,6 +4,8 @@
 // linux build:   g++ -Werror -pthread -std=c++17 *.cpp -o main -lSDL2 -DLINUX
 // linux run:     ./main
 //
+// VSCode:  Git Extension Added
+// 
 // git push:
 //		git add .
 //		git commit -m "COMMIT_DESCRIPTION"
