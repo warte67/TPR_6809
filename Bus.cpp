@@ -82,7 +82,7 @@ Bus::Bus()
     mem_offset += m_memory->AssignRAM("RAM_BANK_2", 0x2000);
 
     std::string rom_path = ".\\asm\\rom_e000.hex";
-    #ifdef LINUX
+    #ifdef LINUX 
         rom_path = "./asm/rom_e000.hex";
     #endif
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, rom_path.c_str());
