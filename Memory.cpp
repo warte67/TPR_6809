@@ -59,19 +59,20 @@ void Memory::OnQuit()
 //// VIRTUAL ACCESSORS //////////////////////////////
 
 DWord Memory::AssignRAM(std::string cDesc, DWord size) {
-	RAM* ram = new RAM(nextAddress, size);
+	RAM* ram = new RAM(nextAddress, size);	
+
 	ram->base = nextAddress;
 	ram->_deviceName = cDesc;
+	nextAddress += size;
 	if (nextAddress <= 0xFFFF) {
 		m_memBlocks.push_back(ram);
-	}
-	nextAddress += size;
+	}	
 	return size;
 }
-RAM::RAM(Word offset, Word size)
+RAM::RAM(Word _offset, Word _size)
 {
-	Device::Base(offset);
-	Device::Size(size);
+	Device::Base(_offset);
+	Device::Size(_size);
 	_deviceName = "RAM";
 }
 
@@ -99,10 +100,10 @@ DWord Memory::AssignROM(std::string cDesc, Word size, const char* file = nullptr
 		rom->setFilename(file);
 		rom->load_hex(file, nextAddress);
 	}
+	nextAddress += size;
 	if (nextAddress <= 0xFFFF) {
 		m_memBlocks.push_back(rom);
-	}
-	nextAddress += size;
+	}	
 	return size;
 }
 ROM::ROM(Word offset, Word size)
@@ -207,12 +208,12 @@ void ROM::load_hex(const char* filename, Word base) {
 DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Word ofs, Byte data, bool bWasRead)) {
 	REG* reg = new REG(nextAddress, size, cb);
 	reg->_deviceName = cDesc;
+	reg->base = nextAddress;
 	nextAddress += size;
 	if (nextAddress <= 0xFFFF) {
 		reg->callback = cb;
 		m_memBlocks.push_back(reg);
-	}
-	reg->base = nextAddress;
+	}	
 	return size;
 }
 REG::REG(Word offset, Word size, Byte(*cb_callback)(REG*, Word, Byte, bool))

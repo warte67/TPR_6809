@@ -76,6 +76,7 @@ Bus::Bus()
 
 
 
+
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {
         printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
@@ -91,6 +92,14 @@ Bus::Bus()
     }
     for (auto& a : m_memory->m_memBlocks) {
         printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+    }
+
+
+    // memory test
+    for (DWord adr = 0; adr < 0x10000; adr++)
+    {
+        m_memory->write(adr, 1);
+        Byte data = m_memory->read(adr);
     }
 }
 Bus::~Bus() 
