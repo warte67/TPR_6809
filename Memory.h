@@ -36,7 +36,7 @@ public:
 	virtual void OnCreate() override;					// fires when the object is created/recreated
 	virtual void OnDestroy() override;					// fires when the object is destroyed/lost focus
 	virtual void OnUpdate(float fElapsedTime) override;	// fires each frame, for updates
-	virtual void OnRender() override;					// render the current frames texture
+	//virtual void OnRender() override;					// render the current frames texture
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
 
 	// virtual accessors

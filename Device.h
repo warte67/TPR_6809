@@ -31,7 +31,7 @@ public:
 	virtual void OnCreate() = 0;					// fires when the object is created/recreated
 	virtual void OnDestroy() = 0;					// fires when the object is destroyed/lost focus
 	virtual void OnUpdate(float fElapsedTime) = 0;	// fires each frame, for updates
-	virtual void OnRender() = 0;					// render the current frames texture
+	//virtual void OnRender() = 0;					// render the current frames texture
     virtual void OnQuit() = 0;						// fires on exit -- reverses OnInitialize()
 
 	// virtual accessors

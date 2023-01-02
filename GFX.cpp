@@ -192,17 +192,29 @@ void GFX::OnUpdate(float fElapsedTime)
 	{
 		acc -= cDelay;
 		std::string title = "FPS: " + std::to_string(Bus::getFPS());
-		SDL_SetWindowTitle(_window, title.c_str());}
+		SDL_SetWindowTitle(_window, title.c_str());
 	}
 
-void GFX::OnRender() 
-{
-	// output this objects texture
+	// render the GFX object to the main screen texture
 	SDL_SetRenderTarget(_renderer, NULL);
 	SDL_RenderCopy(_renderer, _texture, NULL, NULL);
 
-	// only present from the GFX object
+	// render all of the sub-GFX "GfxNode" objects with Gfx only OnRender() 
+	// virtual methods	to the main target texture
+	// ...
+
+	// finally present the GFX chain 
 	SDL_RenderPresent(_renderer);
 }
+
+// void GFX::OnRender() 
+// {
+// 	// output this objects texture
+// 	SDL_SetRenderTarget(_renderer, NULL);
+// 	SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+
+// 	// only present from the GFX object
+// 	SDL_RenderPresent(_renderer);
+// }
 
 void GFX::OnQuit() {}

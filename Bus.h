@@ -54,7 +54,7 @@ private:
 	static void _OnCreate();               // fires when the object is created/recreated
 	static void _OnDestroy();              // fires when the object is destroyed/lost focus
 	static void _OnUpdate();               // fires each frame, for updates
-	static void _OnRender();               // render the current frames texture
+	//static void _OnRender();               // render the current frames texture
     static void _OnQuit();                 // fires on exit -- reverses OnInitialize()
 
 	std::vector<Device *> _devices;

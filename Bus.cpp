@@ -224,13 +224,13 @@ void Bus::_OnUpdate()
 	for (auto &a : s_instance->_devices)
 		a->OnUpdate(fElapsedTime);
 }
-void Bus::_OnRender() 
-{
-    //printf("Bus::_OnRender()\n");
+// void Bus::_OnRender() 
+// {
+//     //printf("Bus::_OnRender()\n");
 
-	for (auto &a : s_instance->_devices)
-		a->OnRender();
-}
+// 	for (auto &a : s_instance->_devices)
+// 		a->OnRender();
+// }
 void Bus::_OnQuit()
 {
     //printf("Bus::_OnQuit()\n");
@@ -360,7 +360,9 @@ void Bus::run()
         _OnUpdate();
 
         // call OnRender() for all devices
-        _OnRender();
+        // moved to within GFX::OnUpdate() since ony sub-GFX devices are rendered
+        // and only rendered by GFX::OnRender()z        
+        // _OnRender(); 
 
         //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
     }
