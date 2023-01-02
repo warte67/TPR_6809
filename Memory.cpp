@@ -46,10 +46,10 @@ void Memory::OnUpdate(float fElapsedTime)
 {
 }
 
-// render the current frames texture
-void Memory::OnRender()
-{
-}
+// // render the current frames texture
+// void Memory::OnRender()
+// {
+// }
 
 // fires on exit -- reverses OnInitialize()
 void Memory::OnQuit()
