@@ -92,7 +92,19 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 
 void GFX::OnInitialize() {}
 
-void GFX::OnEvent(SDL_Event *evnt) {}
+void GFX::OnEvent(SDL_Event *evnt) 
+{
+	if (evnt->type == SDL_KEYDOWN)
+	{
+		if (evnt->key.keysym.sym == SDLK_RETURN)
+		{
+			if (SDL_GetModState() & KMOD_ALT)
+			{
+				// SDL_SetWindowFullscreen(_window, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+			}
+		}
+	}
+}
 
 void GFX::OnCreate() 
 {
