@@ -230,9 +230,9 @@ void GFX::_onRender()
 		// printf("FULLSCREEN:\n");
 		// printf("	aspect: %f\n", _aspect);
 		// printf("	width:  %f\n", fw);
-		// printf("	height: %f\n", fh);		
-
-        SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+		// printf("	height: %f\n", fh);	
+		
+		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
 		SDL_RenderCopy(_renderer, _texture, NULL, &dest);
 	}
 	else
