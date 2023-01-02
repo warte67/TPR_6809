@@ -216,7 +216,7 @@ void GFX::_onRender()
 	Uint32 window_flags = SDL_GetWindowFlags(_window);
 	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 	{
-        // fetch the actual current display resolution
+		// fetch the actual current display resolution
 		int ww, wh;
 		SDL_GetWindowSize(_window, &ww, &wh);
 
