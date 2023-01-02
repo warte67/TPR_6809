@@ -99,7 +99,10 @@ void GFX::OnCreate()
 	//_window_width = 1366;
 	//_window_height = int(float((_window_width) + 0.5f) / _aspect);
 
+	const bool bIsFullscreen = false;
 	Uint32 window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
+	if (bIsFullscreen)
+		window_flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
 	_window = SDL_CreateWindow("SDL Window",
 					SDL_WINDOWPOS_CENTERED,
 					SDL_WINDOWPOS_CENTERED,
@@ -196,8 +199,7 @@ void GFX::OnUpdate(float fElapsedTime)
 	}
 
 	// render the GFX object to the main screen texture
-	SDL_SetRenderTarget(_renderer, NULL);
-	SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+	_onRender();
 
 	// render all of the sub-GFX "GfxNode" objects with Gfx only OnRender() 
 	// virtual methods	to the main target texture
@@ -206,6 +208,79 @@ void GFX::OnUpdate(float fElapsedTime)
 	// finally present the GFX chain 
 	SDL_RenderPresent(_renderer);
 }
+
+void GFX::_onRender()
+{
+	SDL_SetRenderTarget(_renderer, NULL);
+
+	Uint32 window_flags = SDL_GetWindowFlags(_window);
+	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+	{
+        // fetch the actual current display resolution
+		int ww, wh;
+		SDL_GetWindowSize(_window, &ww, &wh);
+
+		float fh = (float)wh;
+		float fw = fh * _aspect;
+		if (fw > ww)
+		{
+			fw = (float)ww;
+			fh = fw / _aspect;
+		}
+
+		printf("FULLSCREEN:\n");
+		printf("	aspect: %f\n", _aspect);
+		printf("	width:  %f\n", fw);
+		printf("	height: %f\n", fh);		
+
+        SDL_Rect dest = { 
+				int(ww / 2 - (int)fw / 2), 
+				int(wh / 2 - (int)fh / 2), 
+				(int)fw, 
+				(int)fh 
+			};
+		SDL_RenderCopy(_renderer, _texture, NULL, &dest);
+	}
+	else
+	{
+		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+	}
+}
+/**
+void GFX::OnRender()
+{
+        //printf("GFX::OnRender()\n");
+
+        // update the main background texture
+        SDL_SetRenderTarget(m_renderer, NULL);
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0xFF);
+        SDL_RenderClear(m_renderer);
+
+        // fetch the actual current display resolution
+        SDL_DisplayMode dm;
+        SDL_GetCurrentDisplayMode(m_display_num, &dm);
+        float aspect = m_vGres[m_video_res].aspect;
+        int ww = m_surface->w;
+        int wh = m_surface->h;
+        SDL_Rect dest = { dm.w / 2 - ww / 2, dm.h / 2 - wh / 2, ww, wh };
+        if (m_fullscreen) {
+                // SDL_RenderSetClipRect(m_renderer, &dest);    // clip to screen
+                SDL_RenderCopy(m_renderer, m_texture, NULL, &dest);
+        }
+        else
+                SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
+
+        // update / render all of the attached 
+        for (int t = 0; t < 8; t++)
+                if (m_gfx_mode_enable & 1 << t)
+                        m_gmodes[t]->OnRender();
+
+        // present the overall frame
+        SDL_RenderPresent(m_renderer);
+}
+**/
+
+
 
 // void GFX::OnRender() 
 // {

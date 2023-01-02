@@ -35,6 +35,9 @@ public:
     virtual void OnQuit();						// fires on exit -- reverses OnInitialize()
 
 protected:
+
+    void _onRender();   // render the GFX children (graphics modes)
+
 	SDL_Window *_window = nullptr;
 	SDL_Surface *_surface = nullptr;
 	SDL_Renderer *_renderer = nullptr;
@@ -42,7 +45,7 @@ protected:
 
     // default screen size
     const float _aspect = 1.6f;
-	const int _window_width = 512 * 2;        // aka "timing"
+	const int _window_width = 512 * 3;        // aka "timing"
 	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);
 	int _res_width = 512;			// 512 width max
 	int _res_height = int(float((_res_width) + 0.5f) / _aspect);
