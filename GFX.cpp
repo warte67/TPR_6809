@@ -133,11 +133,11 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
 	memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
 
-	Word size = offset - st_offset;
-	offset += bus->m_memory->AssignREG(reg_name, size, GFX::OnCallback);
-	REG* reg = memory->FindRegByName(reg_name);
-	GFX* gfx_temp = new GFX(reg->Base(), offset - st_offset);
-	memory->ReassignReg(reg->Base(), gfx_temp, reg->Name(), size, GFX::OnCallback);
+	//Word size = offset - st_offset;
+	//offset += bus->m_memory->AssignREG(reg_name, size, GFX::OnCallback);
+	//REG* reg = memory->FindRegByName(reg_name);
+	//GFX* gfx_temp = new GFX(reg->Base(), offset - st_offset);
+	//memory->ReassignReg(reg->Base(), gfx_temp, reg->Name(), size, GFX::OnCallback);
 
 	//Bus* bus = Bus::getInstance();
 	//delete bus->m_gfx;

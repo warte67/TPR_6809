@@ -65,11 +65,6 @@ Bus::Bus()
     for (auto& a : _devices)
         mem_offset = a->MapDevice(memmap, mem_offset);
 
-
-
-
-
-
     // Reserve RAM to fill in vacancy where the hardware registers lack
     // this should be close to zero after all of the devices are mapped.
     // System RAM starts at $2000. This should reserve memory unused by
