@@ -76,6 +76,7 @@ public:
     static int getFPS();
     void run(); // main game loop
     static void CpuThread();
+    bool bCpuEnabled = false;
 
 public:
     static std::string hex(Uint32 n, Uint8 d);

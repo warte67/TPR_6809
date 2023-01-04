@@ -146,7 +146,7 @@ Word MemoryMap::end(Word offset)
 				if (a.comment == "")
 					printf("\n");
 				else
-					printf("%s**** %s ****\n", line_comment_character.c_str(), a.comment.c_str());
+					printf("%s %s\n", line_comment_character.c_str(), a.comment.c_str());
 			}
 		}
 		printf("};");

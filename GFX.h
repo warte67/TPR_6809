@@ -49,10 +49,27 @@ protected:
 	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);
 	int _res_width = 512;			// 512 width max
 	int _res_height = int(float((_res_width) + 0.5f) / _aspect);
+    const int _window_flags = SDL_WINDOW_SHOWN;	// | SDL_WINDOW_BORDERLESS; // | SDL_WINDOW_RESIZABLE;
+    const int _fullscreen_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    Uint32 _renderer_flags = 0;
 
+    // statics
+    static bool m_VSYNC;		// 1:VSYNC, 2:not throttled
+    static bool m_fullscreen;	// 1:fullscreen, 2:windowed
+    static int  m_display_num;	// which monitor to use
+
+    // internal state
+    //bool bWasInit = false;
+    bool bIsDirty = true;
+
+
+    // device objects
     Bus* bus = nullptr;
     Memory* memory = nullptr;
 };
+
+
+
 
 #endif // __GFX_H__
 

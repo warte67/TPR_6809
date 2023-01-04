@@ -38,22 +38,23 @@ Bus::Bus()
     DWord mem_offset = memmap->start();
 
     // Create all of the attached devices:
-    {
-        // create the memory map device:
-        m_memory = new Memory();
-        _devices.push_back(m_memory);
 
-        // create the cpu (clocked via external thread)
-        m_cpu = new C6809(this);    
-        // ... not attached to _devices vector
+    // create the memory map device:
+    m_memory = new Memory();
+    _devices.push_back(m_memory);
 
-        // create the graphics device:
-        m_gfx = new GFX();
-        _devices.push_back(m_gfx);
+    // create the cpu (clocked via external thread)    
+    bCpuEnabled = false;
+    m_cpu = new C6809(this);    
+    // CPU not attached to _devices vector
 
-        // add more devices here:
-        // ...
-    }
+    // create the graphics device:
+    m_gfx = new GFX();
+    _devices.push_back(m_gfx);
+
+    // add more devices here:
+    // ...
+
 
     // map low RAM $0000-$17ff (VIDEO_END)
     m_memory->AssignRAM("Low RAM", 0x1800);
@@ -63,6 +64,11 @@ Bus::Bus()
     // map memory for all attached devices
     for (auto& a : _devices)
         mem_offset = a->MapDevice(memmap, mem_offset);
+
+
+
+
+
 
     // Reserve RAM to fill in vacancy where the hardware registers lack
     // this should be close to zero after all of the devices are mapped.
@@ -86,6 +92,7 @@ Bus::Bus()
         rom_path = "./asm/rom_e000.hex";
     #endif
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, rom_path.c_str());
+
 
     // Memory Device Allocation ERROR???
     if (mem_offset != 0x10000) {
@@ -112,6 +119,9 @@ Bus::Bus()
     Word pw = this->read_word(PIX_WIDTH);
     Word ph = this->read_word(PIX_HEIGHT);
     printf("pixel width: %d    pixel height: %d\n", pw, ph);
+
+
+    bCpuEnabled = true;
 }
 Bus::~Bus() 
 {
@@ -312,6 +322,7 @@ void Bus::CpuThread()
             before_CPU = clock::now();
             // dont send clocks while changing resolution modes
             //if (!bus->gfx_restarting)
+            if (bus->bCpuEnabled)
                 s_instance->m_cpu->clock();
         }
     }
@@ -328,47 +339,54 @@ void Bus::run()
     // (this is called after all device objects are created)
     _OnInitialize();
 
-    // call OnCreate() for all devices
-    // (this may be called in program. Such as gain/lost focus
-    //  or graphics mode changes.)
-    _OnCreate();
-
-    while(s_bIsRunning)
+    while (s_bIsRunning)
     {
-        SDL_Event evnt;
-        while(SDL_PollEvent(&evnt))
+        // call OnCreate() for all devices
+        // (this may be called in program. Such as gain/lost focus
+        //  or graphics mode changes.)
+        _OnCreate();
+
+        while (!m_gfx->bIsDirty)
         {
-            switch(evnt.type)
+            SDL_Event evnt;
+            while (SDL_PollEvent(&evnt))
             {
+                switch (evnt.type)
+                {
                 case SDL_QUIT:
                 {
                     s_bIsRunning = false;
+                    m_gfx->bIsDirty = true;
                     break;
                 }
                 case SDL_KEYDOWN:
                 {
                     if (evnt.key.keysym.sym == SDLK_ESCAPE)
+                    {
                         s_bIsRunning = false;
+                        m_gfx->bIsDirty = true;
+                    }                    
                     break;
                 }
+                }
+                // call OnEvent(SDL_Event& evnt) for all devices
+                _OnEvent(&evnt);
             }
-            // call OnEvent(SDL_Event& evnt) for all devices
-            _OnEvent(&evnt);
+
+            // call OnUpdate(float fElapsedTim) for all devices
+            _OnUpdate();
+
+            // call OnRender() for all devices
+            // moved to within GFX::OnUpdate() since ony sub-GFX devices are rendered
+            // and only rendered by GFX::OnRender()z        
+            // _OnRender(); 
+
+            //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
         }
 
-        // call OnUpdate(float fElapsedTim) for all devices
-        _OnUpdate();
-
-        // call OnRender() for all devices
-        // moved to within GFX::OnUpdate() since ony sub-GFX devices are rendered
-        // and only rendered by GFX::OnRender()z        
-        // _OnRender(); 
-
-        //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
+        // call OnDestroy() for all devices
+        _OnDestroy();
     }
-
-    // call OnDestroy() for all devices
-    _OnDestroy();
 
     // call OnQuit() for all devices
     _OnQuit();

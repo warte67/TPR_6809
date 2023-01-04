@@ -11,6 +11,11 @@
 #include "GFX.h"
 
 
+bool GFX::m_VSYNC       = 0;	// 1:VSYNC, 2:not throttled
+bool GFX::m_fullscreen  = 1;	// 1:fullscreen, 2:windowed
+int  GFX::m_display_num = 2;	// which monitor to use
+
+
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
@@ -20,6 +25,24 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 	{
 		if (bWasRead)
 		{	// READ FROM
+
+			if (ofs == GFX_FLAGS)
+			{
+				//      bit 7: fullscreen
+				//      bit 6: vsync
+				//      bit 5: unassigned
+				//      bit 4: unassigned
+				//      bit 3: unassigned
+				//      bit 0-2: display monitor (0-7)
+				Byte ret = 0;
+				if (ptrGfx->m_fullscreen)	ret |= 0x80;
+				if (ptrGfx->m_VSYNC)		ret |= 0x40;
+				Byte num = ptrGfx->m_display_num & 0x07;
+				ret |= num;
+				ptrGfx->debug_write(ofs, ret);	// pre-write
+				return ret;
+			}
+
 			//Word wh = int(float(ptrGfx->_window_width + 0.5f) / ptrGfx->_aspect);
 			//ptrGfx->_window_height = wh;
 			if (ofs == SCR_WIDTH)
@@ -42,6 +65,28 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		}
 		else
 		{	// WRITTEN TO
+
+			if (ofs == GFX_FLAGS)
+			{
+				//      bit 7: fullscreen
+				//      bit 6: vsync
+				//      bit 5: unassigned
+				//      bit 4: unassigned
+				//      bit 3: unassigned
+				//      bit 0-2: display monitor (0-7)
+				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
+				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
+				ptrGfx->m_display_num = data & 0x07;
+
+				// why are these different?
+					//ptrGfx->bIsDirty = true;
+
+					//Bus* bus = Bus::getInstance();
+					//bus->m_gfx->bIsDirty = true;
+
+				ptrGfx->debug_write(ofs, data);
+			}
+
 			if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
 				return data;	// read only
 		}
@@ -72,10 +117,17 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 {
 	std::string reg_name = "GFX System";
 	DWord st_offset = offset;
-    // Defined only to serve as a template for inherited device objects.
-    // (this will never be called due to being an abstract base type.)
-    memmap->push({ offset, "", "" }); offset += 0;
-    memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
+	// Defined only to serve as a template for inherited device objects.
+	// (this will never be called due to being an abstract base type.)
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
+	memmap->push({ offset, "", "    bit 7: fullscreen" }); offset += 0;
+	memmap->push({ offset, "", "    bit 6: vsync" }); offset += 0;
+	memmap->push({ offset, "", "    bit 5: unassigned" }); offset += 0;
+	memmap->push({ offset, "", "    bit 4: unassigned" }); offset += 0;
+	memmap->push({ offset, "", "    bit 3: unassigned" }); offset += 0;
+	memmap->push({ offset, "", "    bit 0-2: display monitor (0-7)" }); offset += 0;
 	memmap->push({ offset, "SCR_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "SCR_HEIGHT", "(Word) timing height" }); offset += 2;
 	memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
@@ -87,7 +139,11 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	GFX* gfx_temp = new GFX(reg->Base(), offset - st_offset);
 	memory->ReassignReg(reg->Base(), gfx_temp, reg->Name(), size, GFX::OnCallback);
 
-    return offset;
+	//Bus* bus = Bus::getInstance();
+	//delete bus->m_gfx;
+	//bus->m_gfx = gfx_temp;
+
+	return offset;
 }
 
 void GFX::OnInitialize() {}
@@ -101,6 +157,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 			if (SDL_GetModState() & KMOD_ALT)
 			{
 				// SDL_SetWindowFullscreen(_window, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+				Byte data = this->read(GFX_FLAGS);
+				data ^= 0x80;
+				bus->write(GFX_FLAGS, data);
+				printf("FULLSCREEN TOGGLE\n");
+
+				//m_fullscreen = false;
+				//bIsDirty = true;
 			}
 		}
 	}
@@ -111,50 +174,108 @@ void GFX::OnCreate()
 	//_window_width = 1366;
 	//_window_height = int(float((_window_width) + 0.5f) / _aspect);
 
-	const bool bIsFullscreen = false;
-	Uint32 window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
-	if (bIsFullscreen)
-		window_flags += SDL_WINDOW_FULLSCREEN_DESKTOP;
-	_window = SDL_CreateWindow("SDL Window",
-					SDL_WINDOWPOS_CENTERED,
-					SDL_WINDOWPOS_CENTERED,
-					_window_width, _window_height,
-					window_flags);
-	if (_window == NULL)
+
+	// detect the desktop display size
+	SDL_DisplayMode dm;
+	SDL_GetCurrentDisplayMode(m_display_num, &dm);
+
+	int height = dm.h;	// 900;
+	// int width = (int)float(height * m_vGres[m_video_res].aspect);
+	int width = (int)float(height * _aspect);
+	if (!m_fullscreen)
 	{
-		std::string er = "Failed to create the window: ";
+		height -= 54;	// chop some vertical to account for the windowed title bar
+		width = (int)float(height * _aspect);
+	}
+
+	// adjust the window size based on odd aspect ratio monitors
+	if (width >= dm.w)
+	{
+		width = dm.w;
+		// height = width / m_vGres[m_video_res].aspect;
+		height = int((float)width / _aspect);
+	}
+
+	// create the window
+	_window = SDL_CreateWindow("X9_Retro6809",
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, _window_flags);
+	if (_window == nullptr)
+	{
+		std::string er = "Window could not be created! SDL_Error: %s";
 		er += SDL_GetError();
 		Bus::Err(er.c_str());
 	}
 	_surface = SDL_GetWindowSurface(_window);
-	if (_surface == NULL)
+
+	// center the window in the appropriate display monitor
+	int dsply_max = SDL_GetNumVideoDisplays();
+	//int dsply_num = (bus->read(GFX_DISPLAY_AUX) & GRES_AUX::GRES_AUX_DSPLY_MASK) % dsply_max;
+	SDL_SetWindowPosition(_window,
+		SDL_WINDOWPOS_CENTERED_DISPLAY(m_display_num), SDL_WINDOWPOS_CENTERED_DISPLAY(m_display_num));
+
+	// set window to fullscreen?
+	if (m_fullscreen)
 	{
-		std::string er = "Failed to retrieve the windows surface: ";
+		if (SDL_SetWindowFullscreen(_window, _fullscreen_flags) < 0)
+		{
+			std::string err = "Failed to set fullscreen: \n";
+			err += SDL_GetError();
+			Bus::Err(err.c_str());
+		}
+	}
+
+	// create the main renderer for the window
+	_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
+	if (m_VSYNC)
+		_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC;
+
+	_renderer = SDL_CreateRenderer(_window, -1, _renderer_flags);
+	if (_renderer == nullptr)
+	{
+		std::string er = "Renderer could not be created! SDL Error: %s";
 		er += SDL_GetError();
 		Bus::Err(er.c_str());
 	}
-	Uint32 flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;	// | SDL_RENDERER_PRESENTVSYNC;
-	_renderer = SDL_CreateRenderer(_window, -1, flags);
-	if (_renderer == NULL)
+	SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
+
+	// create the main screen texture	
+	_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
+		SDL_TEXTUREACCESS_TARGET, _res_width, _res_height);
+
+	bIsDirty = false;
+	//bWasInit = true;
+	//bus->cpu_pause = false;
+
+	// OnCreate all of the graphics mode layers
+	//for (int t = 0; t < 8; t++)
+	//	m_gmodes[t]->OnCreate((Word)width, (Word)height, m_vGres[m_video_res].res_width, m_vGres[m_video_res].res_height, aspect);
+
+	// output debug info to console
+	const bool OUTPUT_ONCREATE = true;
+	if (OUTPUT_ONCREATE)
 	{
-		std::string er = "Failed to create the renderer: ";
-		er += SDL_GetError();
-		Bus::Err(er.c_str());
+		//system("cls");
+		std::string szMon[] = { "Middle", "Left", "Right" };
+		printf("\n\n\n\n");
+		printf("GFX::OnCreate(): \n");
+		//printf("           Mode: $% 02X\n", m_video_res);
+		printf("         Screen: %d X %d\n", width, height);
+		printf("         Timing: %d X %d\n", _window_width, _window_height);
+		printf("     Resolution: %d X %d\n", _res_width, _res_height);
+		printf("         Aspect: %f\n", _aspect);
+		printf("        Monitor: %d\n", m_display_num);
+		if (m_fullscreen)	printf("    Screen Mode: FULLSCREEN\n");
+		else	printf("    Screen Mode: WINDOWED\n");
 	}
-	_texture = SDL_CreateTexture(_renderer, 
-							SDL_PIXELFORMAT_RGBA4444, 
-							SDL_TEXTUREACCESS_TARGET, 
-							_res_width, _res_height);
-	if (_texture == NULL)
-	{
-		std::string er = "Failed to create the texture: ";
-		er += SDL_GetError();
-		Bus::Err(er.c_str());
-	}
+
+	//SDL_ShowCursor(SDL_DISABLE);
+
 }
 
 void GFX::OnDestroy()
 {
+	//bus->cpu_pause = true;
+
 	if (_texture)
 	{
 		SDL_DestroyTexture(_texture);
@@ -176,6 +297,8 @@ void GFX::OnDestroy()
 		SDL_DestroyWindow(_window);
 		_window = nullptr;
 	}
+
+	//bWasInit = false;
 }
 
 void GFX::OnUpdate(float fElapsedTime) 
