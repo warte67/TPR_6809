@@ -23,7 +23,7 @@ public:
 	virtual ~Device();
 	 
 	// map this devices hardware registers
-	static virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;
+	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;
 
 	// abstract members
 	virtual void OnInitialize() = 0;				// runs once after all devices are created
