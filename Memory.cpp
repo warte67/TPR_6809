@@ -351,7 +351,8 @@ void Memory::write_word(Word offset, Word data)
 }
 Byte Memory::debug_read(Word ofs)
 {
-	for (int t = 0; t < m_memBlocks.size(); t++) {
+	for (int t = 0; t < m_memBlocks.size(); t++) 
+	{
 		Word base = m_memBlocks[t]->Base();
 		Word size = m_memBlocks[t]->Size();
 		Word flr = ofs - base;

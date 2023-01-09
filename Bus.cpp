@@ -57,17 +57,34 @@ Bus::Bus()
 
     // create the graphics device:
     m_gfx = new GFX();
-        int size = m_gfx->MapDevice(memmap, mem_offset);   
-        m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
-        REG* reg = m_memory->FindRegByName("GFX_DEVICE");
+    int size = m_gfx->MapDevice(memmap, mem_offset);   
+    m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
+    REG* reg = m_memory->FindRegByName("GFX_DEVICE");
     delete m_gfx;
 
     m_gfx = new GFX(mem_offset, size);
+    m_gfx->callback = GFX::OnCallback;
     m_gfx->memory = m_memory;
     m_gfx->bus = this;
     _devices.push_back(m_gfx);
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
     mem_offset += size;
+
+
+
+    //// TEMP for debugging
+    //REG* reg = nullptr;
+    //mem_offset += m_memory->AssignREG("GFX_DEVICE", 5, GFX::OnCallback);
+    //reg = m_memory->FindRegByName("GFX_DEVICE");
+    //m_gfx = new GFX(reg->Base(), reg->Size());
+    //m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
+
+    //// TESTING
+    //Word addr = GFX_FLAGS;
+    //this->debug_write(addr, 0x82);
+    //Byte data = this->debug_read(addr);
+    //printf("debug_read:$%02X\n", data);
+    //printf("\n");
    
     // add more devices here:
     // ...

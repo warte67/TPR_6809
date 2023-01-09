@@ -118,16 +118,18 @@ public:
 		//bus = Bus::getInstance();
 	}
 
-	//Byte read(Word offset) override {
-	//	if (offset - base < size)
-	//		return memory[(Word)(offset - base)];
-	//	return 0xff;
-	//}
+	Byte read(Word offset) 
+	{
+		if (offset - base < size)
+			return memory[(Word)(offset - base)];
+		return 0xCC;
+	}
+	void write(Word offset, Byte data) 
+	{
+		if (offset - base < size)
+			memory[(Word)(offset - base)] = data;
+	}
 
-	//void write(Word offset, Byte data) override {
-	//	if (offset - base < size)
-	//		memory[(Word)(offset - base)] = data;
-	//}
 
 	virtual ~REG();
 

@@ -41,11 +41,11 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				Byte num = ptrGfx->m_display_num & 0x07;
 				ret |= num;
 
-				Byte test = ptrGfx->debug_read(ofs); // TESTING!!!
+						//Byte test = ptrGfx->read(ofs); // TESTING!!!
 
-				ptrGfx->debug_write(ofs, ret);	// pre-write			(NOT WORKING?)
+				ptrGfx->write(ofs, ret);	// pre-write			(NOT WORKING?)
 
-				test = ptrGfx->debug_read(ofs); // TESTING!!!
+						//test = ptrGfx->read(ofs); // TESTING!!!
 
 				return ret;
 			}
