@@ -56,8 +56,6 @@ Bus::Bus()
     mem_offset = 0x1800;
 
     // create the graphics device:
-
-    // PROBLEM: need m_gfx to be "defined before it's defined" for size ...
     m_gfx = new GFX();
     int size = m_gfx->MapDevice(memmap, mem_offset);
     m_gfx->Base(mem_offset);
@@ -73,14 +71,6 @@ Bus::Bus()
     
     // add more devices here:
     // ...
-
-
-
-    //// map memory for all attached devices
-    //for (auto& a : _devices)
-    //    mem_offset = a->MapDevice(memmap, mem_offset);
-
-
 
 
     // Reserve RAM to fill in vacancy where the hardware registers lack
