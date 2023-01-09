@@ -63,12 +63,9 @@ Bus::Bus()
     mem_offset += size;
     m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
     REG* reg = m_memory->FindRegByName("GFX_DEVICE");
-    //m_gfx = new GFX(reg->Base(), reg->Size());
     _devices.push_back(m_gfx);
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
-
-
-    
+   
     // add more devices here:
     // ...
 

@@ -75,17 +75,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//      bit 3: unassigned
 				//      bit 0-2: display monitor (0-7)
 				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
-				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
 				ptrGfx->m_display_num = data & 0x07;
-
-				// why are these different?
-					//ptrGfx->bIsDirty = true;
-
-					//Bus* bus = Bus::getInstance();
-					//bus->m_gfx->bIsDirty = true;
-
+				int num = SDL_GetNumVideoDisplays();
+				ptrGfx->m_display_num %= num;
 				ptrGfx->bIsDirty = true;
-
 				ptrGfx->debug_write(ofs, data);
 			}
 
@@ -135,17 +128,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
 	memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
 
-	//Word size = offset - st_offset;
-	//offset += bus->m_memory->AssignREG(reg_name, size, GFX::OnCallback);
-	//REG* reg = memory->FindRegByName(reg_name);
-	//GFX* gfx_temp = new GFX(reg->Base(), offset - st_offset);
-	//memory->ReassignReg(reg->Base(), gfx_temp, reg->Name(), size, GFX::OnCallback);
-
-	//Bus* bus = Bus::getInstance();
-	//delete bus->m_gfx;
-	//bus->m_gfx = gfx_temp;
-
-	return offset;
+	return offset - st_offset;
 }
 
 void GFX::OnInitialize() {}
@@ -158,14 +141,15 @@ void GFX::OnEvent(SDL_Event *evnt)
 		{
 			if (SDL_GetModState() & KMOD_ALT)
 			{
-				// SDL_SetWindowFullscreen(_window, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP);
+				// PROBLEM:  this->read(GFX_FLAGS) still returns 0xCC!
+				//    and this->write(GFX_FLAGS) doesn't write correctly!
+				//    MemBlocks still not attached to the GFX Object
+
 				Byte data = this->read(GFX_FLAGS);
+				//Byte data = bus->read(GFX_FLAGS);
 				data ^= 0x80;
 				bus->write(GFX_FLAGS, data);
 				printf("FULLSCREEN TOGGLE\n");
-
-				//m_fullscreen = false;
-				//bIsDirty = true;
 			}
 		}
 	}
@@ -175,7 +159,6 @@ void GFX::OnCreate()
 {
 	//_window_width = 1366;
 	//_window_height = int(float((_window_width) + 0.5f) / _aspect);
-
 
 	// detect the desktop display size
 	SDL_DisplayMode dm;
