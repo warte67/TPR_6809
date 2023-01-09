@@ -37,7 +37,6 @@ private:
 
 
 
-
 enum MEMMAP
 {
 //  **********************************************
@@ -76,10 +75,8 @@ enum MEMMAP
 //      bit 4: unassigned
 //      bit 3: unassigned
 //      bit 0-2: display monitor (0-7)
-     SCR_WIDTH = 0x1801,        // (Word) timing width
-    SCR_HEIGHT = 0x1803,        // (Word) timing height
-     PIX_WIDTH = 0x1805,        // (Word) pixel width
-    PIX_HEIGHT = 0x1807,        // (Word) pixel height
+  TIMING_WIDTH = 0x1801,        // (Word) timing width
+  TIMING_HEIGHT = 0x1803,       // (Word) timing height
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 
 //  Memory Bank Selects (16MB):
@@ -107,7 +104,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
 
 
 #endif // __MEMORY_MAP__

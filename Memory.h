@@ -124,7 +124,6 @@ public:
 	//void write(Word ofs, Byte data);
 	//void debug_write(Word ofs, Byte data);
 
-
 	virtual ~REG();
 
 	void RegisterCallback(Byte(*_callback)(REG* module, Word ofs, Byte data, bool bWasRead)) {

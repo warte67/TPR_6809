@@ -43,24 +43,35 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				return ret;
 			}
 
-			//Word wh = int(float(ptrGfx->_window_width + 0.5f) / ptrGfx->_aspect);
-			//ptrGfx->_window_height = wh;
-			if (ofs == SCR_WIDTH)
-				return (ptrGfx->_window_width >> 8) & 0x00ff;
-			if (ofs == SCR_WIDTH + 1)
-				return ptrGfx->_window_width & 0x00ff;
-			if (ofs == SCR_HEIGHT)
-				return (ptrGfx->_window_height >> 8) & 0x00ff;
-			if (ofs == SCR_HEIGHT + 1)
-				return ptrGfx->_window_height & 0x00ff;
+			////Word wh = int(float(ptrGfx->_window_width + 0.5f) / ptrGfx->_aspect);
+			////ptrGfx->_window_height = wh;
+			//if (ofs == SCR_WIDTH)
+			//	return (ptrGfx->_window_width >> 8) & 0x00ff;
+			//if (ofs == SCR_WIDTH + 1)
+			//	return ptrGfx->_window_width & 0x00ff;
+			//if (ofs == SCR_HEIGHT)
+			//	return (ptrGfx->_window_height >> 8) & 0x00ff;
+			//if (ofs == SCR_HEIGHT + 1)
+			//	return ptrGfx->_window_height & 0x00ff;
 
-			if (ofs == PIX_WIDTH)
+			//if (ofs == PIX_WIDTH)
+			//	return (ptrGfx->_res_width >> 8) & 0x00ff;
+			//if (ofs == PIX_WIDTH + 1)
+			//	return ptrGfx->_res_width & 0x00ff;
+			//if (ofs == PIX_HEIGHT)
+			//	return (ptrGfx->_res_height >> 8) & 0x00ff;
+			//if (ofs == PIX_HEIGHT + 1)
+			//	return ptrGfx->_res_height & 0x00ff;
+
+			// All we care about here is the resolution width/height. This represents the
+			//     screen timing resolution the PICO will have to display.
+			if (ofs == TIMING_WIDTH)
 				return (ptrGfx->_res_width >> 8) & 0x00ff;
-			if (ofs == PIX_WIDTH + 1)
+			if (ofs == TIMING_WIDTH + 1)
 				return ptrGfx->_res_width & 0x00ff;
-			if (ofs == PIX_HEIGHT)
+			if (ofs == TIMING_HEIGHT)
 				return (ptrGfx->_res_height >> 8) & 0x00ff;
-			if (ofs == PIX_HEIGHT + 1)
+			if (ofs == TIMING_HEIGHT + 1)
 				return ptrGfx->_res_height & 0x00ff;
 		}
 		else
@@ -87,8 +98,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->debug_write(ofs, data);			//			(NOT WORKING?)
 			}
 
-			if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
-				return data;	// read only
+			//if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
+			//	return data;	// read only
 		}
 	}
 	return data;
@@ -128,10 +139,12 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "    bit 4: unassigned" }); offset += 0;
 	memmap->push({ offset, "", "    bit 3: unassigned" }); offset += 0;
 	memmap->push({ offset, "", "    bit 0-2: display monitor (0-7)" }); offset += 0;
-	memmap->push({ offset, "SCR_WIDTH", "(Word) timing width" }); offset += 2;
-	memmap->push({ offset, "SCR_HEIGHT", "(Word) timing height" }); offset += 2;
-	memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
-	memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
+	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
+	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
+	//memmap->push({ offset, "SCR_WIDTH", "(Word) screen width" }); offset += 2;
+	//memmap->push({ offset, "SCR_HEIGHT", "(Word) screen height" }); offset += 2;
+	//memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
+	//memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
 
 	return offset - st_offset;
 }
@@ -161,7 +174,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 		// change active display (monitor)
 		SDL_Keymod km = SDL_GetModState();
 		int num_displays = SDL_GetNumVideoDisplays() - 1;
-		if (km & KMOD_ALT && km & KMOD_CTRL)
+		if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
@@ -285,19 +298,14 @@ void GFX::OnCreate()
 	const bool OUTPUT_ONCREATE = true;
 	if (OUTPUT_ONCREATE)
 	{
-		//system("cls");
 		std::string szMon[] = { "Middle", "Left", "Right" };
 		printf("\n\n\n\n");
 		printf("GFX::OnCreate(): \n");
-		//printf("           Mode: $% 02X\n", m_video_res);
-		printf("         Screen: %d X %d\n", width, height);
-		printf("         Timing: %d X %d\n", _window_width, _window_height);
-		printf("          VSYNC: %s\n", (m_VSYNC) ? "true" : "false");
-		printf("     Resolution: %d X %d\n", _res_width, _res_height);
+		printf("         Timing: %d X %d\n", bus->read_word(TIMING_WIDTH), bus->read_word(TIMING_HEIGHT));
+		printf("          VSYNC: %s\n", (bus->read(GFX_FLAGS) & 0x40) ? "true" : "false");
 		printf("         Aspect: %f\n", _aspect);
-		printf("        Monitor: %d\n", m_display_num);
-		if (m_fullscreen)	printf("    Screen Mode: FULLSCREEN\n");
-		else	printf("    Screen Mode: WINDOWED\n");
+		printf("        Monitor: %d\n", bus->read(GFX_FLAGS) & 0x07);
+		printf("    Screen Mode: %s\n", (bus->read(GFX_FLAGS) & 0x80) ? "FULLSCREEN" : "WINDOWED");
 	}
 
 	//SDL_ShowCursor(SDL_DISABLE);

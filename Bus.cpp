@@ -114,12 +114,12 @@ Bus::Bus()
     printf("\n");
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
-    Word tw = this->read_word(SCR_WIDTH);
-    Word th = this->read_word(SCR_HEIGHT);
-    printf("window width: %d    window height: %d\n", tw, th);
-    Word pw = this->read_word(PIX_WIDTH);
-    Word ph = this->read_word(PIX_HEIGHT);
-    printf("pixel width: %d    pixel height: %d\n", pw, ph);
+    //Word tw = this->read_word(SCR_WIDTH);
+    //Word th = this->read_word(SCR_HEIGHT);
+    //printf("window width: %d    window height: %d\n", tw, th);
+    //Word pw = this->read_word(PIX_WIDTH);
+    //Word ph = this->read_word(PIX_HEIGHT);
+    //printf("pixel width: %d    pixel height: %d\n", pw, ph);
 
 
     bCpuEnabled = true;
