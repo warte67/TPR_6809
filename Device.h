@@ -25,6 +25,18 @@ public:
 	// map this devices hardware registers
 	virtual Word MapDevice(MemoryMap* memmap, Word offset) = 0;
 
+
+	// virtual accessors
+	virtual Byte read(Word offset);
+	virtual void write(Word offset, Byte data);
+	virtual Word read_word(Word offset);
+	virtual void write_word(Word offset, Word data);
+
+	virtual Byte debug_read(Word offset) = 0;
+	virtual void debug_write(Word offset, Byte data) = 0;
+	virtual Word debug_read_word(Word offset) = 0;
+	virtual void debug_write_word(Word offset, Word data) = 0;
+
 	// abstract members
 	virtual void OnInitialize() = 0;				// runs once after all devices are created
 	virtual void OnEvent(SDL_Event* evnt) = 0;		// fires per SDL_Event
@@ -33,16 +45,6 @@ public:
 	virtual void OnUpdate(float fElapsedTime) = 0;	// fires each frame, for updates
 	//virtual void OnRender() = 0;					// render the current frames texture
     virtual void OnQuit() = 0;						// fires on exit -- reverses OnInitialize()
-
-	// virtual accessors
-	virtual Byte read(Word offset) = 0;
-	virtual void write(Word offset, Byte data) = 0;
-	virtual Word read_word(Word offset) = 0;
-	virtual void write_word(Word offset, Word data) = 0;
-	virtual Byte debug_read(Word offset) = 0;
-	virtual void debug_write(Word offset, Byte data) = 0;
-	virtual Word debug_read_word(Word offset) = 0;
-	virtual void debug_write_word(Word offset, Word data) = 0;
 
 	// virtual getters/setters
 	virtual const char* Name() { return _deviceName.c_str(); }

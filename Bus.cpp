@@ -57,15 +57,17 @@ Bus::Bus()
 
     // create the graphics device:
     m_gfx = new GFX();
+        int size = m_gfx->MapDevice(memmap, mem_offset);   
+        m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
+        REG* reg = m_memory->FindRegByName("GFX_DEVICE");
+    delete m_gfx;
+
+    m_gfx = new GFX(mem_offset, size);
+    m_gfx->memory = m_memory;
     m_gfx->bus = this;
-    int size = m_gfx->MapDevice(memmap, mem_offset);
-    m_gfx->Base(mem_offset);
-    m_gfx->Size(size);
-    mem_offset += size;
-    m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
-    REG* reg = m_memory->FindRegByName("GFX_DEVICE");
     _devices.push_back(m_gfx);
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
+    mem_offset += size;
    
     // add more devices here:
     // ...
@@ -113,14 +115,6 @@ Bus::Bus()
     }
     printf("\n");
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
-
-    //Word tw = this->read_word(SCR_WIDTH);
-    //Word th = this->read_word(SCR_HEIGHT);
-    //printf("window width: %d    window height: %d\n", tw, th);
-    //Word pw = this->read_word(PIX_WIDTH);
-    //Word ph = this->read_word(PIX_HEIGHT);
-    //printf("pixel width: %d    pixel height: %d\n", pw, ph);
-
 
     bCpuEnabled = true;
 }

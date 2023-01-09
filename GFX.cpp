@@ -12,13 +12,14 @@
 
 
 bool GFX::m_VSYNC       = false;	// true:VSYNC, false:not throttled
-bool GFX::m_fullscreen  = true;		// true:fullscreen, false:windowed
-int  GFX::m_display_num = 2;		// which monitor to use
+bool GFX::m_fullscreen  = false;	// true:fullscreen, false:windowed
+int  GFX::m_display_num = 1;		// which monitor to use, default.
 
 
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
+	Bus* bus = Bus::getInstance();
 
 	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
 	if (ptrGfx)
@@ -39,29 +40,15 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_VSYNC)		ret |= 0x40;
 				Byte num = ptrGfx->m_display_num & 0x07;
 				ret |= num;
+
+				Byte test = ptrGfx->debug_read(ofs); // TESTING!!!
+
 				ptrGfx->debug_write(ofs, ret);	// pre-write			(NOT WORKING?)
+
+				test = ptrGfx->debug_read(ofs); // TESTING!!!
+
 				return ret;
 			}
-
-			////Word wh = int(float(ptrGfx->_window_width + 0.5f) / ptrGfx->_aspect);
-			////ptrGfx->_window_height = wh;
-			//if (ofs == SCR_WIDTH)
-			//	return (ptrGfx->_window_width >> 8) & 0x00ff;
-			//if (ofs == SCR_WIDTH + 1)
-			//	return ptrGfx->_window_width & 0x00ff;
-			//if (ofs == SCR_HEIGHT)
-			//	return (ptrGfx->_window_height >> 8) & 0x00ff;
-			//if (ofs == SCR_HEIGHT + 1)
-			//	return ptrGfx->_window_height & 0x00ff;
-
-			//if (ofs == PIX_WIDTH)
-			//	return (ptrGfx->_res_width >> 8) & 0x00ff;
-			//if (ofs == PIX_WIDTH + 1)
-			//	return ptrGfx->_res_width & 0x00ff;
-			//if (ofs == PIX_HEIGHT)
-			//	return (ptrGfx->_res_height >> 8) & 0x00ff;
-			//if (ofs == PIX_HEIGHT + 1)
-			//	return ptrGfx->_res_height & 0x00ff;
 
 			// All we care about here is the resolution width/height. This represents the
 			//     screen timing resolution the PICO will have to display.
@@ -141,10 +128,6 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "    bit 0-2: display monitor (0-7)" }); offset += 0;
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
-	//memmap->push({ offset, "SCR_WIDTH", "(Word) screen width" }); offset += 2;
-	//memmap->push({ offset, "SCR_HEIGHT", "(Word) screen height" }); offset += 2;
-	//memmap->push({ offset, "PIX_WIDTH",  "(Word) pixel width" }); offset += 2;
-	//memmap->push({ offset, "PIX_HEIGHT", "(Word) pixel height" }); offset += 2;
 
 	return offset - st_offset;
 }

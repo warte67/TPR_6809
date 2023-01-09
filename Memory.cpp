@@ -233,7 +233,7 @@ DWord Memory::ReassignReg(Word offset, REG* reg,
 			}
 		}
 		// in with the new
-		reg->Name(cDesc);
+		//reg->Name(cDesc);
 		reg->Size(size);
 		reg->Base(offset);
 		reg->RegisterCallback(cb);
@@ -277,29 +277,6 @@ REG::~REG()
 {
 
 }
-
-//// NOTE:  still unable to get the current device to report memory correctly...
-//Byte REG::read(Word ofs)
-//{ 
-//	Bus* bus = Bus::getInstance();
-//	return bus->read(ofs); 
-//}
-//Byte REG::debug_read(Word ofs)
-//{ 
-//	Bus* bus = Bus::getInstance();
-//	return bus->debug_read(ofs);
-//}
-//void REG::write(Word ofs, Byte data)
-//{ 
-//	Bus* bus = Bus::getInstance();
-//	bus->write(ofs, data);
-//}
-//void REG::debug_write(Word ofs, Byte data)
-//{ 
-//	Bus* bus = Bus::getInstance();
-//	bus->debug_write(ofs, data);
-//}
-
 
 
 Byte Memory::read(Word ofs)

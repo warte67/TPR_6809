@@ -9,6 +9,7 @@
 
 #include "Device.h"
 
+class BUS;
 class RAM;
 class ROM;
 class REG;
@@ -48,7 +49,6 @@ public:
 	REG* FindRegByName(std::string name);
 
 	Byte read(Word offset);
-
 	void write(Word offset, Byte data);
 	Word read_word(Word offset);
 	void write_word(Word offset, Word data);
@@ -118,11 +118,16 @@ public:
 		//bus = Bus::getInstance();
 	}
 
-	// (workaround, local device not reporting memory correctly)	
-	//Byte read(Word ofs) override;
-	//Byte debug_read(Word ofs) override;
-	//void write(Word ofs, Byte data);
-	//void debug_write(Word ofs, Byte data);
+	//Byte read(Word offset) override {
+	//	if (offset - base < size)
+	//		return memory[(Word)(offset - base)];
+	//	return 0xff;
+	//}
+
+	//void write(Word offset, Byte data) override {
+	//	if (offset - base < size)
+	//		memory[(Word)(offset - base)] = data;
+	//}
 
 	virtual ~REG();
 

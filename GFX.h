@@ -44,9 +44,9 @@ protected:
     SDL_Texture* _texture = nullptr;
 
     // default screen size
-    const float _aspect = 1.6f;
-	const int _window_width = 512 * 3;        // aka "timing"
-	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);
+    const float _aspect = 1.6f; 
+	const int _window_width = 512 * 3;                                          // aka "timing"
+	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);    // aka "timing"
 	int _res_width = 512;			// 512 width max
 	int _res_height = int(float((_res_width) + 0.5f) / _aspect);
     const int _window_flags = SDL_WINDOW_SHOWN;	// | SDL_WINDOW_BORDERLESS; // | SDL_WINDOW_RESIZABLE;
