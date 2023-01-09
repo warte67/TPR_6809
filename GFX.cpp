@@ -137,6 +137,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 {
 	if (evnt->type == SDL_KEYDOWN)
 	{
+		// toggle fullscreen/windowed
 		if (evnt->key.keysym.sym == SDLK_RETURN)
 		{
 			if (SDL_GetModState() & KMOD_ALT)
@@ -150,6 +151,39 @@ void GFX::OnEvent(SDL_Event *evnt)
 				data ^= 0x80;
 				bus->write(GFX_FLAGS, data);
 				printf("FULLSCREEN TOGGLE\n");
+			}
+		}
+		// change active display (monitor)
+		SDL_Keymod km = SDL_GetModState();
+		int num_displays = SDL_GetNumVideoDisplays();
+		if (km & KMOD_ALT && km & KMOD_CTRL)
+		{
+			// left
+			if (evnt->key.keysym.sym == SDLK_LEFT)
+			{
+				Byte data = bus->read(GFX_FLAGS);
+				Byte monitor = (data & 0x07);
+				//printf("GFX::OnEvent() ---  monitor: %d\n", monitor);
+				if (monitor > 0) 
+				{
+					monitor--;
+					data &= 0xf8;
+					data |= monitor;
+					bus->write(GFX_FLAGS, data);
+				}
+			}
+			// right
+			if (evnt->key.keysym.sym == SDLK_RIGHT)
+			{
+				Byte data = bus->read(GFX_FLAGS);
+				Byte monitor = (data & 0x07);
+				if (monitor < num_displays - 1)
+				{
+					monitor++;
+					data &= 0xf8;
+					data |= monitor;
+					bus->write(GFX_FLAGS, data);
+				}
 			}
 		}
 	}
