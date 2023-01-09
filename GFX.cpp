@@ -39,7 +39,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_VSYNC)		ret |= 0x40;
 				Byte num = ptrGfx->m_display_num & 0x07;
 				ret |= num;
-				ptrGfx->debug_write(ofs, ret);	// pre-write
+				ptrGfx->debug_write(ofs, ret);	// pre-write			(NOT WORKING?)
 				return ret;
 			}
 
@@ -74,12 +74,17 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//      bit 4: unassigned
 				//      bit 3: unassigned
 				//      bit 0-2: display monitor (0-7)
+				//data = ptrGfx->debug_read(ofs);					(NOT WORKING?)
+				//data=ptrGfx->bus->debug_read(ofs);
 				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
+				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
 				ptrGfx->m_display_num = data & 0x07;
 				int num = SDL_GetNumVideoDisplays();
 				ptrGfx->m_display_num %= num;
 				ptrGfx->bIsDirty = true;
-				ptrGfx->debug_write(ofs, data);
+
+				//ptrGfx->bus->debug_write(ofs, data);
+				ptrGfx->debug_write(ofs, data);			//			(NOT WORKING?)
 			}
 
 			if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
@@ -155,10 +160,10 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 		// change active display (monitor)
 		SDL_Keymod km = SDL_GetModState();
-		int num_displays = SDL_GetNumVideoDisplays();
+		int num_displays = SDL_GetNumVideoDisplays() - 1;
 		if (km & KMOD_ALT && km & KMOD_CTRL)
 		{
-			// left
+			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
 				Byte data = bus->read(GFX_FLAGS);
@@ -177,13 +182,20 @@ void GFX::OnEvent(SDL_Event *evnt)
 			{
 				Byte data = bus->read(GFX_FLAGS);
 				Byte monitor = (data & 0x07);
-				if (monitor < num_displays - 1)
+				if (monitor < num_displays)
 				{
 					monitor++;
 					data &= 0xf8;
 					data |= monitor;
 					bus->write(GFX_FLAGS, data);
 				}
+			}
+			// [V] VSYNC toggle (GFX_FLAGS bit 6)
+			if (evnt->key.keysym.sym == SDLK_v)
+			{
+				Byte data = bus->read(GFX_FLAGS);
+				data ^= 0x40;
+				bus->write(GFX_FLAGS, data);
 			}
 		}
 	}
@@ -280,6 +292,7 @@ void GFX::OnCreate()
 		//printf("           Mode: $% 02X\n", m_video_res);
 		printf("         Screen: %d X %d\n", width, height);
 		printf("         Timing: %d X %d\n", _window_width, _window_height);
+		printf("          VSYNC: %s\n", (m_VSYNC) ? "true" : "false");
 		printf("     Resolution: %d X %d\n", _res_width, _res_height);
 		printf("         Aspect: %f\n", _aspect);
 		printf("        Monitor: %d\n", m_display_num);
