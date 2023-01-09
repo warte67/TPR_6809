@@ -41,6 +41,7 @@ Bus::Bus()
 
     // create the memory map device:
     m_memory = new Memory();
+    m_memory->bus = this;
     _devices.push_back(m_memory);
 
     // create the cpu (clocked via external thread)    
@@ -51,12 +52,12 @@ Bus::Bus()
     //// Memory-Mapped Devices:
     // 
     // map low RAM $0000-$17ff (VIDEO_END)
-    m_memory->AssignRAM("Low RAM", 0x1800);
-    m_memory->bus = this;
+    m_memory->AssignRAM("Low RAM", 0x1800);    
     mem_offset = 0x1800;
 
     // create the graphics device:
     m_gfx = new GFX();
+    m_gfx->bus = this;
     int size = m_gfx->MapDevice(memmap, mem_offset);
     m_gfx->Base(mem_offset);
     m_gfx->Size(size);

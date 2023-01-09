@@ -145,8 +145,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 				//    and this->write(GFX_FLAGS) doesn't write correctly!
 				//    MemBlocks still not attached to the GFX Object
 
-				Byte data = this->read(GFX_FLAGS);
-				//Byte data = bus->read(GFX_FLAGS);
+				//Byte data = this->read(GFX_FLAGS);		// still doesn't work correctly
+				Byte data = bus->read(GFX_FLAGS);			// this one does
 				data ^= 0x80;
 				bus->write(GFX_FLAGS, data);
 				printf("FULLSCREEN TOGGLE\n");

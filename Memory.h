@@ -23,7 +23,7 @@ public:
 	Memory();
 	Memory(Word offset, Word size) : Device(offset, size) {
 		_deviceName = "Memory";
-		//bus = Bus::getInstance();
+		// bus = Bus::getInstance();
 	}	
 	virtual ~Memory();
 
@@ -118,15 +118,12 @@ public:
 		//bus = Bus::getInstance();
 	}
 
-	//Byte debug_read(Word offset) override {
-	//	if (offset - base < size)
-	//		return memory[(Word)(offset - base)];
-	//	return 0xff;
-	//}
-	//void debug_write(Word offset, Byte data) override {
-	//	if (offset - base < size)
-	//		memory[(Word)(offset - base)] = data;
-	//}
+	// (workaround, local device not reporting memory correctly)	
+	//Byte read(Word ofs) override;
+	//Byte debug_read(Word ofs) override;
+	//void write(Word ofs, Byte data);
+	//void debug_write(Word ofs, Byte data);
+
 
 	virtual ~REG();
 

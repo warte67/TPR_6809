@@ -268,12 +268,9 @@ REG* Memory::FindRegByName(std::string name)
 //	_deviceName = "RAM";
 //}
 
-
 REG::REG(Word offset, Word size, Byte(*cb_callback)(REG*, Word, Byte, bool)) : Memory(offset, size)
 {
-	callback = cb_callback;
-	//Device::Base(offset);
-	//Device::Size(size);
+	callback = cb_callback;	
 }
 
 REG::~REG()
@@ -281,9 +278,27 @@ REG::~REG()
 
 }
 
-
-
-
+//// NOTE:  still unable to get the current device to report memory correctly...
+//Byte REG::read(Word ofs)
+//{ 
+//	Bus* bus = Bus::getInstance();
+//	return bus->read(ofs); 
+//}
+//Byte REG::debug_read(Word ofs)
+//{ 
+//	Bus* bus = Bus::getInstance();
+//	return bus->debug_read(ofs);
+//}
+//void REG::write(Word ofs, Byte data)
+//{ 
+//	Bus* bus = Bus::getInstance();
+//	bus->write(ofs, data);
+//}
+//void REG::debug_write(Word ofs, Byte data)
+//{ 
+//	Bus* bus = Bus::getInstance();
+//	bus->debug_write(ofs, data);
+//}
 
 
 
