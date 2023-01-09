@@ -118,13 +118,25 @@ public:
 		//bus = Bus::getInstance();
 	}
 
-	Byte read(Word offset) 
+
+	Byte read(Word offset)
 	{
 		if (offset - base < size)
 			return memory[(Word)(offset - base)];
 		return 0xCC;
 	}
-	void write(Word offset, Byte data) 
+	void write(Word offset, Byte data)
+	{
+		if (offset - base < size)
+			memory[(Word)(offset - base)] = data;
+	}	
+	Byte debug_read(Word offset)
+	{
+		if (offset - base < size)
+			return memory[(Word)(offset - base)];
+		return 0xCC;
+	}
+	void debug_write(Word offset, Byte data)
 	{
 		if (offset - base < size)
 			memory[(Word)(offset - base)] = data;

@@ -41,11 +41,9 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				Byte num = ptrGfx->m_display_num & 0x07;
 				ret |= num;
 
-						//Byte test = ptrGfx->read(ofs); // TESTING!!!
-
-				ptrGfx->write(ofs, ret);	// pre-write			(NOT WORKING?)
-
-						//test = ptrGfx->read(ofs); // TESTING!!!
+				//Byte test = ptrGfx->read(ofs); // TESTING!!!
+				ptrGfx->write(ofs, ret);	// pre-write			(IS WORKING?)
+				//test = ptrGfx->read(ofs); // TESTING!!!
 
 				return ret;
 			}
@@ -72,7 +70,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//      bit 4: unassigned
 				//      bit 3: unassigned
 				//      bit 0-2: display monitor (0-7)
-				//data = ptrGfx->debug_read(ofs);					(NOT WORKING?)
+				//data = ptrGfx->debug_read(ofs);
 				//data=ptrGfx->bus->debug_read(ofs);
 				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
 				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
@@ -82,7 +80,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->bIsDirty = true;
 
 				//ptrGfx->bus->debug_write(ofs, data);
-				ptrGfx->debug_write(ofs, data);			//			(NOT WORKING?)
+				ptrGfx->debug_write(ofs, data);
 			}
 
 			//if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
