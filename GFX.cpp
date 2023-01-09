@@ -11,9 +11,9 @@
 #include "GFX.h"
 
 
-bool GFX::m_VSYNC       = 0;	// 1:VSYNC, 2:not throttled
-bool GFX::m_fullscreen  = 1;	// 1:fullscreen, 2:windowed
-int  GFX::m_display_num = 2;	// which monitor to use
+bool GFX::m_VSYNC       = false;	// true:VSYNC, false:not throttled
+bool GFX::m_fullscreen  = true;		// true:fullscreen, false:windowed
+int  GFX::m_display_num = 2;		// which monitor to use
 
 
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
@@ -83,6 +83,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 					//Bus* bus = Bus::getInstance();
 					//bus->m_gfx->bIsDirty = true;
+
+				ptrGfx->bIsDirty = true;
 
 				ptrGfx->debug_write(ofs, data);
 			}

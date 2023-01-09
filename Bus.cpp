@@ -48,22 +48,40 @@ Bus::Bus()
     m_cpu = new C6809(this);    
     // CPU not attached to _devices vector
 
-    // create the graphics device:
-    m_gfx = new GFX();
-    _devices.push_back(m_gfx);
-
-    // add more devices here:
-    // ...
-
-
+    //// Memory-Mapped Devices:
+    // 
     // map low RAM $0000-$17ff (VIDEO_END)
     m_memory->AssignRAM("Low RAM", 0x1800);
     m_memory->bus = this;
     mem_offset = 0x1800;
 
-    // map memory for all attached devices
-    for (auto& a : _devices)
-        mem_offset = a->MapDevice(memmap, mem_offset);
+    // create the graphics device:
+
+    // PROBLEM: need m_gfx to be "defined before it's defined" for size ...
+    m_gfx = new GFX();
+    int size = m_gfx->MapDevice(memmap, mem_offset);
+    m_gfx->Base(mem_offset);
+    m_gfx->Size(size);
+    mem_offset += size;
+    m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
+    REG* reg = m_memory->FindRegByName("GFX_DEVICE");
+    //m_gfx = new GFX(reg->Base(), reg->Size());
+    _devices.push_back(m_gfx);
+    m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
+
+
+    
+    // add more devices here:
+    // ...
+
+
+
+    //// map memory for all attached devices
+    //for (auto& a : _devices)
+    //    mem_offset = a->MapDevice(memmap, mem_offset);
+
+
+
 
     // Reserve RAM to fill in vacancy where the hardware registers lack
     // this should be close to zero after all of the devices are mapped.
