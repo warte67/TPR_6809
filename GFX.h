@@ -48,8 +48,8 @@ protected:
 	SDL_Window *_window = nullptr;
 	SDL_Surface *_surface = nullptr;
 	SDL_Renderer *_renderer = nullptr;
-    SDL_Texture* _texture = nullptr;
-    //SDL_Texture* _texture[2] = { nullptr, nullptr };    // two backbuffer textures
+    //SDL_Texture* _texture = nullptr;
+    SDL_Texture* _texture[2] = { nullptr, nullptr };    // two backbuffer textures
 
     // default screen size
     const float _aspect = 1.6f; 
@@ -132,7 +132,7 @@ Revision ///////////////////
 
     GFX_FLAGS: (hardware)
         bits:
-        6)   VSYNC
+        7)   VSYNC
         6)   backbuffer enable
         5)   enable debug
         4)   enable mouse cursor

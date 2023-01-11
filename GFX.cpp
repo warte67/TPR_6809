@@ -14,7 +14,7 @@
 
 // default GFX_FLAGS:
 bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
-bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
+bool GFX::m_enable_backbuffer	= true;		// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer
@@ -53,7 +53,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
 				Byte ret = 0;
 				if (ptrGfx->m_VSYNC)				ret |= 0x80;
-				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;		// TODO: implement backbuffers
+				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
 				if (ptrGfx->m_enable_debug)			ret |= 0x20;
 				if (ptrGfx->m_enable_mouse)			ret |= 0x10;
 				if (ptrGfx->m_current_backbuffer)	ret |= 0x08;
@@ -105,14 +105,19 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          5) 256x80 x 4-Color
 				//          6) 256x160 x 2-Color
 				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
+				bool old_VSYNC = ptrGfx->m_VSYNC;
 				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
-				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);		// TODO: implement backbuffers
+				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
 				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
 				ptrGfx->m_enable_mouse			= ((data & 0x10) == 0x10);
-				// ptrGfx->m_current_backbuffer									// TODO: implement backbuffers
+				ptrGfx->m_current_backbuffer	= ((data & 0x08) == 0x08); // ? 1 : 0;
 				ptrGfx->m_gmode_index			= (data & 0x07);
 				//
-				ptrGfx->bIsDirty = true;
+
+				// only go "dirty" on VSYNC change
+				if (old_VSYNC != ptrGfx->m_VSYNC)
+					ptrGfx->bIsDirty = true;
+
 				ptrGfx->debug_write(ofs, data);
 			}
 			if (ofs == GFX_AUX)
@@ -236,6 +241,22 @@ void GFX::OnEvent(SDL_Event *evnt)
 {
 	if (evnt->type == SDL_KEYDOWN)
 	{
+		// TEMPORARY: TESTING
+		if (evnt->key.keysym.sym == SDLK_SPACE)
+		{
+			// flip the back buffer
+			if (m_enable_backbuffer)
+			{
+				// m_current_backbuffer = 1 - m_current_backbuffer;
+				
+				//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
+				Byte data = bus->read(GFX_FLAGS);
+				data ^= 0x08;
+				bus->write(GFX_FLAGS, data);
+				//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
+			}
+		}
+
 		// toggle fullscreen/windowed
 		if (evnt->key.keysym.sym == SDLK_RETURN)
 		{
@@ -382,8 +403,10 @@ void GFX::OnCreate()
 	}
 	SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 
-	// create the main screen texture	
-	_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
+	// create the main screen texture (with backbuffer)
+	_texture[0] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
+		SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
+	_texture[1] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
 		SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
 
 	bIsDirty = false;
@@ -405,8 +428,9 @@ void GFX::OnCreate()
 		printf("          VSYNC: %s\n", (bus->read(GFX_FLAGS) & 0x40) ? "true" : "false");
 		printf(" Gfx Mode Index: %d\n", (bus->read(GFX_FLAGS) & 0x07) );
 		printf("         Aspect: %f\n", _aspect);
-		printf("        Monitor: %d\n", (bus->read(GFX_FLAGS) & 0x38) >> 3);
-		printf("    Screen Mode: %s\n", (bus->read(GFX_FLAGS) & 0x80) ? "FULLSCREEN" : "WINDOWED");
+		printf("        Monitor: %d\n", (bus->read(GFX_AUX) & 0x07) );
+		printf("    Screen Mode: %s\n", (bus->read(GFX_AUX) & 0x80) ? "FULLSCREEN" : "WINDOWED");
+		printf("    Back Buffer: %s\n", (bus->read(GFX_FLAGS) & 0x08) ? "1" : "0");
 	}
 
 	//SDL_ShowCursor(SDL_DISABLE);
@@ -421,11 +445,14 @@ void GFX::OnDestroy()
 	for (int t=0; t<8; t++)
 		m_gmodes[t]->OnDestroy();
 
-	if (_texture)
+	for (int t=0; t<2; t++)
 	{
-		SDL_DestroyTexture(_texture);
-		_texture = nullptr;
-	}	
+		if (_texture[t])
+		{
+			SDL_DestroyTexture(_texture[t]);
+			_texture[t] = nullptr;
+		}
+	}
 	if (_renderer)
 	{
 		SDL_DestroyRenderer(_renderer);
@@ -450,7 +477,7 @@ void GFX::OnUpdate(float fElapsedTime)
 {
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
-	SDL_SetRenderTarget(_renderer, _texture);
+	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
 	if (m_gmode_index == 0 || m_gmodes[m_gmode_index] == nullptr)
 	{
@@ -511,16 +538,20 @@ void GFX::_onRender()
 			fw = (float)ww;
 			fh = fw / _aspect;
 		}
-		// printf("FULLSCREEN:\n");
-		// printf("	aspect: %f\n", _aspect);
-		// printf("	width:  %f\n", fw);
-		// printf("	height: %f\n", fh);	
-		
+
 		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
-		SDL_RenderCopy(_renderer, _texture, NULL, &dest);
+		if (m_enable_backbuffer)
+			SDL_RenderCopy(_renderer, _texture[1 - m_current_backbuffer], NULL, &dest);
+		else
+			SDL_RenderCopy(_renderer, _texture[m_current_backbuffer], NULL, &dest);
 	}
 	else
-		SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+	{
+		if (m_enable_backbuffer)
+			SDL_RenderCopy(_renderer, _texture[1 - m_current_backbuffer], NULL, NULL);
+		else
+			SDL_RenderCopy(_renderer, _texture[m_current_backbuffer], NULL, NULL);
+	}
 }
 
 
