@@ -8,6 +8,7 @@
 #include "Bus.h"
 #include "Memory.h"
 #include "Device.h"
+#include "GfxMode.h"
 #include "GFX.h"
 
 
@@ -110,15 +111,37 @@ GFX::GFX() : REG(0,0)
 	Device::_deviceName = "GFX";
 	bus = Bus::getInstance();
 	memory = bus->getMemoryPtr();
+
+	// this constructore is removed early.
+	// dont use it for initialization
 }
 GFX::GFX(Word offset, Word size) : REG(offset, size)
 {
 	Device::_deviceName = "GFX";
 	bus = Bus::getInstance();
 	memory = bus->getMemoryPtr();
+	//// pre-build the graphics modes
+	//for (int t = 0; t < 8; t++)
+	//{
+	//	GfxMode* mode = new GfxMode();
+	//	m_gmodes.push_back(mode);
+	//}
+	//// replace the for loop above with:
+	m_gmodes.push_back(new GfxNull());
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGlyph());
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxTile());
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap1();
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap2();
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap3();
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
+	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
+
 }
 GFX::~GFX()
 {    
+	// clean up the graphics modes
+	for (auto& a : m_gmodes)
+		delete a;
 }
 
 
@@ -149,7 +172,23 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	return offset - st_offset;
 }
 
-void GFX::OnInitialize() {}
+void GFX::OnInitialize() 
+{
+	//printf("Gfx::OnInitialize\n");
+	
+	// OnInitialize() all of the graphics mode layers
+	for (int t = 0; t < 8; t++)
+		m_gmodes[t]->OnInitialize();
+}
+
+void GFX::OnQuit()
+{
+	//printf("GFX::OnQuit()\n");
+	
+	// OnQuit() all of the graphics mode layers
+	for (int t = 0; t < 8; t++)
+		m_gmodes[t]->OnQuit();
+}
 
 void GFX::OnEvent(SDL_Event *evnt) 
 {
@@ -227,6 +266,9 @@ void GFX::OnEvent(SDL_Event *evnt)
 			}
 		}
 	}
+	// OnEvent() all of the graphics mode layers
+	for (int t = 0; t < 8; t++)
+		m_gmodes[t]->OnEvent(evnt);
 }
 
 void GFX::OnCreate() 
@@ -308,8 +350,8 @@ void GFX::OnCreate()
 	//bus->cpu_pause = false;
 
 	// OnCreate all of the graphics mode layers
-	//for (int t = 0; t < 8; t++)
-	//	m_gmodes[t]->OnCreate((Word)width, (Word)height, m_vGres[m_video_res].res_width, m_vGres[m_video_res].res_height, aspect);
+	for (int t = 0; t < 8; t++)
+		m_gmodes[t]->OnCreate();
 
 	// output debug info to console
 	const bool OUTPUT_ONCREATE = true;
@@ -333,6 +375,10 @@ void GFX::OnCreate()
 void GFX::OnDestroy()
 {
 	//bus->cpu_pause = true;
+
+	// destroy all of the gnodes
+	for (int t=0; t<8; t++)
+		m_gmodes[t]->OnDestroy();
 
 	if (_texture)
 	{
@@ -359,15 +405,16 @@ void GFX::OnDestroy()
 	//bWasInit = false;
 }
 
-void GFX::OnUpdate(float fElapsedTime) 
+void GFX::OnUpdate(float fElapsedTime)
 {
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture);
-	// fill with a few random pixels
-	const bool FILL_RAND_PIXELS = true;
-	if (FILL_RAND_PIXELS)
+
+	if (m_gmode_index == 0 || m_gmodes[m_gmode_index] == nullptr)
 	{
+		// MODE ZERO or null mode:
+		// fill with a few random pixels noise
 		for (int t = 0; t < 1000; t++)
 		{
 			SDL_Rect dot = { rand() % _pix_width,
@@ -378,16 +425,9 @@ void GFX::OnUpdate(float fElapsedTime)
 	}
 	else
 	{
-		//for (int y = 0; y < _res_height; y++)
-		//{
-		//	for (int x = 0; x < _res_width; x++)
-		//	{
-		//		SDL_SetRenderDrawColor(_renderer, rand() % 256, rand() % 256, rand() % 256, 0xFF);
-		//		SDL_RenderDrawPoint(_renderer, x, y);
-		//	} 
-		//}
-		SDL_RenderClear(_renderer);
+		m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);		
 	}
+
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -453,4 +493,5 @@ void GFX::_onRender()
 // 	SDL_RenderPresent(_renderer);
 // }
 
-void GFX::OnQuit() {}
+
+

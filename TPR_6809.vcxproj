@@ -167,6 +167,7 @@
     <ClCompile Include="C6809.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="GFX.cpp" />
+    <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
@@ -174,6 +175,7 @@
   <ItemGroup>
     <ClInclude Include="Bus.h" />
     <ClInclude Include="C6809.h" />
+    <ClInclude Include="GfxMode.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />

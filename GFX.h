@@ -13,6 +13,8 @@
 #include "Device.h"
 #include "Memory.h"
 
+class GfxMode;
+
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
@@ -27,12 +29,17 @@ public:
     virtual Word MapDevice(MemoryMap* memmap, Word offset) override;
 
     virtual void OnInitialize();				// runs once after all devices are created
-    virtual void OnEvent(SDL_Event *evnt);		// fires per SDL_Event
+	virtual void OnQuit();						// fires on exit -- reverses OnInitialize()
+	virtual void OnEvent(SDL_Event *evnt);		// fires per SDL_Event
     virtual void OnCreate();					// fires when the object is created/recreated
     virtual void OnDestroy();					// fires when the object is destroyed/lost focus
     virtual void OnUpdate(float fElapsedTime);	// fires each frame, for updates
     //virtual void OnRender();					// render the current frames texture
-    virtual void OnQuit();						// fires on exit -- reverses OnInitialize()
+ 
+	// accessors:
+	int PixHeight() { return _pix_height; }
+	int PixWidth() { return _pix_width; }
+	SDL_Renderer* Renderer() { return _renderer; }
 
 protected:
 
@@ -64,7 +71,7 @@ protected:
 
     // graphics modes    
     int m_gmode_index = 0;
-    // std::vector<GfxMode*> m_gmodes = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+	std::vector<GfxMode*> m_gmodes;
 
     // device objects
     Bus* bus = nullptr;
@@ -98,14 +105,14 @@ protected:
 		bit 6: vsync
 		bit 3-5: display monitor (0-7)
 		bit 0-2: graphics mode (0-7)
-			0) NONE (just random background noise)
-			1) Glyph Mode (512x320 or 64x48 text)
-			2) Tile 16x16x16 mode
-			3) 128x80 x 16-Color
-			4) 128x160 x 4-Color
-			5) 256x80 x 4-Color
-			6) 256x160 x 2-Color
-			7) 256x192 256-color (SLOW EXTERNAL I2C RAM)	
+			0) GfxNull:		NONE (just random background noise)
+			1) GfxGlyph:	Glyph Mode (512x320 or 64x48 text)
+			2) GfxTile:		Tile 16x16x16 mode
+			3) GfxBitmap1:	128x80 x 16-Color
+			4) GfxBitmap2:	128x160 x 4-Color
+			5) GfxBitmap3:	256x80 x 4-Color
+			6) GfxBitmap4:	256x160 x 2-Color
+			7) GfxBitmap5:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
 	TIMING_WIDTH = 0x1801,        // (Word) timing width
 	TIMING_HEIGHT = 0x1803,       // (Word) timing height
 
