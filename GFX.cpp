@@ -17,7 +17,7 @@ bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
 bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
-bool GFX::m_current_backbuffer	= false;	// currently active backbuffer
+int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer
 int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
 
 // default GFX_AUX:
@@ -53,7 +53,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
 				Byte ret = 0;
 				if (ptrGfx->m_VSYNC)				ret |= 0x80;
-				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
+				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;		// TODO: implement backbuffers
 				if (ptrGfx->m_enable_debug)			ret |= 0x20;
 				if (ptrGfx->m_enable_mouse)			ret |= 0x10;
 				if (ptrGfx->m_current_backbuffer)	ret |= 0x08;
@@ -106,10 +106,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          6) 256x160 x 2-Color
 				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
-				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
+				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);		// TODO: implement backbuffers
 				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
 				ptrGfx->m_enable_mouse			= ((data & 0x10) == 0x10);
-				// ptrGfx->m_current_backbuffer			// TODO: Implement Backbuffer Swapping
+				// ptrGfx->m_current_backbuffer									// TODO: implement backbuffers
 				ptrGfx->m_gmode_index			= (data & 0x07);
 				//
 				ptrGfx->bIsDirty = true;
@@ -194,7 +194,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 3: swap backbuffers (on write)" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 0-2: graphics mode (0-7)" }); offset += 0;
 	memmap->push({ offset, "", ">        0) NONE (just random background noise)		 " }); offset += 0;
-	memmap->push({ offset, "", ">        1) Glyph Mode (512x320 or 64x48 text)		 " }); offset += 0;
+	memmap->push({ offset, "", ">        1) Glyph Mode (512x320 or 64x40 text)		 " }); offset += 0;
 	memmap->push({ offset, "", ">        2) Tile 16x16x16 mode						 " }); offset += 0;
 	memmap->push({ offset, "", ">        3) 128x80 x 16-Color						 " }); offset += 0;
 	memmap->push({ offset, "", ">        4) 128x160 x 4-Color						 " }); offset += 0;

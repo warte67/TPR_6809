@@ -49,6 +49,7 @@ protected:
 	SDL_Surface *_surface = nullptr;
 	SDL_Renderer *_renderer = nullptr;
     SDL_Texture* _texture = nullptr;
+    //SDL_Texture* _texture[2] = { nullptr, nullptr };    // two backbuffer textures
 
     // default screen size
     const float _aspect = 1.6f; 
@@ -60,14 +61,14 @@ protected:
     const int _fullscreen_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
     Uint32 _renderer_flags = 0;
 
-    // statics
+    // statics (hardware)
     static bool m_VSYNC;		        // 1:VSYNC, 0:not throttled
     static bool m_enable_backbuffer;    // 1:enabled, 0:disabled
     static bool m_enable_debug;         // 1:enabled, 0:disabled
     static bool m_enable_mouse;         // 1:enabled, 0:disabled
-    static bool m_current_backbuffer;   // currently active backbuffer
-    static int m_gmode_index;           // (0-7)
-
+    static int  m_current_backbuffer;   // currently active backbuffer
+    static int  m_gmode_index;          // (0-7)
+    // statics (auxillary)
     static bool m_fullscreen;	        // 1:fullscreen, 0:windowed
     static int  m_display_num;	        // which monitor to use
 
@@ -98,12 +99,12 @@ protected:
             - 512x320 x 16-Color (only)
                 - Glyph Data Buffer size = 2.5kb
                 - Color Attribute Data Buffer size = 2.5kb
+                - (5120 bytes)
         - Possible Pixel Graphics Resolutions include:
             - 256x160 x 2-Color     (5120 bytes)
             - 256x80 x 4-Color      (5120 bytes)
             - 128x160 x 4-Color     (5120 bytes)
             - 128x80 x 16-Color     (5120 bytes)
-
 
 	GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
 		bit 7: fullscreen

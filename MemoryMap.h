@@ -76,7 +76,7 @@ enum MEMMAP
                                 //      bit 3: swap backbuffers (on write)
                                 //      bit 0-2: graphics mode (0-7)
                                 //          0) NONE (just random background noise)
-                                //          1) Glyph Mode (512x320 or 64x48 text)
+                                //          1) Glyph Mode (512x320 or 64x40 text)
                                 //          2) Tile 16x16x16 mode
                                 //          3) 128x80 x 16-Color
                                 //          4) 128x160 x 4-Color
