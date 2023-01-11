@@ -1,0 +1,9 @@
+﻿  Bus.cpp
+  C6809.cpp
+  Device.cpp
+  GFX.cpp
+  main.cpp
+  Memory.cpp
+  MemoryMap.cpp
+  Generating Code...
+  TPR_6809.vcxproj -> C:\Shared\dev\TPR_6809\Debug\TPR_6809.exe

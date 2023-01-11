@@ -12,7 +12,7 @@
 
 
 bool GFX::m_VSYNC       = false;	// true:VSYNC, false:not throttled
-bool GFX::m_fullscreen  = false;	// true:fullscreen, false:windowed
+bool GFX::m_fullscreen	= false;	// true:fullscreen, false:windowed
 int  GFX::m_display_num = 1;		// which monitor to use, default.
 
 
@@ -201,6 +201,9 @@ void GFX::OnCreate()
 	//_window_height = int(float((_window_width) + 0.5f) / _aspect);
 
 	// detect the desktop display size
+	int display_max = SDL_GetNumVideoDisplays();
+	if (m_display_num + 1 > display_max)
+		m_display_num = display_max - 1;
 	SDL_DisplayMode dm;
 	SDL_GetCurrentDisplayMode(m_display_num, &dm);
 
@@ -209,7 +212,7 @@ void GFX::OnCreate()
 	int width = (int)float(height * _aspect);
 	if (!m_fullscreen)
 	{
-		height -= 54;	// chop some vertical to account for the windowed title bar
+		height -= 150; // 54;	// chop some vertical to account for the windowed title bar
 		width = (int)float(height * _aspect);
 	}
 
@@ -233,7 +236,6 @@ void GFX::OnCreate()
 	_surface = SDL_GetWindowSurface(_window);
 
 	// center the window in the appropriate display monitor
-	int dsply_max = SDL_GetNumVideoDisplays();
 	//int dsply_num = (bus->read(GFX_DISPLAY_AUX) & GRES_AUX::GRES_AUX_DSPLY_MASK) % dsply_max;
 	SDL_SetWindowPosition(_window,
 		SDL_WINDOWPOS_CENTERED_DISPLAY(m_display_num), SDL_WINDOWPOS_CENTERED_DISPLAY(m_display_num));
@@ -331,7 +333,7 @@ void GFX::OnUpdate(float fElapsedTime)
 	const bool FILL_RAND_PIXELS = true;
 	if (FILL_RAND_PIXELS)
 	{
-		for (int t = 0; t < 500; t++)
+		for (int t = 0; t < 1000; t++)
 		{
 			SDL_Rect dot = { rand() % _res_width,
 					rand() % _res_height, 1, 1 };
@@ -340,7 +342,17 @@ void GFX::OnUpdate(float fElapsedTime)
 		}
 	}
 	else
+	{
+		//for (int y = 0; y < _res_height; y++)
+		//{
+		//	for (int x = 0; x < _res_width; x++)
+		//	{
+		//		SDL_SetRenderDrawColor(_renderer, rand() % 256, rand() % 256, rand() % 256, 0xFF);
+		//		SDL_RenderDrawPoint(_renderer, x, y);
+		//	} 
+		//}
 		SDL_RenderClear(_renderer);
+	}
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.

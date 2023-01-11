@@ -1,0 +1,12 @@
+﻿  Bus.cpp
+  C6809.cpp
+  Device.cpp
+  GFX.cpp
+  main.cpp
+  Memory.cpp
+  MemoryMap.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 873 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  TPR_6809.vcxproj -> C:\Shared\dev\TPR_6809\Release\TPR_6809.exe
