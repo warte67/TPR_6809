@@ -14,7 +14,7 @@
 
 // default GFX_FLAGS:
 bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
-bool GFX::m_enable_backbuffer	= true;		// true:enabled, false:disabled
+bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer
@@ -241,7 +241,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 {
 	if (evnt->type == SDL_KEYDOWN)
 	{
-		// TEMPORARY: TESTING
+		// TEMPORARY: TESTING (Toggle the backbuffer)
 		if (evnt->key.keysym.sym == SDLK_SPACE)
 		{
 			// flip the back buffer
@@ -475,6 +475,11 @@ void GFX::OnDestroy()
 
 void GFX::OnUpdate(float fElapsedTime)
 {
+	//// automatically flip the backbuffer
+	//Byte data = bus->read(GFX_FLAGS);
+	//data ^= 0x08;
+	//bus->write(GFX_FLAGS, data);
+
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
