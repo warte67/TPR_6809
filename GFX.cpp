@@ -31,15 +31,20 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			{
 				//      bit 7: fullscreen
 				//      bit 6: vsync
-				//      bit 5: unassigned
-				//      bit 4: unassigned
-				//      bit 3: unassigned
-				//      bit 0-2: display monitor (0-7)
+				//      bit 3-5: display monitor (0-7)
+				//      bit 0-2: graphics mode (0-7)
+				//          0) NONE (just random background noise)
+				//          1) Glyph Mode (512x320 or 64x48 text)
+				//          2) Tile 16x16x16 mode
+				//          3) 128x80 x 16-Color
+				//          4) 128x160 x 4-Color
+				//          5) 256x80 x 4-Color
+				//          6) 256x160 x 2-Color
+				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				Byte ret = 0;
 				if (ptrGfx->m_fullscreen)	ret |= 0x80;
-				if (ptrGfx->m_VSYNC)		ret |= 0x40;
-				Byte num = ptrGfx->m_display_num & 0x07;
-				ret |= num;
+				if (ptrGfx->m_VSYNC)		ret |= 0x40;				
+				ret |= (ptrGfx->m_display_num & 0x38);
 
 				//Byte test = ptrGfx->read(ofs); // TESTING!!!
 				ptrGfx->write(ofs, ret);	// pre-write			(IS WORKING?)
@@ -66,15 +71,21 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			{
 				//      bit 7: fullscreen
 				//      bit 6: vsync
-				//      bit 5: unassigned
-				//      bit 4: unassigned
-				//      bit 3: unassigned
-				//      bit 0-2: display monitor (0-7)
+				//      bit 3-5: display monitor (0-7)
+				//      bit 0-2: graphics mode (0-7)
+				//          0) NONE (just random background noise)
+				//          1) Glyph Mode (512x320 or 64x48 text)
+				//          2) Tile 16x16x16 mode
+				//          3) 128x80 x 16-Color
+				//          4) 128x160 x 4-Color
+				//          5) 256x80 x 4-Color
+				//          6) 256x160 x 2-Color
+				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				//data = ptrGfx->debug_read(ofs);
 				//data=ptrGfx->bus->debug_read(ofs);
 				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
 				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
-				ptrGfx->m_display_num = data & 0x07;
+				ptrGfx->m_display_num = (data & 0x38) >> 3;
 				int num = SDL_GetNumVideoDisplays();
 				ptrGfx->m_display_num %= num;
 				ptrGfx->bIsDirty = true;
@@ -120,10 +131,16 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
 	memmap->push({ offset, "", "    bit 7: fullscreen" }); offset += 0;
 	memmap->push({ offset, "", "    bit 6: vsync" }); offset += 0;
-	memmap->push({ offset, "", "    bit 5: unassigned" }); offset += 0;
-	memmap->push({ offset, "", "    bit 4: unassigned" }); offset += 0;
-	memmap->push({ offset, "", "    bit 3: unassigned" }); offset += 0;
-	memmap->push({ offset, "", "    bit 0-2: display monitor (0-7)" }); offset += 0;
+	memmap->push({ offset, "", "    bit 3-5: display monitor (0-7)" }); offset += 0;
+	memmap->push({ offset, "", "    bit 0-2: graphics mode (0-7)" }); offset += 0;
+	memmap->push({ offset, "", "        0) NONE (just random background noise)		 " }); offset += 0;
+	memmap->push({ offset, "", "        1) Glyph Mode (512x320 or 64x48 text)		 " }); offset += 0;
+	memmap->push({ offset, "", "        2) Tile 16x16x16 mode						 " }); offset += 0;
+	memmap->push({ offset, "", "        3) 128x80 x 16-Color						 " }); offset += 0;
+	memmap->push({ offset, "", "        4) 128x160 x 4-Color						 " }); offset += 0;
+	memmap->push({ offset, "", "        5) 256x80 x 4-Color							 " }); offset += 0;
+	memmap->push({ offset, "", "        6) 256x160 x 2-Color						 " }); offset += 0;
+	memmap->push({ offset, "", "        7) 256x192 256-color (SLOW EXTERNAL I2C RAM) " }); offset += 0;
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
 
@@ -141,10 +158,6 @@ void GFX::OnEvent(SDL_Event *evnt)
 		{
 			if (SDL_GetModState() & KMOD_ALT)
 			{
-				// PROBLEM:  this->read(GFX_FLAGS) still returns 0xCC!
-				//    and this->write(GFX_FLAGS) doesn't write correctly!
-				//    MemBlocks still not attached to the GFX Object
-
 				//Byte data = this->read(GFX_FLAGS);		// still doesn't work correctly
 				Byte data = bus->read(GFX_FLAGS);			// this one does
 				data ^= 0x80;
@@ -161,13 +174,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
 				Byte data = bus->read(GFX_FLAGS);
-				Byte monitor = (data & 0x07);
+				Byte monitor = (data & 0x38) >> 3;
 				//printf("GFX::OnEvent() ---  monitor: %d\n", monitor);
 				if (monitor > 0) 
 				{
 					monitor--;
-					data &= 0xf8;
-					data |= monitor;
+					data &= 0xc7;
+					data |= monitor << 3;
 					bus->write(GFX_FLAGS, data);
 				}
 			}
@@ -175,12 +188,12 @@ void GFX::OnEvent(SDL_Event *evnt)
 			if (evnt->key.keysym.sym == SDLK_RIGHT)
 			{
 				Byte data = bus->read(GFX_FLAGS);
-				Byte monitor = (data & 0x07);
+				Byte monitor = (data & 0x38) >> 3;
 				if (monitor < num_displays)
 				{
 					monitor++;
-					data &= 0xf8;
-					data |= monitor;
+					data &= 0xc7;
+					data |= monitor << 3;
 					bus->write(GFX_FLAGS, data);
 				}
 			}

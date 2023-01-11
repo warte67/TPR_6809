@@ -71,10 +71,16 @@ enum MEMMAP
      GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
 //      bit 7: fullscreen
 //      bit 6: vsync
-//      bit 5: unassigned
-//      bit 4: unassigned
-//      bit 3: unassigned
-//      bit 0-2: display monitor (0-7)
+//      bit 3-5: display monitor (0-7)
+//      bit 0-2: graphics mode (0-7)
+//          0) NONE (just random background noise)
+//          1) Glyph Mode (512x320 or 64x48 text)
+//          2) Tile 16x16x16 mode
+//          3) 128x80 x 16-Color
+//          4) 128x160 x 4-Color
+//          5) 256x80 x 4-Color
+//          6) 256x160 x 2-Color
+//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
   TIMING_WIDTH = 0x1801,        // (Word) timing width
   TIMING_HEIGHT = 0x1803,       // (Word) timing height
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
