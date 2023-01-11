@@ -87,10 +87,10 @@ protected:
                 - Glyph Data Buffer size = 2.5kb
                 - Color Attribute Data Buffer size = 2.5kb
         - Possible Pixel Graphics Resolutions include:
-            - 256x160 x 2-Color
-            - 256x80 x 4-Color
-            - 128x160 x 4-Color
-            - 128x80 x 16-Color
+            - 256x160 x 2-Color     (5120 bytes)
+            - 256x80 x 4-Color      (5120 bytes)
+            - 128x160 x 4-Color     (5120 bytes)
+            - 128x80 x 16-Color     (5120 bytes)
 
 
 	GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
