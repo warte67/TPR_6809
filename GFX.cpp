@@ -45,6 +45,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_fullscreen)	ret |= 0x80;
 				if (ptrGfx->m_VSYNC)		ret |= 0x40;	
 				ret |= (ptrGfx->m_display_num & 0x07) << 3;
+				ret |= (ptrGfx->m_gmode_index & 0x07);
 
 				//Byte test = ptrGfx->read(ofs); // TESTING!!!
 				ptrGfx->write(ofs, ret);	// pre-write			(IS WORKING?)
@@ -56,13 +57,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			// All we care about here is the resolution width/height. This represents the
 			//     screen timing resolution the PICO will have to display.
 			if (ofs == TIMING_WIDTH)
-				return (ptrGfx->_res_width >> 8) & 0x00ff;
+				return (ptrGfx->_pix_width >> 8) & 0x00ff;
 			if (ofs == TIMING_WIDTH + 1)
-				return ptrGfx->_res_width & 0x00ff;
+				return ptrGfx->_pix_width & 0x00ff;
 			if (ofs == TIMING_HEIGHT)
-				return (ptrGfx->_res_height >> 8) & 0x00ff;
+				return (ptrGfx->_pix_height >> 8) & 0x00ff;
 			if (ofs == TIMING_HEIGHT + 1)
-				return ptrGfx->_res_height & 0x00ff;
+				return ptrGfx->_pix_height & 0x00ff;
 		}
 		else
 		{	// WRITTEN TO
@@ -88,6 +89,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->m_display_num = (data & 0x38) >> 3;
 				int num = SDL_GetNumVideoDisplays();
 				ptrGfx->m_display_num %= num;
+				ptrGfx->m_gmode_index = (data & 0x07);
 				ptrGfx->bIsDirty = true;
 
 				//ptrGfx->bus->debug_write(ofs, data);
@@ -197,6 +199,25 @@ void GFX::OnEvent(SDL_Event *evnt)
 					bus->write(GFX_FLAGS, data);
 				}
 			}
+			// up (graphics mode index)
+			if (evnt->key.keysym.sym == SDLK_UP)
+			{
+				m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
+				if (m_gmode_index<7) 
+					m_gmode_index++;
+				Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
+				bus->write(GFX_FLAGS, data);
+			}
+			// down (graphics mode index)
+			if (evnt->key.keysym.sym == SDLK_DOWN)
+			{
+				m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
+				if (m_gmode_index > 0)
+					m_gmode_index--;
+				Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
+				bus->write(GFX_FLAGS, data);
+			}
+
 			// [V] VSYNC toggle (GFX_FLAGS bit 6)
 			if (evnt->key.keysym.sym == SDLK_v)
 			{
@@ -280,7 +301,7 @@ void GFX::OnCreate()
 
 	// create the main screen texture	
 	_texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
-		SDL_TEXTUREACCESS_TARGET, _res_width, _res_height);
+		SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
 
 	bIsDirty = false;
 	//bWasInit = true;
@@ -299,8 +320,9 @@ void GFX::OnCreate()
 		printf("GFX::OnCreate(): \n");
 		printf("         Timing: %d X %d\n", bus->read_word(TIMING_WIDTH), bus->read_word(TIMING_HEIGHT));
 		printf("          VSYNC: %s\n", (bus->read(GFX_FLAGS) & 0x40) ? "true" : "false");
+		printf(" Gfx Mode Index: %d\n", (bus->read(GFX_FLAGS) & 0x07) );
 		printf("         Aspect: %f\n", _aspect);
-		printf("        Monitor: %d\n", bus->read(GFX_FLAGS) & 0x07);
+		printf("        Monitor: %d\n", (bus->read(GFX_FLAGS) & 0x38) >> 3);
 		printf("    Screen Mode: %s\n", (bus->read(GFX_FLAGS) & 0x80) ? "FULLSCREEN" : "WINDOWED");
 	}
 
@@ -348,8 +370,8 @@ void GFX::OnUpdate(float fElapsedTime)
 	{
 		for (int t = 0; t < 1000; t++)
 		{
-			SDL_Rect dot = { rand() % _res_width,
-					rand() % _res_height, 1, 1 };
+			SDL_Rect dot = { rand() % _pix_width,
+					rand() % _pix_height, 1, 1 };
 			SDL_SetRenderDrawColor(_renderer, rand() % 256, rand() % 256, rand() % 256, 0xFF);
 			SDL_RenderFillRect(_renderer, &dot);
 		}
