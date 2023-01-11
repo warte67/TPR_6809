@@ -19,14 +19,8 @@
 
 int main(int argc, char* argv[])
 {
-    printf("Starting the TPR_6809 Application...\n");	
-	printf("Chunky Tom's butt doesn't quite fit\n");
-	printf("through the garage door!\n"); 
-	printf("\n");
-	printf("********************************\n");
-	printf("* Changed by PI400 & AsusMint  *\n");
-	printf("* Verified on the Win10 Server *\n");
-	printf("********************************\n\n");
+	//printf("Starting the TPR_6809 Application...\n");	
+	//printf("\n");
 
 	Bus* bus = Bus::getInstance();
 	bus->run();

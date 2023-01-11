@@ -61,16 +61,21 @@ protected:
     Uint32 _renderer_flags = 0;
 
     // statics
-    static bool m_VSYNC;		// 1:VSYNC, 2:not throttled
-    static bool m_fullscreen;	// 1:fullscreen, 2:windowed
-    static int  m_display_num;	// which monitor to use
+    static bool m_VSYNC;		        // 1:VSYNC, 0:not throttled
+    static bool m_enable_backbuffer;    // 1:enabled, 0:disabled
+    static bool m_enable_debug;         // 1:enabled, 0:disabled
+    static bool m_enable_mouse;         // 1:enabled, 0:disabled
+    static bool m_current_backbuffer;   // currently active backbuffer
+    static int m_gmode_index;           // (0-7)
+
+    static bool m_fullscreen;	        // 1:fullscreen, 0:windowed
+    static int  m_display_num;	        // which monitor to use
 
     // internal state
     //bool bWasInit = false;
     bool bIsDirty = true;
 
     // graphics modes    
-    int m_gmode_index = 0;
 	std::vector<GfxMode*> m_gmodes;
 
     // device objects
@@ -113,17 +118,33 @@ protected:
 			5) GfxBitmap3:	256x80 x 4-Color
 			6) GfxBitmap4:	256x160 x 2-Color
 			7) GfxBitmap5:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
+
 	TIMING_WIDTH = 0x1801,        // (Word) timing width
 	TIMING_HEIGHT = 0x1803,       // (Word) timing height
-
-
-
 
 	STATIC MODES:
 		+ DEBUG
 		+ SPRITES
 		+ SYSTEM (Mouse Cursor)
 
+Revision ///////////////////
 
+    GFX_FLAGS: (hardware)
+        bits:
+        6)   VSYNC
+        6)   backbuffer enable
+        5)   enable debug
+        4)   enable mouse cursor
+        3)   swap backbuffer (on write); current backbuffer (on read)
+        0-2) graphics mode index
+
+    GFX_AUX: (emulator only)
+        bits:
+        7)   0:fullscreen / 1:windowed
+        6)   reserved
+        5)   reserved
+        4)   reserved
+        3)   reserved
+        0-2  display index
 
 ************************************************/

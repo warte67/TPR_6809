@@ -12,9 +12,17 @@
 #include "GFX.h"
 
 
-bool GFX::m_VSYNC       = false;	// true:VSYNC, false:not throttled
-bool GFX::m_fullscreen	= false;	// true:fullscreen, false:windowed
-int  GFX::m_display_num = 1;		// which monitor to use, default.
+// default GFX_FLAGS:
+bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
+bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
+bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
+bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
+bool GFX::m_current_backbuffer	= false;	// currently active backbuffer
+int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
+
+// default GFX_AUX:
+bool GFX::m_fullscreen			= false;	// true:fullscreen, false:windowed
+int  GFX::m_display_num			= 1;		// which monitor to use, default.
 
 
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
@@ -27,12 +35,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 	{
 		if (bWasRead)
 		{	// READ FROM
-
 			if (ofs == GFX_FLAGS)
-			{
-				//      bit 7: fullscreen
-				//      bit 6: vsync
-				//      bit 3-5: display monitor (0-7)
+			{	// READ:
+				//		bit 7: vsync
+				//      bit 6: backbuffer enable
+				//      bit 5: debug enable
+				//      bit 4: mouse cursor enable
+				//      bit 3: swap backbuffers (on write)
 				//      bit 0-2: graphics mode (0-7)
 				//          0) NONE (just random background noise)
 				//          1) Glyph Mode (512x320 or 64x48 text)
@@ -41,20 +50,31 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          4) 128x160 x 4-Color
 				//          5) 256x80 x 4-Color
 				//          6) 256x160 x 2-Color
-				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
+				//          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
 				Byte ret = 0;
-				if (ptrGfx->m_fullscreen)	ret |= 0x80;
-				if (ptrGfx->m_VSYNC)		ret |= 0x40;	
-				ret |= (ptrGfx->m_display_num & 0x07) << 3;
+				if (ptrGfx->m_VSYNC)				ret |= 0x80;
+				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
+				if (ptrGfx->m_enable_debug)			ret |= 0x20;
+				if (ptrGfx->m_enable_mouse)			ret |= 0x10;
+				if (ptrGfx->m_current_backbuffer)	ret |= 0x08;
 				ret |= (ptrGfx->m_gmode_index & 0x07);
-
-				//Byte test = ptrGfx->read(ofs); // TESTING!!!
-				ptrGfx->write(ofs, ret);	// pre-write			(IS WORKING?)
-				//test = ptrGfx->read(ofs); // TESTING!!!
-
+				ptrGfx->write(ofs, ret);	// pre-write
 				return ret;
 			}
-
+			if (ofs == GFX_AUX)
+			{	// READ:
+				//      bit 7: 1:fullscreen / 0:windowed
+				//      bit 6: reserved
+				//      bit 5: reserved
+				//      bit 4: reserved
+				//      bit 3: reserved
+				//      bit 0-2: monitor display index (0-7)
+				Byte ret = 0;
+				if (ptrGfx->m_fullscreen)	ret |= 0x80;
+				ret |= (ptrGfx->m_display_num & 0x07);
+				ptrGfx->write(ofs, ret);	// pre-write
+				return ret;
+			}
 			// All we care about here is the resolution width/height. This represents the
 			//     screen timing resolution the PICO will have to display.
 			if (ofs == TIMING_WIDTH)
@@ -70,10 +90,12 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		{	// WRITTEN TO
 
 			if (ofs == GFX_FLAGS)
-			{
-				//      bit 7: fullscreen
-				//      bit 6: vsync
-				//      bit 3-5: display monitor (0-7)
+			{	// WRITE:
+				//		bit 7: vsync
+				//      bit 6: backbuffer enable
+				//      bit 5: debug enable
+				//      bit 4: mouse cursor enable
+				//      bit 3: swap backbuffers (on write)
 				//      bit 0-2: graphics mode (0-7)
 				//          0) NONE (just random background noise)
 				//          1) Glyph Mode (512x320 or 64x48 text)
@@ -83,22 +105,32 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          5) 256x80 x 4-Color
 				//          6) 256x160 x 2-Color
 				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
-				//data = ptrGfx->debug_read(ofs);
-				//data=ptrGfx->bus->debug_read(ofs);
-				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
-				ptrGfx->m_VSYNC = ((data & 0x40) == 0x40);
-				ptrGfx->m_display_num = (data & 0x38) >> 3;
-				int num = SDL_GetNumVideoDisplays();
-				ptrGfx->m_display_num %= num;
-				ptrGfx->m_gmode_index = (data & 0x07);
+				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
+				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
+				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
+				ptrGfx->m_enable_mouse			= ((data & 0x10) == 0x10);
+				// ptrGfx->m_current_backbuffer			// TODO: Implement Backbuffer Swapping
+				ptrGfx->m_gmode_index			= (data & 0x07);
+				//
 				ptrGfx->bIsDirty = true;
-
-				//ptrGfx->bus->debug_write(ofs, data);
 				ptrGfx->debug_write(ofs, data);
 			}
-
-			//if (ofs >= SCR_WIDTH && ofs <= PIX_HEIGHT + 1)
-			//	return data;	// read only
+			if (ofs == GFX_AUX)
+			{	// WRITE:
+				//      bit 7: 0:fullscreen / 1:windowed
+				//      bit 6: reserved
+				//      bit 5: reserved
+				//      bit 4: reserved
+				//      bit 3: reserved
+				//      bit 0-2: monitor display index (0-7)
+				ptrGfx->m_fullscreen = ((data & 0x80) == 0x80);
+				ptrGfx->m_display_num = (data & 0x07);
+				int num = SDL_GetNumVideoDisplays();
+				ptrGfx->m_display_num %= num;
+				//
+				ptrGfx->bIsDirty = true;
+				ptrGfx->debug_write(ofs, data);
+			}
 		}
 	}
 	return data;
@@ -151,21 +183,31 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	DWord st_offset = offset;
 	// Defined only to serve as a template for inherited device objects.
 	// (this will never be called due to being an abstract base type.)
+
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
-	memmap->push({ offset, "", "    bit 7: fullscreen" }); offset += 0;
-	memmap->push({ offset, "", "    bit 6: vsync" }); offset += 0;
-	memmap->push({ offset, "", "    bit 3-5: display monitor (0-7)" }); offset += 0;
-	memmap->push({ offset, "", "    bit 0-2: graphics mode (0-7)" }); offset += 0;
-	memmap->push({ offset, "", "        0) NONE (just random background noise)		 " }); offset += 0;
-	memmap->push({ offset, "", "        1) Glyph Mode (512x320 or 64x48 text)		 " }); offset += 0;
-	memmap->push({ offset, "", "        2) Tile 16x16x16 mode						 " }); offset += 0;
-	memmap->push({ offset, "", "        3) 128x80 x 16-Color						 " }); offset += 0;
-	memmap->push({ offset, "", "        4) 128x160 x 4-Color						 " }); offset += 0;
-	memmap->push({ offset, "", "        5) 256x80 x 4-Color							 " }); offset += 0;
-	memmap->push({ offset, "", "        6) 256x160 x 2-Color						 " }); offset += 0;
-	memmap->push({ offset, "", "        7) 256x192 256-color (SLOW EXTERNAL I2C RAM) " }); offset += 0;
+	memmap->push({ offset, "", ">  bit 7: vsync" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: debug enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: mouse cursor enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: swap backbuffers (on write)" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0-2: graphics mode (0-7)" }); offset += 0;
+	memmap->push({ offset, "", ">        0) NONE (just random background noise)		 " }); offset += 0;
+	memmap->push({ offset, "", ">        1) Glyph Mode (512x320 or 64x48 text)		 " }); offset += 0;
+	memmap->push({ offset, "", ">        2) Tile 16x16x16 mode						 " }); offset += 0;
+	memmap->push({ offset, "", ">        3) 128x80 x 16-Color						 " }); offset += 0;
+	memmap->push({ offset, "", ">        4) 128x160 x 4-Color						 " }); offset += 0;
+	memmap->push({ offset, "", ">        5) 256x80 x 4-Color							 " }); offset += 0;
+	memmap->push({ offset, "", ">        6) 256x160 x 2-Color						 " }); offset += 0;
+	memmap->push({ offset, "", ">        7) 256x192 256-color  (EXTERNAL 64k BUFFER) " }); offset += 0;
+	memmap->push({ offset, "GFX_AUX", "(Byte) gfx auxillary/emulation flags:" }); offset += 1;
+	memmap->push({ offset, "", ">    bit 7: 1:fullscreen / 0:windowed" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6: reserved" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: reserved" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: reserved" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: reserved" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0-2: monitor display index (0-7)" }); offset += 0;
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
 
@@ -199,10 +241,9 @@ void GFX::OnEvent(SDL_Event *evnt)
 		{
 			if (SDL_GetModState() & KMOD_ALT)
 			{
-				//Byte data = this->read(GFX_FLAGS);		// still doesn't work correctly
-				Byte data = bus->read(GFX_FLAGS);			// this one does
+				Byte data = bus->read(GFX_AUX);			// this one does
 				data ^= 0x80;
-				bus->write(GFX_FLAGS, data);
+				bus->write(GFX_AUX, data);
 				printf("FULLSCREEN TOGGLE\n");
 			}
 		}
@@ -214,28 +255,28 @@ void GFX::OnEvent(SDL_Event *evnt)
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
-				Byte data = bus->read(GFX_FLAGS);
-				Byte monitor = (data & 0x38) >> 3;
+				Byte data = bus->read(GFX_AUX);
+				Byte monitor = (data & 0x07);
 				//printf("GFX::OnEvent() ---  monitor: %d\n", monitor);
 				if (monitor > 0) 
 				{
 					monitor--;
-					data &= 0xc7;
-					data |= monitor << 3;
-					bus->write(GFX_FLAGS, data);
+					data &= 0xf8;
+					data |= monitor;
+					bus->write(GFX_AUX, data);
 				}
 			}
 			// right
 			if (evnt->key.keysym.sym == SDLK_RIGHT)
 			{
-				Byte data = bus->read(GFX_FLAGS);
-				Byte monitor = (data & 0x38) >> 3;
+				Byte data = bus->read(GFX_AUX);
+				Byte monitor = (data & 0x07);
 				if (monitor < num_displays)
 				{
 					monitor++;
-					data &= 0xc7;
-					data |= monitor << 3;
-					bus->write(GFX_FLAGS, data);
+					data &= 0xf8;
+					data |= monitor;
+					bus->write(GFX_AUX, data);
 				}
 			}
 			// up (graphics mode index)
@@ -261,7 +302,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 			if (evnt->key.keysym.sym == SDLK_v)
 			{
 				Byte data = bus->read(GFX_FLAGS);
-				data ^= 0x40;
+				data ^= 0x80;
 				bus->write(GFX_FLAGS, data);
 			}
 		}
