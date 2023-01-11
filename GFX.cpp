@@ -43,8 +43,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				Byte ret = 0;
 				if (ptrGfx->m_fullscreen)	ret |= 0x80;
-				if (ptrGfx->m_VSYNC)		ret |= 0x40;				
-				ret |= (ptrGfx->m_display_num & 0x38);
+				if (ptrGfx->m_VSYNC)		ret |= 0x40;	
+				ret |= (ptrGfx->m_display_num & 0x07) << 3;
 
 				//Byte test = ptrGfx->read(ofs); // TESTING!!!
 				ptrGfx->write(ofs, ret);	// pre-write			(IS WORKING?)
