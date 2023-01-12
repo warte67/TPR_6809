@@ -19,38 +19,35 @@ GfxMouse::GfxMouse()
 	if (palette.size() == 0)
 	{
 		for (int t = 0; t < 16; t++)
-			palette.push_back({ 0,0,0, SDL_ALPHA_OPAQUE });
+			palette.push_back({ 0x00 });
 
 		std::vector<PALETTE> ref = {
-			{ 0x00, 0x00, 0x00,  0x00 },
-			{ 0x00, 0x00, 0x00,  0x33 },
-			{ 0x00, 0x00, 0x00,  0x66 },
-			{ 0x00, 0x00, 0x00,  0xFF },
-			{ 0xff, 0xff, 0xff,  0xFF },
-			{ 0xdd, 0xdd, 0xdd,  0xFF },
-			{ 0xbb, 0xbb, 0xbb,  0xFF },
-			{ 0x99, 0x99, 0x99,  0xFF },
-			{ 0x77, 0x77, 0x77,  0xFF },
-			{ 0x55, 0x55, 0x55,  0xFF },
-			{ 0x33, 0x33, 0x33,  0xFF },
-			{ 0x55, 0x55, 0x55,  0xFF },
-			{ 0x77, 0x77, 0x77,  0xFF },
-			{ 0x99, 0x99, 0x99,  0xFF },
-			{ 0xbb, 0xbb, 0xbb,  0xFF },
-			{ 0xdd, 0xdd, 0xdd,  0xFF },
+			{ 0x00 },		// 00 00.00 00	0
+			{ 0x01 },		// 00 00.00 01	1
+			{ 0x02 },		// 00 00.00 10	2
+			{ 0x03 },		// 00 00.00 11	3
+			{ 0xff },		// 11 11.11 11	4
+			{ 0xab },		// 10 10.10 11	5
+			{ 0x57 },		// 01 01.01 11	6
+			{ 0x0b },		// 00 00.10 11	7
+			{ 0x23 },		// 00 10.00 11	8
+			{ 0x83 },		// 10 00.00 11	9
+			{ 0x0f },		// 00 00.11 11	a
+			{ 0x33 },		// 00 11.00 11	b
+			{ 0x3f },		// 00 11.11 11	c
+			{ 0xcf },		// 11 00.11 11	d
+			{ 0xf3 },		// 11 11.00 11	e
+			{ 0xff },		// 11 11.11 11	f
 		};
 
 		for (int t = 0; t < 16; t++)
 		{
+			palette[t].color = ref[t].color;
+
 			//bus->write(GFX_PAL_INDX, t);
-			//bus->write(GFX_PAL_RED, ref[t].r);
-			//bus->write(GFX_PAL_GRN, ref[t].g);
-			//bus->write(GFX_PAL_BLU, ref[t].b);
-			//bus->write(GFX_PAL_ALF, ref[t].a);
-			palette[t].r = ref[t].r;
-			palette[t].g = ref[t].g;
-			palette[t].b = ref[t].b;
-			palette[t].a = ref[t].a;
+			//bus->write(GFX_PAL_DATA, ref[t].color);
+
+			// printf("ref: $%02X, R:%1d, G:%1d, B:%1d, A:%1d\n", ref[t].color, ref[t].r, ref[t].g, ref[t].b, ref[t].a);
 		}
 	}
 }
@@ -85,8 +82,8 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 	{
 		case SDL_MOUSEMOTION:
 		{
-			float rw = gfx->ResWidth();
-			float rh = gfx->ResHeight();
+			float rw = (float)gfx->ResWidth();
+			float rh = (float)gfx->ResHeight();
 
 			mouse_x_screen = evnt->button.x;
 			mouse_y_screen = evnt->button.y;

@@ -82,7 +82,7 @@ enum MEMMAP
                                 //          4) 128x160 x 4-Color
                                 //          5) 256x80 x 4-Color
                                 //          6) 256x160 x 2-Color
-                                //          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
+                                //          7) 256x192 256-color RGBI2222 (64k BUFFER)
        GFX_AUX = 0x1801,        // (Byte) gfx auxillary/emulation flags:
                                 //      bit 7: 1:fullscreen / 0:windowed
                                 //      bit 6: reserved
@@ -93,10 +93,15 @@ enum MEMMAP
   TIMING_WIDTH = 0x1802,        // (Word) timing width
   TIMING_HEIGHT = 0x1804,       // (Word) timing height
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
-   GFX_PAL_RED = 0x1807,        // (Byte) red palette data (read/write)
-   GFX_PAL_GRN = 0x1808,        // (Byte) grn palette data (read/write)
-   GFX_PAL_BLU = 0x1809,        // (Byte) blu palette data (read/write)
-   GFX_PAL_ALF = 0x180a,        // (Byte) alpha palette data (read/write)
+  GFX_PAL_DATA = 0x1807,        // (Byte) gfx palette color bits RRGGBBAA
+
+//  Mouse Cursor Hardware Registers:
+      CSR_XPOS = 0x1808,        // (Word) horizontal mouse cursor coordinate
+      CSR_YPOS = 0x180a,        // (Word) vertical mouse cursor coordinate
+      CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
+      CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
+      CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
+  CSR_PAL_DATA = 0x1811,        // (Byte) mouse color  palette color bits RRGGBBAA
                                 //    a special note
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 

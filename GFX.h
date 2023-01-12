@@ -100,26 +100,27 @@ protected:
     GfxMouse* gfx_mouse = nullptr;
 
     // Palette Stuff
-    struct PALETTE {
-        Uint8 r;
-        Uint8 g;
-        Uint8 b;
-        Uint8 a;
+    union PALETTE {
+        Byte color;
+        struct {
+            Uint8 a : 2;
+            Uint8 b : 2;
+            Uint8 g : 2;
+            Uint8 r : 2;
+        };
     };
     std::vector<PALETTE> palette;
     static Uint8 m_palette_index;
 
-    void red(Uint8 index, Uint8 r) { palette[index].r = r; }
-    void grn(Uint8 index, Uint8 g) { palette[index].g = g; }
-    void blu(Uint8 index, Uint8 b) { palette[index].b = b; }
-    void alf(Uint8 index, Uint8 a) { palette[index].a = a; }
-
 public:
-    Uint8 red(Uint8 index) { return palette[index].r; }
-    Uint8 grn(Uint8 index) { return palette[index].g; }
-    Uint8 blu(Uint8 index) { return palette[index].b; }
-    Uint8 alf(Uint8 index) { return palette[index].a; }
-
+    Uint8 red(Uint8 index) 
+        { Uint8 c = palette[index].r; return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 grn(Uint8 index) 
+        { Uint8 c = palette[index].g; return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 blu(Uint8 index) 
+        { Uint8 c = palette[index].b; return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 alf(Uint8 index) 
+        { Uint8 c = palette[index].a; return c | (c << 2) | (c << 4) | (c << 6); }
 };
 
 
@@ -185,5 +186,20 @@ Revision ///////////////////
         4)   reserved
         3)   reserved
         0-2  display index
+
+
+
+    Color Palette Entry:
+
+        +-+-+-+-+-+-+-+-+
+        |R|R|G|G|B|B|A|A|   64-Color Palette with ALPHA BLENDING
+        +-+-+-+-+-+-+-+-+
+
+
+    "256-Color" Palette Entry:
+        +-+-+-+-+-+-+-+-+
+        |R|R|G|G|B|B|I|I|    Uses 2 Intensity Bits instead of Alpha
+        +-+-+-+-+-+-+-+-+
+
 
 ************************************************/

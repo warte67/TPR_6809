@@ -94,14 +94,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			// read PALETTE stuff
 			if (ofs == GFX_PAL_INDX)
 				return m_palette_index;
-			if (ofs == GFX_PAL_RED)
-				return ptrGfx->red(m_palette_index);
-			if (ofs == GFX_PAL_GRN)
-				return ptrGfx->grn(m_palette_index);
-			if (ofs == GFX_PAL_BLU)
-				return ptrGfx->blu(m_palette_index);
-			if (ofs == GFX_PAL_ALF)
-				return ptrGfx->alf(m_palette_index);
+			if (ofs == GFX_PAL_DATA)
+				return ptrGfx->palette[m_palette_index].color;
 		}
 		else
 		{	// WRITTEN TO
@@ -172,16 +166,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->debug_write(ofs, data); 
 				m_palette_index = data; 
 			}
-			if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
+			if (ofs == GFX_PAL_DATA)
 			{
 				bus->debug_write(ofs, data);
-				if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
-				{
-					if (ofs == GFX_PAL_RED)		ptrGfx->red(m_palette_index, data);
-					if (ofs == GFX_PAL_GRN)		ptrGfx->grn(m_palette_index, data);
-					if (ofs == GFX_PAL_BLU)		ptrGfx->blu(m_palette_index, data);
-					if (ofs == GFX_PAL_ALF)		ptrGfx->alf(m_palette_index, data);
-				}
+				ptrGfx->palette[m_palette_index].color = data;
 			}
 		}
 	}
@@ -192,10 +180,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 GFX::GFX() : REG(0,0)
 {
-	Device::_deviceName = "GFX";
-	//bus = Bus::getInstance();
-	//memory = bus->getMemoryPtr();
-
+	Device::_deviceName = "???GFX???";
 	// this constructore is removed early.
 	// dont use it for initialization
 }
@@ -262,9 +247,9 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">        2) Tile 16x16x16 mode						 " }); offset += 0;
 	memmap->push({ offset, "", ">        3) 128x80 x 16-Color						 " }); offset += 0;
 	memmap->push({ offset, "", ">        4) 128x160 x 4-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        5) 256x80 x 4-Color							 " }); offset += 0;
+	memmap->push({ offset, "", ">        5) 256x80 x 4-Color						 " }); offset += 0;
 	memmap->push({ offset, "", ">        6) 256x160 x 2-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        7) 256x192 256-color  (EXTERNAL 64k BUFFER) " }); offset += 0;
+	memmap->push({ offset, "", ">        7) 256x192 256-color RGBI2222 (64k BUFFER) " }); offset += 0;
 	memmap->push({ offset, "GFX_AUX", "(Byte) gfx auxillary/emulation flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bit 7: 1:fullscreen / 0:windowed" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: reserved" }); offset += 0;
@@ -275,10 +260,17 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_RED", "(Byte) red palette data (read/write)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_GRN", "(Byte) grn palette data (read/write)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_BLU", "(Byte) blu palette data (read/write)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_ALF", "(Byte) alpha palette data (read/write)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_DATA", "(Byte) gfx palette color bits RRGGBBAA" }); offset += 1;
+
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "CSR_XPOS", "(Word) horizontal mouse cursor coordinate" }); offset += 2;
+	memmap->push({ offset, "CSR_YPOS", "(Word) vertical mouse cursor coordinate" }); offset += 2;
+	memmap->push({ offset, "CSR_XOFS", "(Word) horizontal mouse cursor offset" }); offset += 2;
+	memmap->push({ offset, "CSR_YOFS", "(Word) vertical mouse cursor offset" }); offset += 2;
+	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse color  palette color bits RRGGBBAA" }); offset += 1;
+
 
 	memmap->push({ offset, "", ">  a special note" }); offset += 0;
 
@@ -293,34 +285,31 @@ void GFX::OnInitialize()
 	if (palette.size() == 0)
 	{
 		for (int t = 0; t < 16; t++)
-			palette.push_back({ 0,0,0, SDL_ALPHA_OPAQUE }); 
+			palette.push_back({0x00});
 
 		std::vector<PALETTE> ref = {
-			{ 0x00, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0x00, 0x55,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0x55, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0x55, 0x55,  SDL_ALPHA_OPAQUE },
-			{ 0x55, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0x55, 0x00, 0x55,  SDL_ALPHA_OPAQUE },
-			{ 0x55, 0x55, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0xaa, 0xaa, 0xaa,  SDL_ALPHA_OPAQUE },
-			{ 0x55, 0x55, 0x55,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0x00, 0xff,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0xff, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0x00, 0xff, 0xff,  SDL_ALPHA_OPAQUE },
-			{ 0xff, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0xff, 0x00, 0xff,  SDL_ALPHA_OPAQUE },
-			{ 0xff, 0xff, 0x00,  SDL_ALPHA_OPAQUE },
-			{ 0xff, 0xff, 0xff,  SDL_ALPHA_OPAQUE },
+			{ 0x03 },	// 00 00 00 11		0
+			{ 0x07 },	// 00 00 01 11		1
+			{ 0x13 },	// 00 01 00 11		2
+			{ 0x17 },	// 00 01 01 11		3
+			{ 0x83 },	// 01 00 00 11		4
+			{ 0x87 },	// 01 00 01 11		5
+			{ 0x53 },	// 01 01 00 11		6
+			{ 0xa7 },	// 10 10 10 11		7
+			{ 0x57 },	// 01 01 01 11		8
+			{ 0x0f },	// 00 00 11 11		9
+			{ 0x33 },	// 00 11 00 11		a
+			{ 0x3f },	// 00 11 11 11		b
+			{ 0xc3 },	// 11 00 00 11		c
+			{ 0xcf },	// 11 00 11 11		d
+			{ 0xf3 },	// 11 11 00 11		e
+			{ 0xff },	// 11 11 11 11		f
 		};
-		
 		for (int t=0; t<16; t++)
 		{
 			bus->write(GFX_PAL_INDX, t);
-			bus->write(GFX_PAL_RED, ref[t].r);
-			bus->write(GFX_PAL_GRN, ref[t].g); 
-			bus->write(GFX_PAL_BLU, ref[t].b); 
-			bus->write(GFX_PAL_ALF, ref[t].a);
+			bus->write(GFX_PAL_DATA, ref[t].color);
+			//printf("ref: $%02X, R:%1d, G:%1d, B:%1d, A:%1d\n", ref[t].color, ref[t].r, ref[t].g, ref[t].b, ref[t].a);
 		}
 	}
 
