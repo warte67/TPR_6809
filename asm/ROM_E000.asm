@@ -140,6 +140,7 @@ reset
 			lda		GFX_FLAGS	; load current backbuffer
 			eora	#$08		; toggle it
 			sta		GFX_FLAGS	; save the backbuffer
+
 			bra		4b				; loop until done
 	
 ; done		BRA 	done			; infinate loop

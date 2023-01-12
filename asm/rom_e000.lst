@@ -205,6 +205,7 @@ E05C  6C80                                    inc             ,x+               
 E05E  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
 E061  8808                                    eora    #$08            ; toggle it
 E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+                      
 E066  20ED                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
