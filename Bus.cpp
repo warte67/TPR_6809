@@ -59,8 +59,7 @@ Bus::Bus()
     GFX* temp = new GFX();
     int size = temp->MapDevice(memmap, mem_offset);   
     m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
-    REG* reg = m_memory->FindRegByName("GFX_DEVICE");
- 
+    REG* reg = m_memory->FindRegByName("GFX_DEVICE"); 
     m_gfx = new GFX(mem_offset, size);
     m_gfx->callback = GFX::OnCallback;
     m_gfx->memory = m_memory;
@@ -69,6 +68,7 @@ Bus::Bus()
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
     delete temp;
     mem_offset += size;
+
 
 
 

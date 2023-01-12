@@ -69,10 +69,10 @@ enum MEMMAP
 
 //  Graphics Hardware Registers:
      GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
-                                //    bit 7: vsync
+                                //      bit 7: vsync
                                 //      bit 6: backbuffer enable
                                 //      bit 5: debug enable
-                                //      bit 4: system (mouse) enable
+                                //      bit 4: mouse cursor enable
                                 //      bit 3: swap backbuffers (on write)
                                 //      bit 0-2: graphics mode (0-7)
                                 //          0) NONE (just random background noise)
@@ -92,6 +92,12 @@ enum MEMMAP
                                 //      bit 0-2: monitor display index (0-7)
   TIMING_WIDTH = 0x1802,        // (Word) timing width
   TIMING_HEIGHT = 0x1804,       // (Word) timing height
+  GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
+   GFX_PAL_RED = 0x1807,        // (Byte) red palette data (read/write)
+   GFX_PAL_GRN = 0x1808,        // (Byte) grn palette data (read/write)
+   GFX_PAL_BLU = 0x1809,        // (Byte) blu palette data (read/write)
+   GFX_PAL_ALF = 0x180a,        // (Byte) alpha palette data (read/write)
+                                //    a special note
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 
 //  Memory Bank Selects (16MB):

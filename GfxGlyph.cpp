@@ -10,7 +10,6 @@
 #include "GfxMode.h"
 #include "GfxGlyph.h"
 
-
 GfxGlyph::GfxGlyph()
 {
 	//printf("GfxGlyph::GfxGlyph()\n");
@@ -23,31 +22,10 @@ GfxGlyph::GfxGlyph()
 	}
 }
 
-
-
 void GfxGlyph::OnInitialize()
 {
 	 printf("GfxGlyph::OnInitialize()\n");
 
-	 if (pallette.size() == 0)
-	 {
-		 pallette.push_back({ 0x00, 0x00, 0x00,  SDL_ALPHA_OPAQUE });	// 0
-		 pallette.push_back({ 0x00, 0x00, 0x55,  SDL_ALPHA_OPAQUE });	// 1
-		 pallette.push_back({ 0x00, 0x55, 0x00,  SDL_ALPHA_OPAQUE });	// 2
-		 pallette.push_back({ 0x00, 0x55, 0x55,  SDL_ALPHA_OPAQUE });	// 3
-		 pallette.push_back({ 0x55, 0x00, 0x00,  SDL_ALPHA_OPAQUE });	// 4
-		 pallette.push_back({ 0x55, 0x00, 0x55,  SDL_ALPHA_OPAQUE });	// 5
-		 pallette.push_back({ 0x55, 0x55, 0x00,  SDL_ALPHA_OPAQUE });	// 6
-		 pallette.push_back({ 0xaa, 0xaa, 0xaa,  SDL_ALPHA_OPAQUE });	// 7
-		 pallette.push_back({ 0x55, 0x55, 0x55,  SDL_ALPHA_OPAQUE });	// 8
-		 pallette.push_back({ 0x00, 0x00, 0xff,  SDL_ALPHA_OPAQUE });	// 9
-		 pallette.push_back({ 0x00, 0xff, 0x00,  SDL_ALPHA_OPAQUE });	// a
-		 pallette.push_back({ 0x00, 0xff, 0xff,  SDL_ALPHA_OPAQUE });	// b
-		 pallette.push_back({ 0xff, 0x00, 0x00,  SDL_ALPHA_OPAQUE });	// c
-		 pallette.push_back({ 0xff, 0x00, 0xff,  SDL_ALPHA_OPAQUE });	// d
-		 pallette.push_back({ 0xff, 0xff, 0x00,  SDL_ALPHA_OPAQUE });	// e
-		 pallette.push_back({ 0xff, 0xff, 0xff,  SDL_ALPHA_OPAQUE });	// f
-	 }
 	 if (_glyph_texture == nullptr)
 	 {
 		 int pw = gfx->PixWidth();
@@ -117,20 +95,20 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 			int y = ((index / 2) / 64) * 8;
 			// draw background
 			Byte bg = attr & 0x0f;
-			Byte red = pallette[bg].r;
-			Byte grn = pallette[bg].g;
-			Byte blu = pallette[bg].b;
-			Byte alf = pallette[bg].a;
+			Byte red = gfx->red(bg);
+			Byte grn = gfx->grn(bg);
+			Byte blu = gfx->blu(bg);
+			Byte alf = gfx->alf(bg);
 			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 			SDL_Rect dst = { x, y, 8, 8 };
 			SDL_RenderFillRect(gfx->Renderer(), &dst);
 
 			// draw foreground
 			Byte fg = (attr >> 4) & 0x0f;
-			red = pallette[fg].r;
-			grn = pallette[fg].g;
-			blu = pallette[fg].b;
-			alf = pallette[fg].a;
+			red = gfx->red(fg);
+			grn = gfx->grn(fg);
+			blu = gfx->blu(fg);
+			alf = gfx->alf(fg);
 			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 			for (int row = 0; row < 8; row++)
 			{
@@ -144,9 +122,16 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 			}
 		}
 	}
-	// test by incrementing the first character in video ram and the attribute
-	bus->write(VIDEO_START, bus->read(VIDEO_START) + 1);
-	bus->write(VIDEO_START+1, bus->read(VIDEO_START+1) + 1);
+	//// test by incrementing the first character in video ram and the attribute
+	//bus->write(VIDEO_START, bus->read(VIDEO_START) + 1);
+	//bus->write(VIDEO_START+1, bus->read(VIDEO_START+1) + 1);
+	//// test palette by cycling entry 1
+	//bus->write(GFX_PAL_INDX, 1);
+	//bus->write(GFX_PAL_BLU, bus->read(GFX_PAL_BLU) + 1);
+
+	// video ram incremental test
+	for (int t = VIDEO_START; t <= VIDEO_END; t++)
+		bus->write(t, bus->read(t) + 1);
 }
 
 void GfxGlyph::OnRender()

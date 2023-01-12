@@ -22,19 +22,9 @@ public:
 	virtual void OnUpdate(float fElapsedTime) override;	// fires each frame, for updates
 	virtual void OnActivate() override;
 	virtual void OnDeactivate() override;
-
 	virtual void OnRender() override;
 
 private:
-
-	struct _PALETTE {
-		Uint8 r;
-		Uint8 g;
-		Uint8 b;
-		Uint8 a;
-	};
-	std::vector<_PALETTE> pallette;
-
 
 	SDL_Texture* _glyph_texture = nullptr;
 };

@@ -25,6 +25,9 @@ int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
 bool GFX::m_fullscreen			= false;	// true:fullscreen, false:windowed
 int  GFX::m_display_num			= 1;		// which monitor to use, default.
 
+// Palette Index
+Uint8 GFX::m_palette_index = 0;
+
 
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
@@ -86,6 +89,18 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				return (ptrGfx->_pix_height >> 8) & 0x00ff;
 			if (ofs == TIMING_HEIGHT + 1)
 				return ptrGfx->_pix_height & 0x00ff;
+
+			// read PALETTE stuff
+			if (ofs == GFX_PAL_INDX)
+				return m_palette_index;
+			if (ofs == GFX_PAL_RED)
+				return ptrGfx->red(m_palette_index);
+			if (ofs == GFX_PAL_GRN)
+				return ptrGfx->grn(m_palette_index);
+			if (ofs == GFX_PAL_BLU)
+				return ptrGfx->blu(m_palette_index);
+			if (ofs == GFX_PAL_ALF)
+				return ptrGfx->alf(m_palette_index);
 		}
 		else
 		{	// WRITTEN TO
@@ -145,6 +160,24 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->bIsDirty = true;
 				ptrGfx->debug_write(ofs, data);
 			}
+
+			// write PALETTE index 
+			if (ofs == GFX_PAL_INDX)
+			{ 
+				ptrGfx->debug_write(ofs, data); 
+				m_palette_index = data; 
+			}
+			if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
+			{
+				bus->debug_write(ofs, data);
+			if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
+			{
+				if (ofs == GFX_PAL_RED)		ptrGfx->red(m_palette_index, data);
+				if (ofs == GFX_PAL_GRN)		ptrGfx->grn(m_palette_index, data);
+				if (ofs == GFX_PAL_BLU)		ptrGfx->blu(m_palette_index, data);
+				if (ofs == GFX_PAL_ALF)		ptrGfx->alf(m_palette_index, data);
+			}
+			}
 		}
 	}
 	return data;
@@ -198,10 +231,11 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	// Defined only to serve as a template for inherited device objects.
 	// (this will never be called due to being an abstract base type.)
 
+	// map fundamental GFX hardware registers:
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
-	memmap->push({ offset, "", ">  bit 7: vsync" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 7: vsync" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 5: debug enable" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 4: mouse cursor enable" }); offset += 0;
@@ -224,6 +258,14 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 0-2: monitor display index (0-7)" }); offset += 0;
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
+	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_RED", "(Byte) red palette data (read/write)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_GRN", "(Byte) grn palette data (read/write)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_BLU", "(Byte) blu palette data (read/write)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_ALF", "(Byte) alpha palette data (read/write)" }); offset += 1;
+
+	memmap->push({ offset, "", ">  a special note" }); offset += 0;
+
 
 	return offset - st_offset;
 }
@@ -231,6 +273,40 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 void GFX::OnInitialize() 
 {
 	//printf("Gfx::OnInitialize\n");
+
+	if (palette.size() == 0)
+	{
+		for (int t = 0; t < 16; t++)
+			palette.push_back({ 0,0,0, SDL_ALPHA_OPAQUE }); 
+
+		std::vector<PALETTE> ref = {
+			{ 0x00, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0x00, 0x55,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0x55, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0x55, 0x55,  SDL_ALPHA_OPAQUE },
+			{ 0x55, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0x55, 0x00, 0x55,  SDL_ALPHA_OPAQUE },
+			{ 0x55, 0x55, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0xaa, 0xaa, 0xaa,  SDL_ALPHA_OPAQUE },
+			{ 0x55, 0x55, 0x55,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0x00, 0xff,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0xff, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0x00, 0xff, 0xff,  SDL_ALPHA_OPAQUE },
+			{ 0xff, 0x00, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0xff, 0x00, 0xff,  SDL_ALPHA_OPAQUE },
+			{ 0xff, 0xff, 0x00,  SDL_ALPHA_OPAQUE },
+			{ 0xff, 0xff, 0xff,  SDL_ALPHA_OPAQUE },
+		};
+		
+		for (int t=0; t<16; t++)
+		{
+			bus->write(GFX_PAL_INDX, t);
+			bus->write(GFX_PAL_RED, ref[t].r);
+			bus->write(GFX_PAL_GRN, ref[t].g); 
+			bus->write(GFX_PAL_BLU, ref[t].b); 
+			bus->write(GFX_PAL_ALF, ref[t].a);
+		}
+	}
 
 	OnCreate();
 	
@@ -242,6 +318,9 @@ void GFX::OnInitialize()
 void GFX::OnQuit()
 {
 	//printf("GFX::OnQuit()\n");
+
+	// destroy the palette
+	palette.clear();
 	
 	// OnQuit() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)

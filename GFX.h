@@ -18,6 +18,7 @@ class GfxMode;
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
+    //friend class GfxGlyph;
 
 public:
     GFX();
@@ -27,6 +28,7 @@ public:
     static Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead);
 
     virtual Word MapDevice(MemoryMap* memmap, Word offset) override;
+    Word MapDevices(MemoryMap* memmap, Word offset);
 
     virtual void OnInitialize();				// runs once after all devices are created
 	virtual void OnQuit();						// fires on exit -- reverses OnInitialize()
@@ -83,6 +85,27 @@ protected:
     // device objects
     Bus* bus = nullptr;
     Memory* memory = nullptr;
+
+    // Palette Stuff
+    struct PALETTE {
+        Uint8 r;
+        Uint8 g;
+        Uint8 b;
+        Uint8 a;
+    };
+    std::vector<PALETTE> palette;
+    static Uint8 m_palette_index;
+
+    void red(Uint8 index, Uint8 r) { palette[index].r = r; }
+    void grn(Uint8 index, Uint8 g) { palette[index].g = g; }
+    void blu(Uint8 index, Uint8 b) { palette[index].b = b; }
+    void alf(Uint8 index, Uint8 a) { palette[index].a = a; }
+
+public:
+    Uint8 red(Uint8 index) { return palette[index].r; }
+    Uint8 grn(Uint8 index) { return palette[index].g; }
+    Uint8 blu(Uint8 index) { return palette[index].b; }
+    Uint8 alf(Uint8 index) { return palette[index].a; }
 };
 
 
