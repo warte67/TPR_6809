@@ -347,16 +347,19 @@ void Bus::run()
     std::thread th = std::thread(&Bus::CpuThread);
     // SDL_CreateThread()
 
-    // call OnInitialize() for all devices
-    // (this is called after all device objects are created)
-    _OnInitialize();
-
     while (s_bIsRunning)
     {
         // call OnCreate() for all devices
         // (this may be called in program. Such as gain/lost focus
         //  or graphics mode changes.)
         _OnCreate();
+        static bool bWasInit = false;
+        if (!bWasInit)
+        {
+            // call OnInitialize() for all devices
+            _OnInitialize();
+            bWasInit = true;
+        }
 
         while (!m_gfx->bIsDirty)
         {
@@ -394,6 +397,8 @@ void Bus::run()
             // _OnRender(); 
 
             //printf("Bus::run() -- PC: $%04X\n", m_cpu->getPC());
+            if (!s_bIsRunning)
+                break;
         }
 
         // call OnDestroy() for all devices

@@ -40,6 +40,7 @@ public:
 	int PixHeight() { return _pix_height; }
 	int PixWidth() { return _pix_width; }
 	SDL_Renderer* Renderer() { return _renderer; }
+    SDL_Texture* Texture() { return _texture[m_current_backbuffer]; }
 
 protected:
 

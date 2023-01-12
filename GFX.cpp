@@ -9,6 +9,7 @@
 #include "Memory.h"
 #include "Device.h"
 #include "GfxMode.h"
+#include "GfxGlyph.h"
 #include "GFX.h"
 
 
@@ -17,7 +18,7 @@ bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
 bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
-int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer
+int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
 int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
 
 // default GFX_AUX:
@@ -106,6 +107,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				//          6) 256x160 x 2-Color
 				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				bool old_VSYNC = ptrGfx->m_VSYNC;
+				static int old_gmode_index = 0;
 				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
 				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
 				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
@@ -117,6 +119,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				// only go "dirty" on VSYNC change
 				if (old_VSYNC != ptrGfx->m_VSYNC)
 					ptrGfx->bIsDirty = true;
+				if (old_gmode_index != ptrGfx->m_gmode_index)
+				{
+					ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
+					ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
+					// ptrGfx->bIsDirty = true;
+				}
+				old_gmode_index = ptrGfx->m_gmode_index;
 
 				ptrGfx->debug_write(ofs, data);
 			}
@@ -146,8 +155,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 GFX::GFX() : REG(0,0)
 {
 	Device::_deviceName = "GFX";
-	bus = Bus::getInstance();
-	memory = bus->getMemoryPtr();
+	//bus = Bus::getInstance();
+	//memory = bus->getMemoryPtr();
 
 	// this constructore is removed early.
 	// dont use it for initialization
@@ -165,7 +174,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	//}
 	//// replace the for loop above with:
 	m_gmodes.push_back(new GfxNull());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGlyph());
+	m_gmodes.push_back(new GfxGlyph());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxTile());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap1();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap2();
@@ -222,6 +231,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 void GFX::OnInitialize() 
 {
 	//printf("Gfx::OnInitialize\n");
+
+	OnCreate();
 	
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
@@ -329,8 +340,9 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 	}
 	// OnEvent() all of the graphics mode layers
-	for (int t = 0; t < 8; t++)
-		m_gmodes[t]->OnEvent(evnt);
+	//for (int t = 0; t < 8; t++)
+	//	m_gmodes[t]->OnEvent(evnt);
+	m_gmodes[m_gmode_index]->OnEvent(evnt);
 }
 
 void GFX::OnCreate() 
@@ -363,15 +375,18 @@ void GFX::OnCreate()
 	}
 
 	// create the window
-	_window = SDL_CreateWindow("X9_Retro6809",
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, _window_flags);
 	if (_window == nullptr)
 	{
-		std::string er = "Window could not be created! SDL_Error: %s";
-		er += SDL_GetError();
-		Bus::Err(er.c_str());
+		_window = SDL_CreateWindow("X9_Retro6809",
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, _window_flags);
+		if (_window == nullptr)
+		{
+			std::string er = "Window could not be created! SDL_Error: %s";
+			er += SDL_GetError();
+			Bus::Err(er.c_str());
+		}
+		_surface = SDL_GetWindowSurface(_window);
 	}
-	_surface = SDL_GetWindowSurface(_window);
 
 	// center the window in the appropriate display monitor
 	//int dsply_num = (bus->read(GFX_DISPLAY_AUX) & GRES_AUX::GRES_AUX_DSPLY_MASK) % dsply_max;
@@ -390,24 +405,29 @@ void GFX::OnCreate()
 	}
 
 	// create the main renderer for the window
-	_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-	if (m_VSYNC)
-		_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC;
-
-	_renderer = SDL_CreateRenderer(_window, -1, _renderer_flags);
 	if (_renderer == nullptr)
 	{
-		std::string er = "Renderer could not be created! SDL Error: %s";
-		er += SDL_GetError();
-		Bus::Err(er.c_str());
+		_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
+		if (m_VSYNC)
+			_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC;
+
+		_renderer = SDL_CreateRenderer(_window, -1, _renderer_flags);
+		if (_renderer == nullptr)
+		{
+			std::string er = "Renderer could not be created! SDL Error: %s";
+			er += SDL_GetError();
+			Bus::Err(er.c_str());
+		}
+		SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 	}
-	SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 
 	// create the main screen texture (with backbuffer)
-	_texture[0] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
-		SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
-	_texture[1] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
-		SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
+	if (_texture[0] == nullptr)
+		_texture[0] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
+			SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
+	if (_texture[1] == nullptr)
+		_texture[1] = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA4444,
+			SDL_TEXTUREACCESS_TARGET, _pix_width, _pix_height);
 
 	bIsDirty = false;
 	//bWasInit = true;
@@ -484,23 +504,8 @@ void GFX::OnUpdate(float fElapsedTime)
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
-	if (m_gmode_index == 0 || m_gmodes[m_gmode_index] == nullptr)
-	{
-		// MODE ZERO or null mode:
-		// fill with a few random pixels noise
-		for (int t = 0; t < 1000; t++)
-		{
-			SDL_Rect dot = { rand() % _pix_width,
-					rand() % _pix_height, 1, 1 };
-			SDL_SetRenderDrawColor(_renderer, rand() % 256, rand() % 256, rand() % 256, 0xFF);
-			SDL_RenderFillRect(_renderer, &dot);
-		}
-	}
-	else
-	{
-		m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);		
-	}
-
+	// render the graphics mode
+	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -516,13 +521,6 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the GFX object to the main screen texture
 	_onRender();
-
-	// render all of the sub-GFX "GfxNode" objects with Gfx only OnRender() 
-	// virtual methods	to the main target texture
-	// ...
-
-	// finally present the GFX chain 
-	SDL_RenderPresent(_renderer);
 }
 
 void GFX::_onRender()
@@ -535,7 +533,6 @@ void GFX::_onRender()
 		// fetch the actual current display resolution
 		int ww, wh;
 		SDL_GetWindowSize(_window, &ww, &wh);
-
 		float fh = (float)wh;
 		float fw = fh * _aspect;
 		if (fw > ww)
@@ -543,7 +540,6 @@ void GFX::_onRender()
 			fw = (float)ww;
 			fh = fw / _aspect;
 		}
-
 		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
 		if (m_enable_backbuffer)
 			SDL_RenderCopy(_renderer, _texture[1 - m_current_backbuffer], NULL, &dest);
@@ -557,6 +553,12 @@ void GFX::_onRender()
 		else
 			SDL_RenderCopy(_renderer, _texture[m_current_backbuffer], NULL, NULL);
 	}
+
+	// render outputs
+	m_gmodes[m_gmode_index]->OnRender();
+
+	// finally present the GFX chain 
+	SDL_RenderPresent(_renderer);
 }
 
 
