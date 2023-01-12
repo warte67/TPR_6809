@@ -10,6 +10,7 @@
 #include "Device.h"
 #include "GfxMode.h"
 #include "GfxGlyph.h"
+#include "GfxSystem.h"
 #include "GFX.h"
 
 
@@ -219,12 +220,23 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap3();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
+
+	// initialize GfxSystem
+	if (gfx_system == nullptr)
+		gfx_system = new GfxSystem();
 }
 GFX::~GFX()
 {    
 	// clean up the graphics modes
 	for (auto& a : m_gmodes)
 		delete a;
+
+	// Destroy GfxSystem
+	if (gfx_system)
+	{		
+		delete gfx_system;
+		gfx_system = nullptr;
+	}
 }
 
 
@@ -317,6 +329,7 @@ void GFX::OnInitialize()
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnInitialize();
+	gfx_system->OnInitialize();
 }
 
 void GFX::OnQuit()
@@ -329,6 +342,7 @@ void GFX::OnQuit()
 	// OnQuit() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnQuit();
+	gfx_system->OnQuit();
 }
 
 void GFX::OnEvent(SDL_Event *evnt) 
@@ -429,10 +443,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 			}
 		}
 	}
-	// OnEvent() all of the graphics mode layers
-	//for (int t = 0; t < 8; t++)
-	//	m_gmodes[t]->OnEvent(evnt);
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
+	gfx_system->OnEvent(evnt);
 }
 
 void GFX::OnCreate() 
@@ -526,6 +538,7 @@ void GFX::OnCreate()
 	// OnCreate all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnCreate();
+	gfx_system->OnCreate();
 
 	// output debug info to console
 	const bool OUTPUT_ONCREATE = true;
@@ -543,7 +556,7 @@ void GFX::OnCreate()
 		printf("    Back Buffer: %s\n", (bus->read(GFX_FLAGS) & 0x08) ? "1" : "0");
 	}
 
-	//SDL_ShowCursor(SDL_DISABLE);
+	SDL_ShowCursor(SDL_DISABLE);
 
 }
 
@@ -554,6 +567,7 @@ void GFX::OnDestroy()
 	// destroy all of the gnodes
 	for (int t=0; t<8; t++)
 		m_gmodes[t]->OnDestroy();
+	gfx_system->OnDestroy();
 
 	for (int t=0; t<2; t++)
 	{
@@ -596,6 +610,7 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
+	gfx_system->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -618,7 +633,7 @@ void GFX::_onRender()
 	SDL_SetRenderTarget(_renderer, NULL);
 
 	Uint32 window_flags = SDL_GetWindowFlags(_window);
-	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+	if (window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP)		// m_fullscreen
 	{
 		// fetch the actual current display resolution
 		int ww, wh;
@@ -646,21 +661,9 @@ void GFX::_onRender()
 
 	// render outputs
 	m_gmodes[m_gmode_index]->OnRender();
+	gfx_system->OnRender();
 
 	// finally present the GFX chain 
 	SDL_RenderPresent(_renderer);
 }
-
-
-// void GFX::OnRender() 
-// {
-// 	// output this objects texture
-// 	SDL_SetRenderTarget(_renderer, NULL);
-// 	SDL_RenderCopy(_renderer, _texture, NULL, NULL);
-
-// 	// only present from the GFX object
-// 	SDL_RenderPresent(_renderer);
-// }
-
-
 

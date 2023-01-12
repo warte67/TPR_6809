@@ -17,14 +17,12 @@ public:
 	GfxMode();
 	virtual ~GfxMode();
 
-	virtual void OnInitialize() {};					// runs once after all devices are created
-	virtual void OnQuit() {};						// fires on exit -- reverses OnInitialize()
-	virtual void OnEvent(SDL_Event* evnt) {};		// fires per SDL_Event
-	// TODO: Make these three abstract
-	virtual void OnCreate() {};						// fires when the object is created/recreated
-	virtual void OnDestroy() {};					// fires when the object is destroyed/lost focus
+	virtual void OnInitialize() {}					// runs once after all devices are created
+	virtual void OnQuit() {}						// fires on exit -- reverses OnInitialize()
+	virtual void OnEvent(SDL_Event* evnt) {}		// fires per SDL_Event
+	virtual void OnCreate() {}						// fires when the object is created/recreated
+	virtual void OnDestroy() {}						// fires when the object is destroyed/lost focus
 	virtual void OnUpdate(float fElapsedTime);		// fires each frame, for updates
-
 	virtual void OnActivate();
 	virtual void OnDeactivate();
 	virtual void OnRender() {}

@@ -14,6 +14,7 @@
 #include "Memory.h"
 
 class GfxMode;
+class GfxSystem;
 
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
@@ -39,10 +40,19 @@ public:
     //virtual void OnRender();					// render the current frames texture
  
 	// accessors:
-	int PixHeight() { return _pix_height; }
-	int PixWidth() { return _pix_width; }
-	SDL_Renderer* Renderer() { return _renderer; }
+    int PixWidth() { return _pix_width; }
+    int PixHeight() { return _pix_height; }
+    int WindowWidth() { return _window_height; }
+    int WindowHeight() { return _window_width; }
+    int ResWidth() { return _res_height; }
+    int ResHeight() { return _res_width; }
+    SDL_Renderer* Renderer() { return _renderer; }
     SDL_Texture* Texture() { return _texture[m_current_backbuffer]; }
+    SDL_Window* Window() { return _window; }
+    float Aspect() { return _aspect; }
+    bool Fullscreen() { return m_fullscreen; }
+    int DisplayNum() { return m_display_num; }
+
 
 protected:
 
@@ -58,8 +68,10 @@ protected:
     const float _aspect = 1.6f; 
 	const int _window_width = 512 * 3;                                          // aka "timing"
 	const int _window_height = int(float((_window_width) + 0.5f) / _aspect);    // aka "timing"
-	int _pix_width = 512;			// 512 width max
-	int _pix_height = int(float((_pix_width) + 0.5f) / _aspect);
+	const int _pix_width = 512;			// 512 width max
+	const int _pix_height = int(float((_pix_width) + 0.5f) / _aspect);
+    int _res_width = 512;
+    int _res_height = int(float((_res_width) + 0.5f) / _aspect);
     const int _window_flags = SDL_WINDOW_SHOWN;	// | SDL_WINDOW_BORDERLESS; // | SDL_WINDOW_RESIZABLE;
     const int _fullscreen_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
     Uint32 _renderer_flags = 0;
@@ -86,6 +98,8 @@ protected:
     Bus* bus = nullptr;
     Memory* memory = nullptr;
 
+    GfxSystem* gfx_system = nullptr;
+
     // Palette Stuff
     struct PALETTE {
         Uint8 r;
@@ -106,6 +120,7 @@ public:
     Uint8 grn(Uint8 index) { return palette[index].g; }
     Uint8 blu(Uint8 index) { return palette[index].b; }
     Uint8 alf(Uint8 index) { return palette[index].a; }
+
 };
 
 
