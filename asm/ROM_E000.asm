@@ -32,7 +32,7 @@ SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 
 var_1			fcb		$00
 var_2			fcb		$00
-sync			fdb		$00
+var_3			fdb		$00
 
 			INCLUDE "mem_map.asm"
 
@@ -85,10 +85,38 @@ do_RESET    JMP reset
 just_rti	
 			rti 
 
-			
 reset		
 
 done		BRA 	done			; infinate loop
+
+			; TESTING: fill the first 256 bytes of screen ram 
+			;		with ascending values to display
+			CLRA
+			STA		var_1		; ch = 0
+			STA		var_2		; at = 0
+			STA		var_3		; count = 0
+1
+			LDX		#VIDEO_START
+2	
+			LDA		var_1		; load character
+			INC		var_1		; character ++
+			STA		,x+			; write ch
+			LDA		var_2		; load attribute
+			STA		,x++		; store attribute
+			INC		var_3		; count ++
+			LDA		var_3		; load count
+			CMPA	#8			; if count is < 8
+			BLT		2b			;	branch back to 2
+			INC		var_2		; attribute ++
+			CLRA				; count = 0
+			CMPX	#VIDEO_END	; at end of video buffer
+			BLT		2b			; no?  back to 2
+			BRA		1b			; yes, start over
+
+
+
+
+
 
 
 

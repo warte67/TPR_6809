@@ -173,8 +173,13 @@ Word MemoryMap::end(Word offset)
 			else
 				if (a.comment == "")
 					printf("\n");
+				else if (a.comment.front() == '>')
+				{
+					std::string comment = a.comment.erase(0, 1);
+					printf("%34s %s\n", line_comment_character.c_str(), comment.c_str());
+				}
 				else
-					printf("\t%s**** %s ****\n", line_comment_character.c_str(), a.comment.c_str());
+					printf("%s %s\n", line_comment_character.c_str(), a.comment.c_str());
 		}
 	}
 	printf("\n\n");

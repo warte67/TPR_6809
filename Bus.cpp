@@ -119,6 +119,7 @@ Bus::Bus()
     printf("\n");
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
+
     bCpuEnabled = true;
 }
 Bus::~Bus() 

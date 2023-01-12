@@ -170,13 +170,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
 			{
 				bus->debug_write(ofs, data);
-			if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
-			{
-				if (ofs == GFX_PAL_RED)		ptrGfx->red(m_palette_index, data);
-				if (ofs == GFX_PAL_GRN)		ptrGfx->grn(m_palette_index, data);
-				if (ofs == GFX_PAL_BLU)		ptrGfx->blu(m_palette_index, data);
-				if (ofs == GFX_PAL_ALF)		ptrGfx->alf(m_palette_index, data);
-			}
+				if (ofs >= GFX_PAL_RED && ofs <= GFX_PAL_ALF)
+				{
+					if (ofs == GFX_PAL_RED)		ptrGfx->red(m_palette_index, data);
+					if (ofs == GFX_PAL_GRN)		ptrGfx->grn(m_palette_index, data);
+					if (ofs == GFX_PAL_BLU)		ptrGfx->blu(m_palette_index, data);
+					if (ofs == GFX_PAL_ALF)		ptrGfx->alf(m_palette_index, data);
+				}
 			}
 		}
 	}

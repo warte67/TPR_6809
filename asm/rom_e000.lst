@@ -32,53 +32,74 @@
                       
 0010  00              var_1                   fcb             $00
 0011  00              var_2                   fcb             $00
-0012  0000            sync                    fdb             $00
+0012  0000            var_3                   fdb             $00
                       
 0014                                          INCLUDE "mem_map.asm"
-                              ; **** ********************************************** ****
-                              ; **** * Allocated 64k Memory Mapped System Symbols * ****
-                              ; **** ********************************************** ****
+                      ;  **********************************************
+                      ;  * Allocated 64k Memory Mapped System Symbols *
+                      ;  **********************************************
                       
                       
-                              ; **** SOFTWARE Interrupt Vectors: ****
-                              ; (redefined)
-                      
-                              ; **** Zero-Page Kernal Variables: ****
+                      ;  Zero-Page Kernal Variables:
 0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
                       
-                              ; **** Stack Frames: ****
+                      ;  Stack Frames:
 0100                  U_STK_BTM       equ     $0100   ; 256 bytes default user stack space
 0200                  U_STK_TOP       equ     $0200   ; User Stack initial address
 0200                  S_STK_BTM       equ     $0200   ; 512 bytes default system stack space
 0400                  S_STK_TOP       equ     $0400   ; System Stack initial address
                       
-                              ; **** Video Buffer Memory (target = $0400): ****
+                      ;  Video Buffer Memory (target = $0400):
 0400                  VIDEO_START     equ     $0400   ; Start of Video Buffer Memory
 17FF                  VIDEO_END       equ     $17ff   ; Last Byte of Video Buffer Memory
                       
-                              ; **** Graphics Hardware Registers: ****
-1800                  BASE_GFX_REG    equ     $1800   ; Base GFX Hardware Register
-1802                  GFX_REG2        equ     $1802   ; GFX Register Number Two
-1804                  GFX_REG3        equ     $1804   ; GFX Register Number Three
+                      ;  Graphics Hardware Registers:
+1800                  GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
+                                                      ;      bit 7: vsync
+                                                      ;      bit 6: backbuffer enable
+                                                      ;      bit 5: debug enable
+                                                      ;      bit 4: mouse cursor enable
+                                                      ;      bit 3: swap backbuffers (on write)
+                                                      ;      bit 0-2: graphics mode (0-7)
+                                                      ;          0) NONE (just random background noise)
+                                                      ;          1) Glyph Mode (512x320 or 64x40 text)
+                                                      ;          2) Tile 16x16x16 mode
+                                                      ;          3) 128x80 x 16-Color
+                                                      ;          4) 128x160 x 4-Color
+                                                      ;          5) 256x80 x 4-Color
+                                                      ;          6) 256x160 x 2-Color
+                                                      ;          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
+1801                  GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
+                                                      ;      bit 7: 1:fullscreen / 0:windowed
+                                                      ;      bit 6: reserved
+                                                      ;      bit 5: reserved
+                                                      ;      bit 4: reserved
+                                                      ;      bit 3: reserved
+                                                      ;      bit 0-2: monitor display index (0-7)
+1802                  TIMING_WIDTH    equ     $1802   ; (Word) timing width
+1804                  TIMING_HEIGHT   equ     $1804   ; (Word) timing height
+1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
+1807                  GFX_PAL_RED     equ     $1807   ; (Byte) red palette data (read/write)
+1808                  GFX_PAL_GRN     equ     $1808   ; (Byte) grn palette data (read/write)
+1809                  GFX_PAL_BLU     equ     $1809   ; (Byte) blu palette data (read/write)
+180A                  GFX_PAL_ALF     equ     $180a   ; (Byte) alpha palette data (read/write)
+                                                      ;    a special note
 2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
                       
-                              ; **** Memory Bank Selects (16MB): ****
+                      ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
 1FFE                  RAMBANK_SEL_2   equ     $1ffe   ; (Word)Indexes 65536 x 8kb banks
                       
-                              ; **** Standard Usable (from FAST static 32KB) RAM: ****
+                      ;  Standard Usable (from FAST static 32KB) RAM:
 2000                  RAM_START       equ     $2000   ; Begin System RAM (32k)
 9FFF                  RAM_END equ     $9fff   ; End System RAM
                       
-                              ; **** Switchable RAM Banks (from SLOW external serial 16MB RAM chip): ****
+                      ;  Switchable RAM Banks (from SLOW external serial 16MB RAM chip):
 A000                  RAM_BANK_1      equ     $a000   ; switched 8KB ram bank 1
 C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       
-                              ; **** Bios Kernal ROM: ****
+                      ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
-                      
-                              ; **** Hardware Interrupt Vectors: ****
-                              ; (redefined)
                       
                       ; ***************************************
                       ; * Read Only Sytem KERNAL ROM          *
@@ -129,10 +150,38 @@ E020  7EE024          do_RESET    JMP reset
 E023                  just_rti        
 E023  3B                                      rti 
                       
-                                              
 E024                  reset           
                       
 E024  20FE            done            BRA     done                    ; infinate loop
+                      
+                                              ; TESTING: fill the first 256 bytes of screen ram 
+                                              ;               with ascending values to display
+E026  4F                                      CLRA
+E027  B70010                                  STA             var_1           ; ch = 0
+E02A  B70011                                  STA             var_2           ; at = 0
+E02D  B70012                                  STA             var_3           ; count = 0
+E030                  1
+E030  8E0400                                  LDX             #VIDEO_START
+E033                  2       
+E033  B60010                                  LDA             var_1           ; load character
+E036  7C0010                                  INC             var_1           ; character ++
+E039  A780                                    STA             ,x+                     ; write ch
+E03B  B60011                                  LDA             var_2           ; load attribute
+E03E  A781                                    STA             ,x++            ; store attribute
+E040  7C0012                                  INC             var_3           ; count ++
+E043  B60012                                  LDA             var_3           ; load count
+E046  8108                                    CMPA    #8                      ; if count is < 8
+E048  2DE9                                    BLT             2b                      ;       branch back to 2
+E04A  7C0011                                  INC             var_2           ; attribute ++
+E04D  4F                                      CLRA                            ; count = 0
+E04E  8C17FF                                  CMPX    #VIDEO_END      ; at end of video buffer
+E051  2DE0                                    BLT             2b                      ; no?  back to 2
+E053  20DB                                    BRA             1b                      ; yes, start over
+                      
+                      
+                      
+                      
+                      
                       
                       
                       

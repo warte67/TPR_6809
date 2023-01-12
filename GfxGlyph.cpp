@@ -5,6 +5,7 @@
 
 #include "types.h"
 #include "font8x8_system.h"
+#include "C6809.h"
 #include "Bus.h"
 #include "GFX.h"
 #include "GfxMode.h"
@@ -48,7 +49,10 @@ void GfxGlyph::OnInitialize()
 		 bus->write(ofs, ch++);
 		 bus->write(ofs + 1, at);
 		 if (count++ > 8)
+		 {
 			 at++;
+			 count = 0;
+		 }
 	 }
 }
 
@@ -122,16 +126,14 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 			}
 		}
 	}
-	//// test by incrementing the first character in video ram and the attribute
-	//bus->write(VIDEO_START, bus->read(VIDEO_START) + 1);
-	//bus->write(VIDEO_START+1, bus->read(VIDEO_START+1) + 1);
-	//// test palette by cycling entry 1
-	//bus->write(GFX_PAL_INDX, 1);
-	//bus->write(GFX_PAL_BLU, bus->read(GFX_PAL_BLU) + 1);
 
-	// video ram incremental test
-	for (int t = VIDEO_START; t <= VIDEO_END; t++)
-		bus->write(t, bus->read(t) + 1);
+	// **** TESTING ****************************
+		// video ram incremental test
+		for (int t = VIDEO_START; t <= VIDEO_END; t++)
+			bus->write(t, bus->read(t) + 1);
+
+		//printf("PC:$%04X\n", bus->m_cpu->getPC());
+	// **** TESTING ****************************
 }
 
 void GfxGlyph::OnRender()
