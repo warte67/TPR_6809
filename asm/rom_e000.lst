@@ -33,8 +33,9 @@
 0010  00              var_ch                  fcb             $00
 0011  00              var_at                  fcb             $00
 0012  0000            var_count               fdb             $00
+0014  00FF            var_csr                 fdb             $ff
                       
-0014                                          INCLUDE "mem_map.asm"
+0016                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
@@ -86,8 +87,11 @@
 180C                  CSR_XOFS        equ     $180c   ; (Word) horizontal mouse cursor offset
 180E                  CSR_YOFS        equ     $180e   ; (Word) vertical mouse cursor offset
 1810                  CSR_SIZE        equ     $1810   ; (Byte) cursor size (0-15) 0:off
-1811                  CSR_PAL_INDX    equ     $1811   ; (Byte) mouse color palette color index (0-15)
-1812                  CSR_PAL_DATA    equ     $1812   ; (Byte) mouse color palette color bits RRGGBBAA
+1811                  CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
+                                                      ;      bits 0-5: button states
+                                                      ;      bits 6-7: number of clicks
+1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse color palette color index (0-15)
+1813                  CSR_PAL_DATA    equ     $1813   ; (Byte) mouse color palette color bits RRGGBBAA
                                                       ;    a special note
 2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
                       
@@ -111,7 +115,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; ***************************************
                                             
                        
-0014                  SECTION.CODE
+0016                  SECTION.CODE
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
@@ -159,6 +163,12 @@ E024                  reset
                       
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
+                      
+                      
+                      ; ***********************
+                      ; *  Pre-Fill and Cycle 
+                      ; *  the Display Buffer
+                      ; ***********************
                       
                       ;       Byte ch = 0;
                       ;       Byte at = 0;
@@ -211,7 +221,21 @@ E05E  B61800                                  lda             GFX_FLAGS       ; 
 E061  8808                                    eora    #$08            ; toggle it
 E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
-E066  20ED                                    bra             4b                              ; loop until done
+                                              ; COLOR CYCLE THE MOUSE CURSOR
+E066  8604                                    lda             #4
+E068  B71812                                  sta             CSR_PAL_INDX
+E06B  B60014                                  lda             var_csr
+E06E  4C                                      inca
+E06F  B70014                                  sta             var_csr
+E072  48                                      lsla
+E073  48                                      lsla
+E074  8A03                                    ora             #$03
+E076  B71813                                  sta             CSR_PAL_DATA
+                      
+                                              ; SIZE CYCLE THE CURSOR
+                                              ; inc           CSR_SIZE
+                      
+E079  20DA                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
                       

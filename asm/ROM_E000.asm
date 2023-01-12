@@ -33,6 +33,7 @@ SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fdb		$00
+var_csr			fdb		$ff
 
 			INCLUDE "mem_map.asm"
 
@@ -90,6 +91,12 @@ reset
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
 
+
+; ***********************
+; *  Pre-Fill and Cycle 
+; *  the Display Buffer
+; ***********************
+
 ;	Byte ch = 0;
 ;	Byte at = 0;
 ;	Byte count = 0;
@@ -140,6 +147,20 @@ reset
 			lda		GFX_FLAGS	; load current backbuffer
 			eora	#$08		; toggle it
 			sta		GFX_FLAGS	; save the backbuffer
+
+			; COLOR CYCLE THE MOUSE CURSOR
+			lda		#4
+			sta		CSR_PAL_INDX
+			lda		var_csr
+			inca
+			sta		var_csr
+			lsla
+			lsla
+			ora		#$03
+			sta		CSR_PAL_DATA
+
+			; SIZE CYCLE THE CURSOR
+			; inc		CSR_SIZE
 
 			bra		4b				; loop until done
 	

@@ -30,19 +30,20 @@ public:
 	int Mouse_Xofs() { return mouse_x_offset; }
 	int Mouse_Yofs() { return mouse_y_offset; }
 
+
 private:
 
 	int mouse_x_screen = 0;
 	int mouse_y_screen = 0;
 	int mouse_x = 0;
 	int mouse_y = 0;
-
 	Sint16 mouse_x_offset = 0;		// mouse cursor offset x
 	Sint16 mouse_y_offset = 0;		// mouse cursor offset y
-
 	static Byte s_size;
+	Uint8 button_flags = 0;
 	SDL_Texture* mouse_texture = nullptr;
 
+	// cursor stuff
 	Word bmp_offset = 0;
 	Byte cursor_buffer[16][16] = {		// indexed 16-color bitmap data for the mouse cursor
 		{3,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -74,7 +75,7 @@ private:
 		};
 	};
 	std::vector<PALETTE> palette;
-	static Uint8 m_palette_index;
+	Uint8 m_palette_index;
 
 public:
     Uint8 red(Uint8 index) 

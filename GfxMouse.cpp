@@ -11,28 +11,63 @@
 
 Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
 
+//  Mouse Cursor Hardware Registers:
 //      CSR_XPOS = 0x1808,        // (Word) horizontal mouse cursor coordinate
 //      CSR_YPOS = 0x180a,        // (Word) vertical mouse cursor coordinate
 //      CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
 //      CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
 //      CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
-//  CSR_PAL_INDX = 0x1811,        // (Byte) mouse color palette color index (0-15)
-//  CSR_PAL_DATA = 0x1812,        // (Byte) mouse color palette color bits RRGGBBAA
+//     CSR_FLAGS = 0x1811,        // (Byte) mouse button flags:
+//                                //      bits 0-5: button states
+//                                //      bits 6-7: number of clicks
+//  CSR_PAL_INDX = 0x1812,        // (Byte) mouse color palette color index (0-15)
+//  CSR_PAL_DATA = 0x1813,        // (Byte) mouse color palette color bits RRGGBBAA
 
 Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GfxMouse::OnCallback()\n");
 
 	if (bWasRead)
-	{ // READ
-		if (ofs == CSR_XPOS)		return mouse_x >> 8;
-		if (ofs == CSR_XPOS + 1)	return mouse_x & 0xff;
-		if (ofs == CSR_YPOS)		return mouse_y >> 8;
-		if (ofs == CSR_YPOS + 1)	return mouse_y & 0xff;
+	{ // READ	
+		switch (ofs)
+		{
+			case CSR_XPOS:		data = mouse_x >> 8;					break;
+			case CSR_XPOS + 1:	data = mouse_x & 0xff;					break;
+			case CSR_YPOS:		data = mouse_y >> 8;					break;
+			case CSR_YPOS + 1:	data = mouse_y & 0xff;					break;
+			case CSR_XOFS:		data = mouse_x_offset >> 8;				break;
+			case CSR_XOFS + 1:	data = mouse_x_offset & 0xff;			break;
+			case CSR_YOFS:		data = mouse_y_offset >> 8;				break;
+			case CSR_YOFS + 1:	data = mouse_y_offset & 0xff;			break;
+			case CSR_SIZE:		data = s_size;							break;
+			case CSR_FLAGS:		data = button_flags;					break;
+			case CSR_PAL_INDX:	data = m_palette_index;					break;
+			case CSR_PAL_DATA:	data = palette[m_palette_index].color;	break;
+		}
+
+		bus->debug_write(ofs, data);	// pre-write
+		return data;
 	}
 	else
 	{ // WRITE
-
+		// for CSR_XPOS && CSR_YPOS see: SDL_WarpMouseInWindow and SDL_WarpMouseGlobal mouse_x = something;
+		switch (ofs)
+		{
+			// case CSR_XPOS:		mouse_x = something;	break;
+			// case CSR_XPOS + 1:	mouse_x = something;	break;
+			// case CSR_YPOS:		mouse_x = something;	break;
+			// case CSR_YPOS + 1:	mouse_x = something;	break;
+			case CSR_XOFS:
+				mouse_x_offset = (mouse_x_offset & 0x00ff) | (data << 8);	break;
+			case CSR_YOFS:
+				mouse_x_offset = (mouse_x_offset & 0xff00) | (data << 0);	break;
+			case CSR_SIZE:	s_size = data % 16;	break;
+			case CSR_FLAGS:	return data;	break;		// read only
+			case CSR_PAL_INDX:	m_palette_index = data;		break;
+			case CSR_PAL_DATA: 
+				palette[m_palette_index].color = data;	break;
+		}
+		bus->debug_write(ofs, data);
 	}
 
 	return data;
@@ -118,8 +153,8 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 			float h_aspect = sh / rh;
 			mouse_x_screen = evnt->button.x;
 			mouse_y_screen = evnt->button.y;
-			mouse_x = mouse_x_screen / w_aspect;
-			mouse_y = mouse_y_screen / h_aspect;
+			mouse_x = int((float)mouse_x_screen / w_aspect);
+			mouse_y = int((float)mouse_y_screen / h_aspect);
 			
 			if (gfx->Fullscreen())
 			{
@@ -136,15 +171,30 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 				SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
 				w_aspect = (float)dest.w / rw;
 				h_aspect = (float)dest.h / rh;
-				int mx = (mouse_x_screen/w_aspect) - (dest.x/w_aspect);
+				int mx = int((mouse_x_screen/w_aspect) - (dest.x/w_aspect));
 				if (mx < 0)  mx = 0;
-				if (mx >= rw) mx = rw - 1;
-				int my = (mouse_y_screen / h_aspect) - (dest.y / h_aspect);
+				if (mx >= rw) mx = (int)rw - 1;
+				int my = int((mouse_y_screen / h_aspect) - (dest.y / h_aspect));
 				if (my < 0)  my = 0;
-				if (my >= rh) my = rh - 1;				
+				if (my >= rh) my = (int)rh - 1;				
 				mouse_x = mx;
 				mouse_y = my;
 			}
+			break;
+		}
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+		{
+			printf("DOWN:  which:%d  button:%d  state:%d  clicks:%d\n",
+				evnt->button.which,
+				evnt->button.button,
+				evnt->button.state,
+				evnt->button.clicks );
+			break;
+		}
+		case SDL_MOUSEWHEEL:
+		{
+			printf("MOUSEWHEEL: %d\n", evnt->wheel.y);
 			break;
 		}
 	}
@@ -207,10 +257,33 @@ void GfxMouse::OnDestroy()
 	}
 }
 
+
 void GfxMouse::OnUpdate(float fElapsedTime) 
 {
 	// test mouse callback
-	printf("GfxMouse::OnUpdate() --->  XPOS: %d  YPOS: %d\n", bus->read_word(CSR_XPOS), bus->read_word(CSR_YPOS));
+	// printf("GfxMouse::OnUpdate() --->  XPOS: %d  YPOS: %d\n", bus->read_word(CSR_XPOS), bus->read_word(CSR_YPOS));
+
+	if (s_size)
+	{
+		// update the mouse cursor colors
+		SDL_SetRenderTarget(gfx->Renderer(), mouse_texture);
+		//SDL_SetTextureBlendMode(mouse_texture, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0x00);
+		SDL_RenderClear(gfx->Renderer());
+		for (int h = 0; h < 16; h++)
+		{
+			for (int v = 0; v < 16; v++)
+			{
+				Byte i = cursor_buffer[v][h] & 0x0f;
+				Byte r = red(i);
+				Byte g = grn(i);
+				Byte b = blu(i);
+				Byte a = alf(i);
+				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, a);
+				SDL_RenderDrawPoint(gfx->Renderer(), h, v);
+			}
+		}
+	}
 }
 
 void GfxMouse::OnActivate() {}

@@ -272,12 +272,11 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "CSR_XOFS", "(Word) horizontal mouse cursor offset" }); offset += 2;
 	memmap->push({ offset, "CSR_YOFS", "(Word) vertical mouse cursor offset" }); offset += 2;
 	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
+	memmap->push({ offset, "CSR_FLAGS", "(Byte) mouse button flags:" }); offset += 1;
+	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
+	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
 	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse color palette color index (0-15)" }); offset += 1;
 	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse color palette color bits RRGGBBAA" }); offset += 1;
-
-
-	memmap->push({ offset, "", ">  a special note" }); offset += 0;
-
 
 	return offset - st_offset;
 }

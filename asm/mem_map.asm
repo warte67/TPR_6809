@@ -49,8 +49,11 @@ CSR_YPOS        equ     $180a   ; (Word) vertical mouse cursor coordinate
 CSR_XOFS        equ     $180c   ; (Word) horizontal mouse cursor offset
 CSR_YOFS        equ     $180e   ; (Word) vertical mouse cursor offset
 CSR_SIZE        equ     $1810   ; (Byte) cursor size (0-15) 0:off
-CSR_PAL_INDX    equ     $1811   ; (Byte) mouse color palette color index (0-15)
-CSR_PAL_DATA    equ     $1812   ; (Byte) mouse color palette color bits RRGGBBAA
+CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
+                                ;      bits 0-5: button states
+                                ;      bits 6-7: number of clicks
+CSR_PAL_INDX    equ     $1812   ; (Byte) mouse color palette color index (0-15)
+CSR_PAL_DATA    equ     $1813   ; (Byte) mouse color palette color bits RRGGBBAA
                                 ;    a special note
 RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
 
