@@ -10,7 +10,7 @@
 #include "Device.h"
 #include "GfxMode.h"
 #include "GfxGlyph.h"
-#include "GfxSystem.h"
+#include "GfxMouse.h"
 #include "GFX.h"
 
 
@@ -222,8 +222,8 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
 
 	// initialize GfxSystem
-	if (gfx_system == nullptr)
-		gfx_system = new GfxSystem();
+	if (gfx_mouse == nullptr)
+		gfx_mouse = new GfxMouse();
 }
 GFX::~GFX()
 {    
@@ -232,10 +232,10 @@ GFX::~GFX()
 		delete a;
 
 	// Destroy GfxSystem
-	if (gfx_system)
+	if (gfx_mouse)
 	{		
-		delete gfx_system;
-		gfx_system = nullptr;
+		delete gfx_mouse;
+		gfx_mouse = nullptr;
 	}
 }
 
@@ -329,7 +329,7 @@ void GFX::OnInitialize()
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnInitialize();
-	gfx_system->OnInitialize();
+	gfx_mouse->OnInitialize();
 }
 
 void GFX::OnQuit()
@@ -342,7 +342,7 @@ void GFX::OnQuit()
 	// OnQuit() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnQuit();
-	gfx_system->OnQuit();
+	gfx_mouse->OnQuit();
 }
 
 void GFX::OnEvent(SDL_Event *evnt) 
@@ -444,7 +444,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 	}
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
-	gfx_system->OnEvent(evnt);
+	gfx_mouse->OnEvent(evnt);
 }
 
 void GFX::OnCreate() 
@@ -538,7 +538,7 @@ void GFX::OnCreate()
 	// OnCreate all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnCreate();
-	gfx_system->OnCreate();
+	gfx_mouse->OnCreate();
 
 	// output debug info to console
 	const bool OUTPUT_ONCREATE = true;
@@ -557,7 +557,6 @@ void GFX::OnCreate()
 	}
 
 	SDL_ShowCursor(SDL_DISABLE);
-
 }
 
 void GFX::OnDestroy()
@@ -567,7 +566,7 @@ void GFX::OnDestroy()
 	// destroy all of the gnodes
 	for (int t=0; t<8; t++)
 		m_gmodes[t]->OnDestroy();
-	gfx_system->OnDestroy();
+	gfx_mouse->OnDestroy();
 
 	for (int t=0; t<2; t++)
 	{
@@ -610,7 +609,7 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
-	gfx_system->OnUpdate(fElapsedTime);
+	gfx_mouse->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -661,7 +660,7 @@ void GFX::_onRender()
 
 	// render outputs
 	m_gmodes[m_gmode_index]->OnRender();
-	gfx_system->OnRender();
+	gfx_mouse->OnRender();
 
 	// finally present the GFX chain 
 	SDL_RenderPresent(_renderer);

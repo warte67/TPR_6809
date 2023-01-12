@@ -42,7 +42,7 @@
     <ClCompile Include="GfxGlyph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GfxSystem.cpp">
+    <ClCompile Include="GfxMouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,7 +77,7 @@
     <ClInclude Include="font8x8_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GfxSystem.h">
+    <ClInclude Include="GfxMouse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

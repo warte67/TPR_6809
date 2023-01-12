@@ -1,4 +1,4 @@
-// * GfxSystem.cpp ***************************************
+// * GfxMouse.cpp ***************************************
 // *
 // *  Handles the mouse cursor.
 // ************************************
@@ -6,12 +6,12 @@
 #include "types.h"
 #include "Bus.h"
 #include "GfxMode.h"
-#include "GfxSystem.h"
+#include "GfxMouse.h"
 
 
-Byte GfxSystem::s_size = 5;		// default mouse cursor size (0-15); 0=off
+Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
 
-GfxSystem::GfxSystem()
+GfxMouse::GfxMouse()
 {
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
@@ -55,24 +55,24 @@ GfxSystem::GfxSystem()
 	}
 }
 
-GfxSystem::~GfxSystem()
+GfxMouse::~GfxMouse()
 {
 
 }
 
 
-void GfxSystem::OnInitialize() 
+void GfxMouse::OnInitialize()
 {
-	printf("GfxSystem::OnInitialize() \n");
+	printf("GfxMouse::OnInitialize() \n");
 }
 
-void GfxSystem::OnQuit() 
+void GfxMouse::OnQuit()
 {
-	printf("GfxSystem::OnQuit() \n");
+	printf("GfxMouse::OnQuit() \n");
 
 }
 
-void GfxSystem::OnEvent(SDL_Event* evnt)
+void GfxMouse::OnEvent(SDL_Event* evnt)
 {
 	int display_num = bus->read(GFX_AUX) & 0x07;
 	SDL_DisplayMode dm;
@@ -109,7 +109,7 @@ void GfxSystem::OnEvent(SDL_Event* evnt)
 }
 
 
-void GfxSystem::OnCreate() 
+void GfxMouse::OnCreate()
 {
 	if (mouse_texture == nullptr)
 	{
@@ -137,7 +137,7 @@ void GfxSystem::OnCreate()
 	}
 }
 
-void GfxSystem::OnDestroy() 
+void GfxMouse::OnDestroy()
 {
 	if (mouse_texture)
 	{
@@ -146,12 +146,12 @@ void GfxSystem::OnDestroy()
 	}
 }
 
-void GfxSystem::OnUpdate(float fElapsedTime) {}
-void GfxSystem::OnActivate() {}
-void GfxSystem::OnDeactivate() {}
+void GfxMouse::OnUpdate(float fElapsedTime) {}
+void GfxMouse::OnActivate() {}
+void GfxMouse::OnDeactivate() {}
 
 
-void GfxSystem::OnRender() 
+void GfxMouse::OnRender()
 {
 	// set up clipping
 	if (gfx->Fullscreen())

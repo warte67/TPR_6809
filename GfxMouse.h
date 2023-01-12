@@ -1,17 +1,17 @@
-// * GfxSystem.h ***************************************
+// * GfxMouse.h ***************************************
 // *
 // *  Handles the mouse cursor.
 // ************************************
 #pragma once
-#ifndef __GFXSYSTEM_H__
-#define __GFXSYSTEM_H__
+#ifndef __GFXMOUSE_H__
+#define __GFXMOUSE_H__
 
 
-class GfxSystem : public GfxMode
+class GfxMouse : public GfxMode
 {
 public:
-	GfxSystem();
-	virtual ~GfxSystem();
+	GfxMouse();
+	virtual ~GfxMouse();
 
 	virtual void OnInitialize() override;				
 	virtual void OnQuit() override;						
@@ -80,4 +80,4 @@ public:
 
 
 
-#endif // __GFXSYSTEM_H__
+#endif // __GFXMOUSE_H__

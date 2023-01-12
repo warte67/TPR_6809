@@ -14,7 +14,7 @@
 #include "Memory.h"
 
 class GfxMode;
-class GfxSystem;
+class GfxMouse;
 
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
@@ -97,8 +97,7 @@ protected:
     // device objects
     Bus* bus = nullptr;
     Memory* memory = nullptr;
-
-    GfxSystem* gfx_system = nullptr;
+    GfxMouse* gfx_mouse = nullptr;
 
     // Palette Stuff
     struct PALETTE {
