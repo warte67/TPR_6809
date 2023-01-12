@@ -120,12 +120,11 @@ Bus::Bus()
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
    
-    // ****** TESTING ***************************
-    // simple memory dump of rom
-    for (int t = 0xe000; t < 0xe00a; t++)
-        printf("$%04X $%02X\n", t, read(t));
-
-    // ****** TESTING ***************************
+    //// ****** TESTING ***************************
+    //// simple memory dump of rom
+    //for (int t = 0xe000; t < 0xe00a; t++)
+    //    printf("$%04X $%02X\n", t, read(t));
+    //// ****** TESTING ***************************
 
     bCpuEnabled = true;
 }

@@ -172,6 +172,9 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->palette[m_palette_index].color = data;
 			}
 		}
+		// intercept for GfxMouse
+		if (ofs >= CSR_XPOS && ofs <= CSR_PAL_DATA)
+			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
 	}
 	return data;
 }
@@ -269,7 +272,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "CSR_XOFS", "(Word) horizontal mouse cursor offset" }); offset += 2;
 	memmap->push({ offset, "CSR_YOFS", "(Word) vertical mouse cursor offset" }); offset += 2;
 	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse color  palette color bits RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse color palette color index (0-15)" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse color palette color bits RRGGBBAA" }); offset += 1;
 
 
 	memmap->push({ offset, "", ">  a special note" }); offset += 0;
@@ -434,6 +438,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 	}
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
 	gfx_mouse->OnEvent(evnt);
+
 }
 
 void GFX::OnCreate() 

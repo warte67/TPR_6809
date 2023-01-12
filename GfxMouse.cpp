@@ -11,6 +11,34 @@
 
 Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
 
+//      CSR_XPOS = 0x1808,        // (Word) horizontal mouse cursor coordinate
+//      CSR_YPOS = 0x180a,        // (Word) vertical mouse cursor coordinate
+//      CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
+//      CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
+//      CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
+//  CSR_PAL_INDX = 0x1811,        // (Byte) mouse color palette color index (0-15)
+//  CSR_PAL_DATA = 0x1812,        // (Byte) mouse color palette color bits RRGGBBAA
+
+Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+{
+	//printf("GfxMouse::OnCallback()\n");
+
+	if (bWasRead)
+	{ // READ
+		if (ofs == CSR_XPOS)		return mouse_x >> 8;
+		if (ofs == CSR_XPOS + 1)	return mouse_x & 0xff;
+		if (ofs == CSR_YPOS)		return mouse_y >> 8;
+		if (ofs == CSR_YPOS + 1)	return mouse_y & 0xff;
+	}
+	else
+	{ // WRITE
+
+	}
+
+	return data;
+}
+
+
 GfxMouse::GfxMouse()
 {
 	bus = Bus::getInstance();
@@ -54,7 +82,6 @@ GfxMouse::GfxMouse()
 
 GfxMouse::~GfxMouse()
 {
-
 }
 
 
@@ -82,24 +109,42 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 	{
 		case SDL_MOUSEMOTION:
 		{
+			SDL_Surface* surf = SDL_GetWindowSurface(gfx->Window());
+			float sw = (float)surf->w;
+			float sh = (float)surf->h;
 			float rw = (float)gfx->ResWidth();
 			float rh = (float)gfx->ResHeight();
-
+			float w_aspect = sw / rw;
+			float h_aspect = sh / rh;
 			mouse_x_screen = evnt->button.x;
 			mouse_y_screen = evnt->button.y;
-
-			float sx = rw / ww;
-			float sy = rh / wh;
-
-			float mx = (float)mouse_x_screen * sx;
-			float my = (float)mouse_y_screen * sy;
-
-			mouse_x_pixel = (int)mx;
-			mouse_y_pixel = (int)my;
-
-			mouse_x_timing = mouse_x_timing;
-			mouse_y_timing = mouse_y_timing;
-
+			mouse_x = mouse_x_screen / w_aspect;
+			mouse_y = mouse_y_screen / h_aspect;
+			
+			if (gfx->Fullscreen())
+			{
+				 // trim to clipping region
+				int ww, wh;
+				SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+				float fh = (float)wh;
+				float fw = fh * gfx->Aspect();
+				if (fw > ww)
+				{
+					fw = (float)ww;
+					fh = fw / gfx->Aspect();
+				}
+				SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+				w_aspect = (float)dest.w / rw;
+				h_aspect = (float)dest.h / rh;
+				int mx = (mouse_x_screen/w_aspect) - (dest.x/w_aspect);
+				if (mx < 0)  mx = 0;
+				if (mx >= rw) mx = rw - 1;
+				int my = (mouse_y_screen / h_aspect) - (dest.y / h_aspect);
+				if (my < 0)  my = 0;
+				if (my >= rh) my = rh - 1;				
+				mouse_x = mx;
+				mouse_y = my;
+			}
 			break;
 		}
 	}
@@ -162,7 +207,12 @@ void GfxMouse::OnDestroy()
 	}
 }
 
-void GfxMouse::OnUpdate(float fElapsedTime) {}
+void GfxMouse::OnUpdate(float fElapsedTime) 
+{
+	// test mouse callback
+	printf("GfxMouse::OnUpdate() --->  XPOS: %d  YPOS: %d\n", bus->read_word(CSR_XPOS), bus->read_word(CSR_YPOS));
+}
+
 void GfxMouse::OnActivate() {}
 void GfxMouse::OnDeactivate() {}
 

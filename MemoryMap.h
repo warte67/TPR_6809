@@ -101,7 +101,8 @@ enum MEMMAP
       CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
       CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
       CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
-  CSR_PAL_DATA = 0x1811,        // (Byte) mouse color  palette color bits RRGGBBAA
+  CSR_PAL_INDX = 0x1811,        // (Byte) mouse color palette color index (0-15)
+  CSR_PAL_DATA = 0x1812,        // (Byte) mouse color palette color bits RRGGBBAA
                                 //    a special note
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 

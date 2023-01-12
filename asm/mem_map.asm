@@ -2,7 +2,6 @@
 ;  * Allocated 64k Memory Mapped System Symbols *
 ;  **********************************************
 
-
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
 
@@ -31,7 +30,7 @@ GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
                                 ;          4) 128x160 x 4-Color
                                 ;          5) 256x80 x 4-Color
                                 ;          6) 256x160 x 2-Color
-                                ;          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
+                                ;          7) 256x192 256-color RGBI2222 (64k BUFFER)
 GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
                                 ;      bit 7: 1:fullscreen / 0:windowed
                                 ;      bit 6: reserved
@@ -42,10 +41,16 @@ GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
 TIMING_WIDTH    equ     $1802   ; (Word) timing width
 TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-GFX_PAL_RED     equ     $1807   ; (Byte) red palette data (read/write)
-GFX_PAL_GRN     equ     $1808   ; (Byte) grn palette data (read/write)
-GFX_PAL_BLU     equ     $1809   ; (Byte) blu palette data (read/write)
-GFX_PAL_ALF     equ     $180a   ; (Byte) alpha palette data (read/write)
+GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits RRGGBBAA
+
+;  Mouse Cursor Hardware Registers:
+CSR_XPOS        equ     $1808   ; (Word) horizontal mouse cursor coordinate
+CSR_YPOS        equ     $180a   ; (Word) vertical mouse cursor coordinate
+CSR_XOFS        equ     $180c   ; (Word) horizontal mouse cursor offset
+CSR_YOFS        equ     $180e   ; (Word) vertical mouse cursor offset
+CSR_SIZE        equ     $1810   ; (Byte) cursor size (0-15) 0:off
+CSR_PAL_INDX    equ     $1811   ; (Byte) mouse color palette color index (0-15)
+CSR_PAL_DATA    equ     $1812   ; (Byte) mouse color palette color bits RRGGBBAA
                                 ;    a special note
 RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
 

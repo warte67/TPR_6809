@@ -39,7 +39,6 @@
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
                       
-                      
                       ;  Zero-Page Kernal Variables:
 0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
                       
@@ -68,7 +67,7 @@
                                                       ;          4) 128x160 x 4-Color
                                                       ;          5) 256x80 x 4-Color
                                                       ;          6) 256x160 x 2-Color
-                                                      ;          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
+                                                      ;          7) 256x192 256-color RGBI2222 (64k BUFFER)
 1801                  GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
                                                       ;      bit 7: 1:fullscreen / 0:windowed
                                                       ;      bit 6: reserved
@@ -79,10 +78,16 @@
 1802                  TIMING_WIDTH    equ     $1802   ; (Word) timing width
 1804                  TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-1807                  GFX_PAL_RED     equ     $1807   ; (Byte) red palette data (read/write)
-1808                  GFX_PAL_GRN     equ     $1808   ; (Byte) grn palette data (read/write)
-1809                  GFX_PAL_BLU     equ     $1809   ; (Byte) blu palette data (read/write)
-180A                  GFX_PAL_ALF     equ     $180a   ; (Byte) alpha palette data (read/write)
+1807                  GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits RRGGBBAA
+                      
+                      ;  Mouse Cursor Hardware Registers:
+1808                  CSR_XPOS        equ     $1808   ; (Word) horizontal mouse cursor coordinate
+180A                  CSR_YPOS        equ     $180a   ; (Word) vertical mouse cursor coordinate
+180C                  CSR_XOFS        equ     $180c   ; (Word) horizontal mouse cursor offset
+180E                  CSR_YOFS        equ     $180e   ; (Word) vertical mouse cursor offset
+1810                  CSR_SIZE        equ     $1810   ; (Byte) cursor size (0-15) 0:off
+1811                  CSR_PAL_INDX    equ     $1811   ; (Byte) mouse color palette color index (0-15)
+1812                  CSR_PAL_DATA    equ     $1812   ; (Byte) mouse color palette color bits RRGGBBAA
                                                       ;    a special note
 2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
                       

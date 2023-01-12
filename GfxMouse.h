@@ -13,6 +13,8 @@ public:
 	GfxMouse();
 	virtual ~GfxMouse();
 
+	Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead);
+
 	virtual void OnInitialize() override;				
 	virtual void OnQuit() override;						
 	virtual void OnEvent(SDL_Event* evnt) override;		
@@ -23,14 +25,18 @@ public:
 	virtual void OnDeactivate() override;
 	virtual void OnRender() override;
 
+	int Mouse_Xpos() { return mouse_x_screen; }
+	int Mouse_Ypos() { return mouse_y_screen; }
+	int Mouse_Xofs() { return mouse_x_offset; }
+	int Mouse_Yofs() { return mouse_y_offset; }
+
 private:
 
 	int mouse_x_screen = 0;
 	int mouse_y_screen = 0;
-	int mouse_x_pixel = 0;
-	int mouse_y_pixel = 0;
-	int mouse_x_timing = 0;
-	int mouse_y_timing = 0;
+	int mouse_x = 0;
+	int mouse_y = 0;
+
 	Sint16 mouse_x_offset = 0;		// mouse cursor offset x
 	Sint16 mouse_y_offset = 0;		// mouse cursor offset y
 

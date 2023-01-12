@@ -44,8 +44,8 @@ public:
     int PixHeight() { return _pix_height; }
     int WindowWidth() { return _window_height; }
     int WindowHeight() { return _window_width; }
-    int ResWidth() { return _res_height; }
-    int ResHeight() { return _res_width; }
+    int ResWidth() { return _res_width; }
+    int ResHeight() { return _res_height; }
     SDL_Renderer* Renderer() { return _renderer; }
     SDL_Texture* Texture() { return _texture[m_current_backbuffer]; }
     SDL_Window* Window() { return _window; }
