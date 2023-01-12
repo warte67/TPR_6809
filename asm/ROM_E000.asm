@@ -30,9 +30,9 @@ SOFT_SWI3       fdb 	do_SWI3      	; Software SWI3 Vector
 SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 
 
-var_1			fcb		$00
-var_2			fcb		$00
-var_3			fdb		$00
+var_ch			fcb		$00
+var_at			fcb		$00
+var_count		fdb		$00
 
 			INCLUDE "mem_map.asm"
 
@@ -87,36 +87,57 @@ just_rti
 
 reset		
 
-done		BRA 	done			; infinate loop
-
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
-			CLRA
-			STA		var_1		; ch = 0
-			STA		var_2		; at = 0
-			STA		var_3		; count = 0
+
+;	Byte ch = 0;
+;	Byte at = 0;
+;	Byte count = 0;
+;	for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
+;	{
+;		bus->write(ofs, ch++);
+;		bus->write(ofs + 1, at);
+;		if (count++ > 8)
+;		{
+;			at++;
+;			count = 0;
+;		}
+;	}
+
+			clr		var_ch
+			clr		var_at
+			clr		var_count
+			ldx		#VIDEO_START
 1
-			LDX		#VIDEO_START
-2	
-			LDA		var_1		; load character
-			INC		var_1		; character ++
-			STA		,x+			; write ch
-			LDA		var_2		; load attribute
-			STA		,x++		; store attribute
-			INC		var_3		; count ++
-			LDA		var_3		; load count
-			CMPA	#8			; if count is < 8
-			BLT		2b			;	branch back to 2
-			INC		var_2		; attribute ++
-			CLRA				; count = 0
-			CMPX	#VIDEO_END	; at end of video buffer
-			BLT		2b			; no?  back to 2
-			BRA		1b			; yes, start over
+			cmpx	#VIDEO_END
+			bge		2f
+			lda		var_ch
+			ldb		var_at
+			std		,x++
+			inc		var_ch
+			inc		var_count
+			lda		var_count
+			cmpa	#64
+			blt		1b
+			inc		var_at
+			clr		var_count
+			bra		1b
+2
+	
+;	for (int t = VIDEO_START; t <= VIDEO_END; t++)
+;		bus->write(t, bus->read(t) + 1);
 
+3
+			ldx		#VIDEO_START
+4
+			cmpx	#VIDEO_END
+			bge		3b
+			inc		,x+
+			inc		,x+
+			bra		4b
+	
 
-
-
-
+done		BRA 	done			; infinate loop
 
 
 

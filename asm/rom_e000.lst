@@ -30,9 +30,9 @@
 000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
                       
                       
-0010  00              var_1                   fcb             $00
-0011  00              var_2                   fcb             $00
-0012  0000            var_3                   fdb             $00
+0010  00              var_ch                  fcb             $00
+0011  00              var_at                  fcb             $00
+0012  0000            var_count               fdb             $00
                       
 0014                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
@@ -152,36 +152,57 @@ E023  3B                                      rti
                       
 E024                  reset           
                       
-E024  20FE            done            BRA     done                    ; infinate loop
-                      
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
-E026  4F                                      CLRA
-E027  B70010                                  STA             var_1           ; ch = 0
-E02A  B70011                                  STA             var_2           ; at = 0
-E02D  B70012                                  STA             var_3           ; count = 0
+                      
+                      ;       Byte ch = 0;
+                      ;       Byte at = 0;
+                      ;       Byte count = 0;
+                      ;       for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
+                      ;       {
+                      ;               bus->write(ofs, ch++);
+                      ;               bus->write(ofs + 1, at);
+                      ;               if (count++ > 8)
+                      ;               {
+                      ;                       at++;
+                      ;                       count = 0;
+                      ;               }
+                      ;       }
+                      
+E024  7F0010                                  clr             var_ch
+E027  7F0011                                  clr             var_at
+E02A  7F0012                                  clr             var_count
+E02D  8E0400                                  ldx             #VIDEO_START
 E030                  1
-E030  8E0400                                  LDX             #VIDEO_START
-E033                  2       
-E033  B60010                                  LDA             var_1           ; load character
-E036  7C0010                                  INC             var_1           ; character ++
-E039  A780                                    STA             ,x+                     ; write ch
-E03B  B60011                                  LDA             var_2           ; load attribute
-E03E  A781                                    STA             ,x++            ; store attribute
-E040  7C0012                                  INC             var_3           ; count ++
-E043  B60012                                  LDA             var_3           ; load count
-E046  8108                                    CMPA    #8                      ; if count is < 8
-E048  2DE9                                    BLT             2b                      ;       branch back to 2
-E04A  7C0011                                  INC             var_2           ; attribute ++
-E04D  4F                                      CLRA                            ; count = 0
-E04E  8C17FF                                  CMPX    #VIDEO_END      ; at end of video buffer
-E051  2DE0                                    BLT             2b                      ; no?  back to 2
-E053  20DB                                    BRA             1b                      ; yes, start over
+E030  8C17FF                                  cmpx    #VIDEO_END
+E033  2C1D                                    bge             2f
+E035  B60010                                  lda             var_ch
+E038  F60011                                  ldb             var_at
+E03B  ED81                                    std             ,x++
+E03D  7C0010                                  inc             var_ch
+E040  7C0012                                  inc             var_count
+E043  B60012                                  lda             var_count
+E046  8140                                    cmpa    #64
+E048  2DE6                                    blt             1b
+E04A  7C0011                                  inc             var_at
+E04D  7F0012                                  clr             var_count
+E050  20DE                                    bra             1b
+E052                  2
+                              
+                      ;       for (int t = VIDEO_START; t <= VIDEO_END; t++)
+                      ;               bus->write(t, bus->read(t) + 1);
                       
+E052                  3
+E052  8E0400                                  ldx             #VIDEO_START
+E055                  4
+E055  8C17FF                                  cmpx    #VIDEO_END
+E058  2CF8                                    bge             3b
+E05A  6C80                                    inc             ,x+
+E05C  6C80                                    inc             ,x+
+E05E  20F5                                    bra             4b
+                              
                       
-                      
-                      
-                      
+E060  20FE            done            BRA     done                    ; infinate loop
                       
                       
                       

@@ -39,25 +39,6 @@ void GfxGlyph::OnInitialize()
 		 //SDL_SetRenderDrawColor(gfx->Renderer(), 128, 32, 0, 0x80);
 		 //SDL_RenderClear(gfx->Renderer());
 	 }
-
-	 // **** TESTING ****************************
-	 // TESTING: fill the first 256 bytes of screen ram with ascending values to display
-	 {
-		 Byte ch = 0;
-		 Byte at = 0;
-		 Byte count = 0;
-		 for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
-		 {
-			 bus->write(ofs, ch++);
-			 bus->write(ofs + 1, at);
-			 if (count++ > 8)
-			 {
-				 at++;
-				 count = 0;
-			 }
-		 }
-	 }
-	 // **** TESTING ****************************
 }
 
 void GfxGlyph::OnQuit()
@@ -130,22 +111,6 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 			}
 		}
 	}
-
-	// **** TESTING ****************************
-		// video ram incremental test
-	{
-		const float test_delay = 0.05;
-		static float test_delayAcc = fElapsedTime;
-		test_delayAcc += fElapsedTime;
-		if (test_delayAcc >= test_delay)
-		{
-			test_delayAcc -= test_delay;
-			for (int t = VIDEO_START; t <= VIDEO_END; t++)
-				bus->write(t, bus->read(t) + 1);
-		}
-	}
-		//printf("PC:$%04X\n", bus->m_cpu->getPC());
-	// **** TESTING ****************************
 }
 
 void GfxGlyph::OnRender()

@@ -102,9 +102,7 @@ DWord Memory::AssignROM(std::string cDesc, Word size, const char* file = nullptr
 		rom->load_hex(file, nextAddress);
 	}
 	nextAddress += size;
-	if (nextAddress <= 0xFFFF) {
-		m_memBlocks.push_back(rom);
-	}	
+	m_memBlocks.push_back(rom);
 	return size;
 }
 ROM::ROM(Word offset, Word size) : Memory(offset, size)
