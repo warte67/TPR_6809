@@ -135,6 +135,25 @@ void GfxMouse::OnCreate()
 		}
 		SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	}
+
+	// set up clipping
+	if (gfx->Fullscreen())
+	{
+		// fetch the actual current display resolution
+		int ww, wh;
+		SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+		float fh = (float)wh;
+		float fw = fh * gfx->Aspect();
+		if (fw > ww)
+		{
+			fw = (float)ww;
+			fh = fw / gfx->Aspect();
+		}
+		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+		SDL_RenderSetClipRect(gfx->Renderer(), &dest);
+	}
+	else
+		SDL_RenderSetClipRect(gfx->Renderer(), NULL);
 }
 
 void GfxMouse::OnDestroy()
@@ -153,22 +172,22 @@ void GfxMouse::OnDeactivate() {}
 
 void GfxMouse::OnRender()
 {
-	// set up clipping
-	if (gfx->Fullscreen())
-	{
-		// fetch the actual current display resolution
-		int ww, wh;
-		SDL_GetWindowSize(gfx->Window(), &ww, &wh);
-		float fh = (float)wh;
-		float fw = fh * gfx->Aspect();
-		if (fw > ww)
-		{
-			fw = (float)ww;
-			fh = fw / gfx->Aspect();
-		}
-		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
-		SDL_RenderSetClipRect(gfx->Renderer(), &dest);	// clip to screen
-	}
+	//// set up clipping
+	//if (gfx->Fullscreen())
+	//{
+	//	// fetch the actual current display resolution
+	//	int ww, wh;
+	//	SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+	//	float fh = (float)wh;
+	//	float fw = fh * gfx->Aspect();
+	//	if (fw > ww)
+	//	{
+	//		fw = (float)ww;
+	//		fh = fw / gfx->Aspect();
+	//	}
+	//	SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+	//	SDL_RenderSetClipRect(gfx->Renderer(), &dest);	// clip to screen
+	//}
 
 	// render the textures	
 	SDL_Rect dst = { mouse_x_screen - mouse_x_offset, mouse_y_screen - mouse_y_offset, s_size * 8, s_size * 8 };
