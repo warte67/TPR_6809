@@ -127,7 +127,11 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
 				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
 				ptrGfx->m_enable_mouse			= ((data & 0x10) == 0x10);
-				ptrGfx->m_current_backbuffer	= ((data & 0x08) == 0x08); // ? 1 : 0;
+				if (ptrGfx->m_enable_backbuffer)
+					ptrGfx->m_current_backbuffer	= ((data & 0x08) == 0x08);
+				else
+					ptrGfx->m_current_backbuffer = 0;
+
 				ptrGfx->m_gmode_index			= (data & 0x07);
 				//
 
@@ -345,6 +349,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 				bus->write(GFX_FLAGS, data);
 				//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
 			}
+		}
+		// toggle backbuffer enable
+		if (evnt->key.keysym.sym == SDLK_TAB)
+		{
+			Byte data = bus->read(GFX_FLAGS);
+			data ^= 0x40;
+			bus->write(GFX_FLAGS, data);
 		}
 
 		// toggle fullscreen/windowed

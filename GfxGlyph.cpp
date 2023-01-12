@@ -115,7 +115,8 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 
 void GfxGlyph::OnRender()
 {
-	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+	// SDL_SetRenderTarget(gfx->Renderer(), NULL);
+	SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
 	SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, NULL);
 }
 

@@ -104,40 +104,45 @@ reset
 ;		}
 ;	}
 
-			clr		var_ch
-			clr		var_at
-			clr		var_count
-			ldx		#VIDEO_START
+			clr		var_ch			; character = 0
+			clr		var_at			; attribute = 0
+			clr		var_count		; count = 0
+			ldx		#VIDEO_START	; start of display buffer
 1
-			cmpx	#VIDEO_END
-			bge		2f
-			lda		var_ch
-			ldb		var_at
-			std		,x++
-			inc		var_ch
-			inc		var_count
-			lda		var_count
-			cmpa	#64
-			blt		1b
-			inc		var_at
-			clr		var_count
-			bra		1b
+			cmpx	#VIDEO_END		; at the end of the buffer?
+			bge		2f				; yes, skip to the screen updates
+			lda		var_ch			; load the current character
+			ldb		var_at			; load the current attribute
+			std		,x++			; store both character and attribute
+			inc		var_ch			; next character
+			inc		var_count		; increment count
+			lda		var_count		; load the count
+			cmpa	#17				; compare the count with this amount
+			blt		1b				; loop if count lower than
+			inc		var_at			; next attribute
+			clr		var_count		; clear the count
+			bra		1b				; resume the loop
 2
 	
 ;	for (int t = VIDEO_START; t <= VIDEO_END; t++)
 ;		bus->write(t, bus->read(t) + 1);
 
 3
-			ldx		#VIDEO_START
+			; INCREMENT THE SCREEN BUFFER
+			ldx		#VIDEO_START	; start beginning of video buffer
 4
-			cmpx	#VIDEO_END
-			bge		3b
-			inc		,x+
-			inc		,x+
-			bra		4b
-	
+			cmpx	#VIDEO_END		; until the end of the video buffer
+			bge		3b				; restart when past the end
+			inc		,x+				; increment character
+			inc		,x+				; increment the attribute
 
-done		BRA 	done			; infinate loop
+			; TOGGLE THE BACKBUFFER
+			lda		GFX_FLAGS	; load current backbuffer
+			eora	#$08		; toggle it
+			sta		GFX_FLAGS	; save the backbuffer
+			bra		4b				; loop until done
+	
+; done		BRA 	done			; infinate loop
 
 
 

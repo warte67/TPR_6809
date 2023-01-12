@@ -169,40 +169,45 @@ E024                  reset
                       ;               }
                       ;       }
                       
-E024  7F0010                                  clr             var_ch
-E027  7F0011                                  clr             var_at
-E02A  7F0012                                  clr             var_count
-E02D  8E0400                                  ldx             #VIDEO_START
+E024  7F0010                                  clr             var_ch                  ; character = 0
+E027  7F0011                                  clr             var_at                  ; attribute = 0
+E02A  7F0012                                  clr             var_count               ; count = 0
+E02D  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
 E030                  1
-E030  8C17FF                                  cmpx    #VIDEO_END
-E033  2C1D                                    bge             2f
-E035  B60010                                  lda             var_ch
-E038  F60011                                  ldb             var_at
-E03B  ED81                                    std             ,x++
-E03D  7C0010                                  inc             var_ch
-E040  7C0012                                  inc             var_count
-E043  B60012                                  lda             var_count
-E046  8140                                    cmpa    #64
-E048  2DE6                                    blt             1b
-E04A  7C0011                                  inc             var_at
-E04D  7F0012                                  clr             var_count
-E050  20DE                                    bra             1b
+E030  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+E033  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+E035  B60010                                  lda             var_ch                  ; load the current character
+E038  F60011                                  ldb             var_at                  ; load the current attribute
+E03B  ED81                                    std             ,x++                    ; store both character and attribute
+E03D  7C0010                                  inc             var_ch                  ; next character
+E040  7C0012                                  inc             var_count               ; increment count
+E043  B60012                                  lda             var_count               ; load the count
+E046  8111                                    cmpa    #17                             ; compare the count with this amount
+E048  2DE6                                    blt             1b                              ; loop if count lower than
+E04A  7C0011                                  inc             var_at                  ; next attribute
+E04D  7F0012                                  clr             var_count               ; clear the count
+E050  20DE                                    bra             1b                              ; resume the loop
 E052                  2
                               
                       ;       for (int t = VIDEO_START; t <= VIDEO_END; t++)
                       ;               bus->write(t, bus->read(t) + 1);
                       
 E052                  3
-E052  8E0400                                  ldx             #VIDEO_START
+                                              ; INCREMENT THE SCREEN BUFFER
+E052  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
 E055                  4
-E055  8C17FF                                  cmpx    #VIDEO_END
-E058  2CF8                                    bge             3b
-E05A  6C80                                    inc             ,x+
-E05C  6C80                                    inc             ,x+
-E05E  20F5                                    bra             4b
-                              
+E055  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E058  2CF8                                    bge             3b                              ; restart when past the end
+E05A  6C80                                    inc             ,x+                             ; increment character
+E05C  6C80                                    inc             ,x+                             ; increment the attribute
                       
-E060  20FE            done            BRA     done                    ; infinate loop
+                                              ; TOGGLE THE BACKBUFFER
+E05E  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E061  8808                                    eora    #$08            ; toggle it
+E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E066  20ED                                    bra             4b                              ; loop until done
+                              
+                      ; done          BRA     done                    ; infinate loop
                       
                       
                       
