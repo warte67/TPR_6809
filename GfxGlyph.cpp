@@ -17,6 +17,10 @@ GfxGlyph::GfxGlyph()
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
+	if (gfx == nullptr)
+	{
+		Bus::Err("ERROR: GfxGlyph::GfxGlyph() -- gfx == nullptr");
+	}
 }
 
 
@@ -44,41 +48,35 @@ void GfxGlyph::OnInitialize()
 		 pallette.push_back({ 0xff, 0xff, 0x00,  SDL_ALPHA_OPAQUE });	// e
 		 pallette.push_back({ 0xff, 0xff, 0xff,  SDL_ALPHA_OPAQUE });	// f
 	 }
+	 if (_glyph_texture == nullptr)
+	 {
+		 int pw = gfx->PixWidth();
+		 int ph = gfx->PixHeight();
+		 _glyph_texture = SDL_CreateTexture(gfx->Renderer(), SDL_PIXELFORMAT_RGBA4444,
+			 SDL_TEXTUREACCESS_TARGET, pw, ph);
+		 SDL_SetTextureBlendMode(_glyph_texture, SDL_BLENDMODE_BLEND);
+		 SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
+
+		 //SDL_SetRenderDrawColor(gfx->Renderer(), 128, 32, 0, 0x80);
+		 //SDL_RenderClear(gfx->Renderer());
+	 }
+
+	 // TESTING: fill the first 256 bytes of screen ram with ascending values to display
+	 Byte ch = 0;
+	 Byte at = 0;
+	 Byte count = 0;
+	 for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
+	 {
+		 bus->write(ofs, ch++);
+		 bus->write(ofs + 1, at);
+		 if (count++ > 8)
+			 at++;
+	 }
 }
 
 void GfxGlyph::OnQuit()
 {
 	printf("GfxGlyph::OnQuit()\n");
-}
-
-void GfxGlyph::OnCreate()
-{
-	printf("GfxGlyph::OnCreate()\n");
-	if (_glyph_texture == nullptr)
-	{		
-		_glyph_texture = SDL_CreateTexture(gfx->Renderer(), SDL_PIXELFORMAT_RGBA4444,
-			SDL_TEXTUREACCESS_TARGET, gfx->PixWidth(), gfx->PixHeight());
-		SDL_SetTextureBlendMode(_glyph_texture, SDL_BLENDMODE_BLEND);
-		SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
-
-		//SDL_SetRenderDrawColor(gfx->Renderer(), 128, 32, 0, 0x80);
-		//SDL_RenderClear(gfx->Renderer());
-	}
-
-	// TESTING: fill the first 256 bytes of screen ram with ascending values to display
-	Byte ch = 0;
-	Byte at = 0;
-	Byte count = 0;
-	for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
-	{
-		bus->write(ofs, ch++);
-		bus->write(ofs + 1, at);
-		if (count++ > 8)
-			at++;
-	}
-}
-void GfxGlyph::OnDestroy()
-{
 	if (_glyph_texture)
 	{
 		SDL_DestroyTexture(_glyph_texture);
@@ -86,13 +84,24 @@ void GfxGlyph::OnDestroy()
 	}
 }
 
+void GfxGlyph::OnCreate()
+{
+	//printf("GfxGlyph::OnCreate()\n");
+
+}
+void GfxGlyph::OnDestroy()
+{
+	//printf("GfxGlyph::OnDestroy()\n");
+
+}
+
 
 void GfxGlyph::OnUpdate(float fElapsedTime)
 {
 	// printf("GfxGlyph::OnUpdate()\n");
 
-	// only update once every 15ms
-	const float delay = 0.015f;
+	// only update once every 10ms (timing my need further adjustment)
+	const float delay = 0.010f;
 	static float delayAcc = fElapsedTime;
 	delayAcc += fElapsedTime;
 	if (delayAcc >= delay)
@@ -134,8 +143,10 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 				}
 			}
 		}
-
 	}
+	// test by incrementing the first character in video ram and the attribute
+	bus->write(VIDEO_START, bus->read(VIDEO_START) + 1);
+	bus->write(VIDEO_START+1, bus->read(VIDEO_START+1) + 1);
 }
 
 void GfxGlyph::OnRender()

@@ -165,6 +165,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 {
 	Device::_deviceName = "GFX";
 	bus = Bus::getInstance();
+	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
 	//// pre-build the graphics modes
 	//for (int t = 0; t < 8; t++)
@@ -181,7 +182,6 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap3();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
-
 }
 GFX::~GFX()
 {    
