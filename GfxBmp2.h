@@ -14,6 +14,7 @@ public:
 	GfxBmp2();
 	virtual ~GfxBmp2();
 
+	virtual void OnActivate() override;
 	virtual void OnCreate() override;
 	virtual void OnDestroy() override;
 	virtual void OnUpdate(float fElapsedTime) override;
@@ -26,3 +27,6 @@ private:
 };
 
 #endif // __GFXBMP2_H__
+
+
+

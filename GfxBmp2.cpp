@@ -25,6 +25,27 @@ GfxBmp2::~GfxBmp2()
 {
 }
 
+void GfxBmp2::OnActivate()
+{
+	//printf("GfxBmp2:OnActivate()\n");
+
+	// initialize the default color palette
+	if (gfx->palette.size() == 0)
+	{
+		for (int t = 0; t < 16; t++)
+			gfx->palette.push_back({ 0x00 });
+	}
+	std::vector<GFX::PALETTE> ref = {
+		{ 0x03 },	// 00 00 00 11		0
+		{ 0xff },	// 11 11 11 11		1
+	};
+	for (int t = 0; t < 2; t++)
+	{
+		bus->write(GFX_PAL_INDX, t);
+		bus->write(GFX_PAL_DATA, ref[t].color);
+	}
+}
+
 void GfxBmp2::OnCreate()
 {
 	if (bitmap_texture == nullptr)

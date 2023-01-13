@@ -32,8 +32,10 @@ SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 
 var_ch			fcb		$00
 var_at			fcb		$00
-var_count		fdb		$00
-var_csr			fdb		$ff
+var_count		fcb		$00
+var_csr			fcb		$ff
+var_cycle		fdb		$0000
+var_mode		fdb		$0000
 
 			INCLUDE "mem_map.asm"
 
@@ -121,6 +123,30 @@ reset
 			bra		1b				; resume the loop
 2	
 3
+
+
+			; CYCLE COUNT 
+			ldd		var_cycle
+			addd	#1
+			std		var_cycle
+			cmpd	#$25
+			blt		st
+
+			ldd		#0
+			std		var_cycle
+			clr		var_cycle
+			lda		GFX_FLAGS
+			anda	#$f8
+			ora		var_mode
+			inc		var_mode
+			sta		GFX_FLAGS
+			lda		var_mode
+			anda	#$07
+			sta		var_mode
+
+st
+
+
 			; INCREMENT THE SCREEN BUFFER
 			ldx		#VIDEO_START	; start beginning of video buffer
 4
@@ -165,8 +191,6 @@ reset
 			bra		4b				; loop until done
 	
 ; done		BRA 	done			; infinate loop
-
-
 
 ; interrupt vectors
 				org  $fff0

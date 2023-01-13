@@ -32,10 +32,12 @@
                       
 0010  00              var_ch                  fcb             $00
 0011  00              var_at                  fcb             $00
-0012  0000            var_count               fdb             $00
-0014  00FF            var_csr                 fdb             $ff
+0012  00              var_count               fcb             $00
+0013  FF              var_csr                 fcb             $ff
+0014  0000            var_cycle               fdb             $0000
+0016  0000            var_mode                fdb             $0000
                       
-0016                                          INCLUDE "mem_map.asm"
+0018                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
@@ -121,7 +123,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; ***************************************
                                             
                        
-0016                  SECTION.CODE
+0018                  SECTION.CODE
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
@@ -200,18 +202,42 @@ E04D  7F0012                                  clr             var_count         
 E050  20DE                                    bra             1b                              ; resume the loop
 E052                  2       
 E052                  3
+                      
+                      
+                                              ; CYCLE COUNT 
+E052  FC0014                                  ldd             var_cycle
+E055  C30001                                  addd    #1
+E058  FD0014                                  std             var_cycle
+E05B  10830025                                cmpd    #$25
+E05F  2D1F                                    blt             st
+                      
+E061  CC0000                                  ldd             #0
+E064  FD0014                                  std             var_cycle
+E067  7F0014                                  clr             var_cycle
+E06A  B61800                                  lda             GFX_FLAGS
+E06D  84F8                                    anda    #$f8
+E06F  BA0016                                  ora             var_mode
+E072  7C0016                                  inc             var_mode
+E075  B71800                                  sta             GFX_FLAGS
+E078  B60016                                  lda             var_mode
+E07B  8407                                    anda    #$07
+E07D  B70016                                  sta             var_mode
+                      
+E080                  st
+                      
+                      
                                               ; INCREMENT THE SCREEN BUFFER
-E052  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E055                  4
-E055  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E058  2CF8                                    bge             3b                              ; restart when past the end
-E05A  6C80                                    inc             ,x+                             ; increment character
-E05C  6C80                                    inc             ,x+                             ; increment the attribute
+E080  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E083                  4
+E083  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E086  2CCA                                    bge             3b                              ; restart when past the end
+E088  6C80                                    inc             ,x+                             ; increment character
+E08A  6C80                                    inc             ,x+                             ; increment the attribute
                       
                                               ; TOGGLE THE BACKBUFFER
-E05E  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E061  8808                                    eora    #$08            ; toggle it
-E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E08C  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E08F  8808                                    eora    #$08            ; toggle it
+E091  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                       ;                       ; COLOR CYCLE THE MOUSE CURSOR
                       ;                       lda             #4
@@ -241,11 +267,9 @@ E063  B71800                                  sta             GFX_FLAGS       ; 
                       ;                       sta             CSR_XOFS
                       ;                       sta             CSR_YOFS
                       
-E066  20ED                                    bra             4b                              ; loop until done
+E094  20ED                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
-                      
-                      
                       
                       ; interrupt vectors
 FFF0                                                  org  $fff0

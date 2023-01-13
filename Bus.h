@@ -44,20 +44,17 @@ private:
     ~Bus();     // private destructor
 
     static Bus* s_instance;
-    static bool s_bIsRunning;	
+    static bool s_bIsRunning;
 
-    bool IsRunning() { return s_bIsRunning;  }
-    void IsRunning(bool isrunning) { s_bIsRunning = isrunning; }    
-
-	static void _OnInitialize();           // runs once after all devices are created
-	static void _OnEvent(SDL_Event* evnt); // fires per SDL_Event
-	static void _OnCreate();               // fires when the object is created/recreated
-	static void _OnDestroy();              // fires when the object is destroyed/lost focus
-	static void _OnUpdate();               // fires each frame, for updates
-	//static void _OnRender();               // render the current frames texture
+    static void _OnInitialize();           // runs once after all devices are created
+    static void _OnEvent(SDL_Event* evnt); // fires per SDL_Event
+    static void _OnCreate();               // fires when the object is created/recreated
+    static void _OnDestroy();              // fires when the object is destroyed/lost focus
+    static void _OnUpdate();               // fires each frame, for updates
+    //static void _OnRender();               // render the current frames texture
     static void _OnQuit();                 // fires on exit -- reverses OnInitialize()
 
-	std::vector<Device *> _devices;
+    std::vector<Device*> _devices;
     int m_fps = 0;
 
 public:
@@ -72,6 +69,9 @@ public:
     void debug_write_word(Word offset, Word data);
 
     Memory* getMemoryPtr() { return m_memory; }
+
+    bool IsRunning() { return s_bIsRunning; }
+    void IsRunning(bool isrunning) { s_bIsRunning = isrunning; }
 
     static int getFPS();
     void run(); // main game loop

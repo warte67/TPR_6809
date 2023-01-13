@@ -128,6 +128,7 @@ Bus::Bus()
     //    printf("$%04X $%02X\n", t, read(t));
     //// ****** TESTING ***************************
 
+    m_cpu->reset();
     bCpuEnabled = true;
 }
 Bus::~Bus() 
@@ -183,6 +184,8 @@ void Bus::_OnInitialize()
 	// call OnEvent for each device
 	for (auto &a : s_instance->_devices)
 		a->OnInitialize();
+
+    s_instance->bCpuEnabled = true;
 }
 void Bus::_OnEvent(SDL_Event* evnt) 
 {
@@ -195,14 +198,18 @@ void Bus::_OnEvent(SDL_Event* evnt)
 void Bus::_OnCreate() 
 {
     //printf("Bus::_OnCreate()\n");
+    s_instance->bCpuEnabled = false;
 
 	// call OnCreate for each device
 	for (auto &a : s_instance->_devices)
 		a->OnCreate();
+
+    s_instance->bCpuEnabled = true;
 }
 void Bus::_OnDestroy() 
 { 
     //printf("Bus::_OnDestroy()\n");
+    s_instance->bCpuEnabled = false;
 
 	// call OnDestroy for each device
 	for (auto &a : s_instance->_devices)

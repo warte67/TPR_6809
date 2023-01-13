@@ -14,6 +14,7 @@ public:
 	GfxBmp16();
 	virtual ~GfxBmp16();
 
+	virtual void OnActivate() override;
 	virtual void OnCreate() override;
 	virtual void OnDestroy() override;
 	virtual void OnUpdate(float fElapsedTime) override;
@@ -29,3 +30,6 @@ private:
 
 
 #endif	// __GFXBMP16_H__
+
+
+

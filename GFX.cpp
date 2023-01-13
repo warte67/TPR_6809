@@ -20,16 +20,22 @@
 
 
 // default GFX_FLAGS:
-bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
-bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
-bool GFX::m_enable_debug		= false;		// true:enabled, false:disabled
-bool GFX::m_enable_mouse		= true;		// true:enabled, false:disabled
-int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
-int  GFX::m_gmode_index			= 4;		// active graphics mode (0-7)
-
+bool GFX::m_VSYNC				= ENABLE_VSYNC;
+bool GFX::m_enable_backbuffer	= ENABLE_BACKBUFFER;
+bool GFX::m_enable_debug		= ENABLE_DEBUG;
 // default GFX_AUX:
-bool GFX::m_fullscreen			= false;	// true:fullscreen, false:windowed
-int  GFX::m_display_num			= 1;		// which monitor to use, default.
+bool GFX::m_fullscreen			= DEFAULT_FULLSCREEN;
+int  GFX::m_display_num			= DEFAULT_MONITOR;
+
+
+// these don't need to be static anymore
+bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
+int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
+int  GFX::m_gmode_index = 4;		// active graphics mode (0-7)
+
+
+
+
 
 // Palette Index
 Uint8 GFX::m_palette_index = 0;
@@ -140,8 +146,12 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->bIsDirty = true;
 				if (old_gmode_index != ptrGfx->m_gmode_index)
 				{
+					bus->bCpuEnabled = false;
+
 					ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
 					ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
+
+					bus->bCpuEnabled = true;
 					// ptrGfx->bIsDirty = true;
 				}
 				old_gmode_index = ptrGfx->m_gmode_index;
@@ -307,11 +317,11 @@ void GFX::OnInitialize()
 {
 	//printf("Gfx::OnInitialize\n");
 
+	// initialize the default color palette
 	if (palette.size() == 0)
 	{
 		for (int t = 0; t < 16; t++)
 			palette.push_back({0x00});
-
 		std::vector<PALETTE> ref = {
 			{ 0x03 },	// 00 00 00 11		0
 			{ 0x07 },	// 00 00 01 11		1
@@ -399,7 +409,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 		// change active display (monitor)
 		SDL_Keymod km = SDL_GetModState();
 		int num_displays = SDL_GetNumVideoDisplays() - 1;
-		//if (km & KMOD_ALT)// && km & KMOD_CTRL)
+		if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
 			//// toggle backbuffer enable
 			//if (evnt->key.keysym.sym == SDLK_c)

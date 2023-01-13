@@ -14,6 +14,7 @@ public:
 	GfxBmp4();
 	virtual ~GfxBmp4();
 
+	virtual void OnActivate() override;
 	virtual void OnCreate() override;
 	virtual void OnDestroy() override;
 	virtual void OnUpdate(float fElapsedTime) override;

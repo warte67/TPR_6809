@@ -25,36 +25,19 @@ GfxGlyph::GfxGlyph()
 
 void GfxGlyph::OnInitialize()
 {
-	 printf("GfxGlyph::OnInitialize()\n");
-
-	 if (_glyph_texture == nullptr)
-	 {
-		 int pw = gfx->PixWidth();
-		 int ph = gfx->PixHeight();
-		 _glyph_texture = SDL_CreateTexture(gfx->Renderer(), SDL_PIXELFORMAT_RGBA4444,
-			 SDL_TEXTUREACCESS_TARGET, pw, ph);
-		 SDL_SetTextureBlendMode(_glyph_texture, SDL_BLENDMODE_BLEND);
-		 SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
-
-		 //SDL_SetRenderDrawColor(gfx->Renderer(), 128, 32, 0, 0x80);
-		 //SDL_RenderClear(gfx->Renderer());
-	 }
+	 //printf("GfxGlyph::OnInitialize()\n");
 }
 
 void GfxGlyph::OnQuit()
 {
-	printf("GfxGlyph::OnQuit()\n");
-	if (_glyph_texture)
-	{
-		SDL_DestroyTexture(_glyph_texture);
-		_glyph_texture = nullptr;
-	}
+	//printf("GfxGlyph::OnQuit()\n");
 }
 
 void GfxGlyph::OnCreate()
 {
 	//printf("GfxGlyph::OnCreate()\n");
-		// create the glyph textures
+	// 
+	// create the glyph textures
 	if (glyph_textures.size() == 0)
 	{
 		for (int t = 0; t < 256; t++)
@@ -80,6 +63,16 @@ void GfxGlyph::OnCreate()
 			glyph_textures.push_back(glyph);
 		}
 	}
+	// create the main texture
+	if (_glyph_texture == nullptr)
+	{
+		int pw = gfx->PixWidth();
+		int ph = gfx->PixHeight();
+		_glyph_texture = SDL_CreateTexture(gfx->Renderer(), SDL_PIXELFORMAT_RGBA4444,
+			SDL_TEXTUREACCESS_TARGET, pw, ph);
+		SDL_SetTextureBlendMode(_glyph_texture, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
+	}
 }
 void GfxGlyph::OnDestroy()
 {
@@ -89,6 +82,13 @@ void GfxGlyph::OnDestroy()
 	for (auto& a : glyph_textures)
 		SDL_DestroyTexture(a);
 	glyph_textures.clear();
+
+	// destroy the main texture
+	if (_glyph_texture)
+	{
+		SDL_DestroyTexture(_glyph_texture);
+		_glyph_texture = nullptr;
+	}
 }
 
 
