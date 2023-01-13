@@ -13,9 +13,8 @@
 #include "Bus.h"
 #include "C6809.h"
 
-//#include "GfxMode.h"
-//#include "GfxSystem.h"
-//#include "GfxDebug.h"
+
+#include "GfxDebug.h"
 
 
 C6809::C6809(Bus* ptrBus) : A(acc.byte.A = 0), B(acc.byte.B = 0), D(acc.D = 0)
@@ -42,36 +41,39 @@ C6809::~C6809()
 void C6809::clock()
 {
 	// printf("C6809::clock() -- PC:$%04X\n", PC);
-	if (do_interrupts())
+	if (debug)
 	{
-		if (cycles == 0)
+		if (debug->SingleStep())
 		{
-			// read the opcode
-			opcode = read(PC);
-			PC++;
-			if (opcode == 0x10 || opcode == 0x11) {
-				opcode <<= 8;
-				opcode |= read(PC);
-				PC++;
-			}
-
-			// seed the cycles
-			cycles = opMap[opcode].cycles;
-
-			// run the instruction
-			if (this->opMap[opcode].operation)
-				(this->*opMap[opcode].operation)();
-			else
+			if (do_interrupts())
 			{
-				bus->Err("Invalid Instruction");
-				// printf("Error: Invalid Instruction\n");
+				if (cycles == 0)
+				{
+					// read the opcode
+					opcode = read(PC);
+					PC++;
+					if (opcode == 0x10 || opcode == 0x11) {
+						opcode <<= 8;
+						opcode |= read(PC);
+						PC++;
+					}
+					// seed the cycles
+					cycles = opMap[opcode].cycles;
+					// run the instruction
+					if (this->opMap[opcode].operation)
+						(this->*opMap[opcode].operation)();
+					else
+					{
+						bus->Err("Invalid Instruction");
+						// printf("Error: Invalid Instruction\n");
+					}
+					if (!waiting_cwai && !waiting_sync)
+						debug->ContinueSingleStep();
+					return;
+				}
+				cycles--;
 			}
-
-			//if (!waiting_cwai && !waiting_sync)
-			//	debug->ContinueSingleStep();
-			return;
 		}
-		cycles--;
 	}
 }
 

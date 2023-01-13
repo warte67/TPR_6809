@@ -89,9 +89,10 @@ public:
     // use to fetch / create the only instance of Bus
     static Bus* getInstance();
 
-    Memory* m_memory;
-    GFX *m_gfx;
-    C6809* m_cpu;
+    Memory* m_memory = nullptr;
+    GFX *m_gfx = nullptr;
+    C6809* m_cpu = nullptr;
+    GfxDebug* gfxdebug = nullptr;
 };
 
 #endif // __BUS_H__

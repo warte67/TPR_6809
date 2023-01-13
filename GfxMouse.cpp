@@ -232,7 +232,6 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 	}
 }
 
-
 void GfxMouse::OnCreate()
 {
 	if (mouse_texture == nullptr)

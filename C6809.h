@@ -26,9 +26,6 @@ class GfxMode;
 class GfxSystem;
 class GfxDebug;
 
-
-
-
 class C6809	// : public Device
 {
 	friend class Bus;

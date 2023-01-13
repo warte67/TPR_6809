@@ -11,6 +11,7 @@
 #include "Memory.h"
 #include "C6809.h"
 #include "Bus.h"
+#include "GfxDebug.h"
 
 // initialize staatics
 
@@ -374,8 +375,13 @@ void Bus::run()
                 {
                     if (evnt.key.keysym.sym == SDLK_ESCAPE)
                     {
-                        s_bIsRunning = false;
-                        m_gfx->bIsDirty = true;
+                        if (!gfxdebug->bIsCursorVisible &&
+                            gfxdebug->nRegisterBeingEdited.reg == GfxDebug::EDIT_REGISTER::EDIT_NONE)
+
+                        {
+                            s_bIsRunning = false;
+                            m_gfx->bIsDirty = true;
+                        }
                     }                    
                     break;
                 }
