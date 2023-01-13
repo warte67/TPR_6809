@@ -623,10 +623,9 @@ void GFX::OnDestroy()
 		SDL_DestroyRenderer(_renderer);
 		_renderer = nullptr;
 	}
-	Uint32 flags = SDL_GetWindowFlags(_window);
-	if (_surface && (flags & ~SDL_WINDOW_OPENGL)) // seg faults when SDL_WINDOW_OPENGL is NOT used to create the window
+	if (_surface)
 	{
-		//SDL_FreeSurface(_surface);		// segfaults
+		//SDL_FreeSurface(_surface);		// segfaults!
 		_surface = nullptr;
 	}
 	if (_window)

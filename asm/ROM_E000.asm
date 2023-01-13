@@ -129,7 +129,7 @@ reset
 			ldd		var_cycle
 			addd	#1
 			std		var_cycle
-			cmpd	#$20
+			cmpd	#$30
 			blt		st
 
 			ldd		#0
