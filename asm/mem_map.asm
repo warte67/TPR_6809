@@ -2,6 +2,7 @@
 ;  * Allocated 64k Memory Mapped System Symbols *
 ;  **********************************************
 
+
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
 
@@ -52,9 +53,13 @@ CSR_SIZE        equ     $1810   ; (Byte) cursor size (0-15) 0:off
 CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
                                 ;      bits 0-5: button states
                                 ;      bits 6-7: number of clicks
-CSR_PAL_INDX    equ     $1812   ; (Byte) mouse color palette color index (0-15)
-CSR_PAL_DATA    equ     $1813   ; (Byte) mouse color palette color bits RRGGBBAA
-                                ;    a special note
+CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
+CSR_PAL_DATA    equ     $1813   ; (Byte) mouse cursor color palette data RRGGBBAA
+CSR_BMP_INDX    equ     $1814   ; (Byte) mouse cursor bitmap pixel offset
+CSR_BMP_DATA    equ     $1815   ; (Byte) mouse cursor bitmap pixel color
+
+GFX_END equ     $1815   ; end of the GFX Hardware Registers
+
 RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
 
 ;  Memory Bank Selects (16MB):

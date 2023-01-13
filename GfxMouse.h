@@ -33,6 +33,7 @@ public:
 
 private:
 
+	bool bIsDirty = true;
 	int mouse_x_screen = 0;
 	int mouse_y_screen = 0;
 	int mouse_x = 0;

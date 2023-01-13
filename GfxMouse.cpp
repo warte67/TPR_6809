@@ -43,6 +43,10 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
 			case CSR_PAL_DATA:	data = palette[m_palette_index].color;	break;
+
+			case CSR_BMP_INDX:	data = bmp_offset;						break;
+			case CSR_BMP_DATA:	
+				data = cursor_buffer[bmp_offset / 16][bmp_offset % 16];	break;
 		}
 
 		bus->debug_write(ofs, data);	// pre-write
@@ -65,7 +69,16 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_FLAGS:	return data;	break;		// read only
 			case CSR_PAL_INDX:	m_palette_index = data;		break;
 			case CSR_PAL_DATA: 
-				palette[m_palette_index].color = data;	break;
+				palette[m_palette_index].color = data;	bIsDirty = true;  
+				break;
+			
+			case CSR_BMP_INDX:	
+				bmp_offset = data;	
+				break;
+			case CSR_BMP_DATA:	
+				cursor_buffer[bmp_offset / 16][bmp_offset % 16] = data;
+				bIsDirty = true;
+				break;
 		}
 		bus->debug_write(ofs, data);
 	}
@@ -123,6 +136,20 @@ GfxMouse::~GfxMouse()
 void GfxMouse::OnInitialize()
 {
 	printf("GfxMouse::OnInitialize() \n");
+
+
+	int count = 0;
+	for (int t = 0; t < 256; t++)
+	{
+		bus->write(CSR_BMP_INDX, (Byte)t);
+		Byte data = bus->read(CSR_BMP_DATA);
+		printf("%d", data);
+		if (count++ > 14)
+		{
+			count = 0;
+			printf("\n");
+		}
+	}
 }
 
 void GfxMouse::OnQuit()
@@ -182,14 +209,23 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 			}
 			break;
 		}
+
+		//		CSR_FLAGS = 0x1811,        // (Byte) mouse button flags:
+		//			//      bits 0-5: button states
+		//			//      bits 6-7: number of clicks
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 		{
-			printf("DOWN:  which:%d  button:%d  state:%d  clicks:%d\n",
-				evnt->button.which,
-				evnt->button.button,
-				evnt->button.state,
-				evnt->button.clicks );
+			// update the button flags
+			button_flags = 0;
+			int bitmask = (1 << ((evnt->button.button % 7) - 1));
+			if (evnt->button.state == 0)
+				button_flags &= ~bitmask;
+			else
+			{
+				button_flags |= bitmask;
+				button_flags |= (evnt->button.clicks & 0x03) << 6;
+			}
 			break;
 		}
 		case SDL_MOUSEWHEEL:
@@ -263,7 +299,7 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 	// test mouse callback
 	// printf("GfxMouse::OnUpdate() --->  XPOS: %d  YPOS: %d\n", bus->read_word(CSR_XPOS), bus->read_word(CSR_YPOS));
 
-	if (s_size)
+	if (s_size && bIsDirty)
 	{
 		// update the mouse cursor colors
 		SDL_SetRenderTarget(gfx->Renderer(), mouse_texture);
@@ -283,6 +319,7 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 				SDL_RenderDrawPoint(gfx->Renderer(), h, v);
 			}
 		}
+		bIsDirty = false;
 	}
 }
 
@@ -292,23 +329,6 @@ void GfxMouse::OnDeactivate() {}
 
 void GfxMouse::OnRender()
 {
-	//// set up clipping
-	//if (gfx->Fullscreen())
-	//{
-	//	// fetch the actual current display resolution
-	//	int ww, wh;
-	//	SDL_GetWindowSize(gfx->Window(), &ww, &wh);
-	//	float fh = (float)wh;
-	//	float fw = fh * gfx->Aspect();
-	//	if (fw > ww)
-	//	{
-	//		fw = (float)ww;
-	//		fh = fw / gfx->Aspect();
-	//	}
-	//	SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
-	//	SDL_RenderSetClipRect(gfx->Renderer(), &dest);	// clip to screen
-	//}
-
 	// render the textures	
 	SDL_Rect dst = { mouse_x_screen - mouse_x_offset, mouse_y_screen - mouse_y_offset, s_size * 8, s_size * 8 };
 	//SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());

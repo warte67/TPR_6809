@@ -104,9 +104,13 @@ enum MEMMAP
      CSR_FLAGS = 0x1811,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1812,        // (Byte) mouse color palette color index (0-15)
-  CSR_PAL_DATA = 0x1813,        // (Byte) mouse color palette color bits RRGGBBAA
-                                //    a special note
+  CSR_PAL_INDX = 0x1812,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1813,        // (Byte) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1814,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1815,        // (Byte) mouse cursor bitmap pixel color
+
+       GFX_END = 0x1815,        // end of the GFX Hardware Registers
+
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 
 //  Memory Bank Selects (16MB):

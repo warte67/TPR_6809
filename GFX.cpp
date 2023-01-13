@@ -173,7 +173,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			}
 		}
 		// intercept for GfxMouse
-		if (ofs >= CSR_XPOS && ofs <= CSR_PAL_DATA)
+		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
 			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
 	}
 	return data;
@@ -275,8 +275,14 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "CSR_FLAGS", "(Byte) mouse button flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
 	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
-	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse color palette color index (0-15)" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse color palette color bits RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
+	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
+
+	memmap->push({ offset, "", "" }); offset -= 1;
+	memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;
+	memmap->push({ offset, "", "" }); offset += 0;
 
 	return offset - st_offset;
 }

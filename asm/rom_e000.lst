@@ -40,6 +40,7 @@
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
                       
+                      
                       ;  Zero-Page Kernal Variables:
 0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
                       
@@ -90,9 +91,13 @@
 1811                  CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse color palette color index (0-15)
-1813                  CSR_PAL_DATA    equ     $1813   ; (Byte) mouse color palette color bits RRGGBBAA
-                                                      ;    a special note
+1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
+1813                  CSR_PAL_DATA    equ     $1813   ; (Byte) mouse cursor color palette data RRGGBBAA
+1814                  CSR_BMP_INDX    equ     $1814   ; (Byte) mouse cursor bitmap pixel offset
+1815                  CSR_BMP_DATA    equ     $1815   ; (Byte) mouse cursor bitmap pixel color
+                      
+1815                  GFX_END equ     $1815   ; end of the GFX Hardware Registers
+                      
 2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
                       
                       ;  Memory Bank Selects (16MB):
@@ -221,21 +226,30 @@ E05E  B61800                                  lda             GFX_FLAGS       ; 
 E061  8808                                    eora    #$08            ; toggle it
 E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
-                                              ; COLOR CYCLE THE MOUSE CURSOR
-E066  8604                                    lda             #4
-E068  B71812                                  sta             CSR_PAL_INDX
-E06B  B60014                                  lda             var_csr
-E06E  4C                                      inca
-E06F  B70014                                  sta             var_csr
-E072  48                                      lsla
-E073  48                                      lsla
-E074  8A03                                    ora             #$03
-E076  B71813                                  sta             CSR_PAL_DATA
+                      ;                       ; COLOR CYCLE THE MOUSE CURSOR
+                      ;                       lda             #4
+                      ;                       sta             CSR_PAL_INDX
+                      ;                       lda             var_csr
+                      ;                       inca
+                      ;                       sta             var_csr
+                      ;                       lsla
+                      ;                       lsla
+                      ;                       ora             #$03
+                      ;                       sta             CSR_PAL_DATA
                       
                                               ; SIZE CYCLE THE CURSOR
                                               ; inc           CSR_SIZE
                       
-E079  20DA                                    bra             4b                              ; loop until done
+                      ;                       ; CYCLE THE CURSOR COLORS
+                      ;                       clra
+                      ;1
+                      ;                       sta             CSR_BMP_INDX
+                      ;                       inca
+                      ;                       inc             CSR_BMP_DATA
+                      ;                       cmpa    #0
+                      ;                       bne             1b
+                      
+E066  20ED                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
                       

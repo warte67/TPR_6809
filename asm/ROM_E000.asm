@@ -148,19 +148,28 @@ reset
 			eora	#$08		; toggle it
 			sta		GFX_FLAGS	; save the backbuffer
 
-			; COLOR CYCLE THE MOUSE CURSOR
-			lda		#4
-			sta		CSR_PAL_INDX
-			lda		var_csr
-			inca
-			sta		var_csr
-			lsla
-			lsla
-			ora		#$03
-			sta		CSR_PAL_DATA
+;			; COLOR CYCLE THE MOUSE CURSOR
+;			lda		#4
+;			sta		CSR_PAL_INDX
+;			lda		var_csr
+;			inca
+;			sta		var_csr
+;			lsla
+;			lsla
+;			ora		#$03
+;			sta		CSR_PAL_DATA
 
 			; SIZE CYCLE THE CURSOR
 			; inc		CSR_SIZE
+
+;			; CYCLE THE CURSOR COLORS
+;			clra
+;1
+;			sta		CSR_BMP_INDX
+;			inca
+;			inc		CSR_BMP_DATA
+;			cmpa	#0
+;			bne		1b
 
 			bra		4b				; loop until done
 	
