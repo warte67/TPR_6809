@@ -88,17 +88,18 @@
 180C                  CSR_XOFS        equ     $180c   ; (Byte) horizontal mouse cursor offset
 180D                  CSR_YOFS        equ     $180d   ; (Byte) vertical mouse cursor offset
 180E                  CSR_SIZE        equ     $180e   ; (Byte) cursor size (0-15) 0:off
-180F                  CSR_FLAGS       equ     $180f   ; (Byte) mouse button flags:
+180F                  CSR_SCROLL      equ     $180f   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1810                  CSR_FLAGS       equ     $1810   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1810                  CSR_PAL_INDX    equ     $1810   ; (Byte) mouse cursor color palette index (0-15)
-1811                  CSR_PAL_DATA    equ     $1811   ; (Byte) mouse cursor color palette data RRGGBBAA
-1812                  CSR_BMP_INDX    equ     $1812   ; (Byte) mouse cursor bitmap pixel offset
-1813                  CSR_BMP_DATA    equ     $1813   ; (Byte) mouse cursor bitmap pixel color
+1811                  CSR_PAL_INDX    equ     $1811   ; (Byte) mouse cursor color palette index (0-15)
+1812                  CSR_PAL_DATA    equ     $1812   ; (Byte) mouse cursor color palette data RRGGBBAA
+1813                  CSR_BMP_INDX    equ     $1813   ; (Byte) mouse cursor bitmap pixel offset
+1814                  CSR_BMP_DATA    equ     $1814   ; (Byte) mouse cursor bitmap pixel color
                       
-1813                  GFX_END equ     $1813   ; end of the GFX Hardware Registers
+1814                  GFX_END equ     $1814   ; end of the GFX Hardware Registers
                       
-2000                  RESERVED_HDW    equ     $2000   ; Reserved ($2000-$1FFB)
+1815                  RESERVED_HDW    equ     $1815   ; Reserved 2022 bytes ($1815 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -169,48 +170,48 @@ E024                  reset
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
                       
-E024  B61800                                  lda             GFX_FLAGS
-E027  8A10                                    ora             #$10            ; enable mouse cursor
-                                              ;anda           #$ef            ; disable mouse cursor
-E029  B71800                                  sta             GFX_FLAGS
+                      ;                       lda             GFX_FLAGS
+                      ;                       ora             #$10            ; enable mouse cursor
+                      ;                       ; anda  #$ef            ; disable mouse cursor
+                      ;                       sta             GFX_FLAGS
                       
                       ; ***********************
                       ; *  Pre-Fill and Cycle 
                       ; *  the Display Buffer
                       ; ***********************
                       
-E02C  7F0010                                  clr             var_ch                  ; character = 0
-E02F  7F0011                                  clr             var_at                  ; attribute = 0
-E032  7F0012                                  clr             var_count               ; count = 0
-E035  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-E038                  1
-E038  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-E03B  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-E03D  B60010                                  lda             var_ch                  ; load the current character
-E040  F60011                                  ldb             var_at                  ; load the current attribute
-E043  ED81                                    std             ,x++                    ; store both character and attribute
-E045  7C0010                                  inc             var_ch                  ; next character
-E048  7C0012                                  inc             var_count               ; increment count
-E04B  B60012                                  lda             var_count               ; load the count
-E04E  8111                                    cmpa    #17                             ; compare the count with this amount
-E050  2DE6                                    blt             1b                              ; loop if count lower than
-E052  7C0011                                  inc             var_at                  ; next attribute
-E055  7F0012                                  clr             var_count               ; clear the count
-E058  20DE                                    bra             1b                              ; resume the loop
-E05A                  2       
-E05A                  3
+E024  7F0010                                  clr             var_ch                  ; character = 0
+E027  7F0011                                  clr             var_at                  ; attribute = 0
+E02A  7F0012                                  clr             var_count               ; count = 0
+E02D  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+E030                  1
+E030  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+E033  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+E035  B60010                                  lda             var_ch                  ; load the current character
+E038  F60011                                  ldb             var_at                  ; load the current attribute
+E03B  ED81                                    std             ,x++                    ; store both character and attribute
+E03D  7C0010                                  inc             var_ch                  ; next character
+E040  7C0012                                  inc             var_count               ; increment count
+E043  B60012                                  lda             var_count               ; load the count
+E046  8111                                    cmpa    #17                             ; compare the count with this amount
+E048  2DE6                                    blt             1b                              ; loop if count lower than
+E04A  7C0011                                  inc             var_at                  ; next attribute
+E04D  7F0012                                  clr             var_count               ; clear the count
+E050  20DE                                    bra             1b                              ; resume the loop
+E052                  2       
+E052                  3
                                               ; INCREMENT THE SCREEN BUFFER
-E05A  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E05D                  4
-E05D  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E060  2CF8                                    bge             3b                              ; restart when past the end
-E062  6C80                                    inc             ,x+                             ; increment character
-E064  6C80                                    inc             ,x+                             ; increment the attribute
+E052  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E055                  4
+E055  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E058  2CF8                                    bge             3b                              ; restart when past the end
+E05A  6C80                                    inc             ,x+                             ; increment character
+E05C  6C80                                    inc             ,x+                             ; increment the attribute
                       
                                               ; TOGGLE THE BACKBUFFER
-E066  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E069  8808                                    eora    #$08            ; toggle it
-E06B  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E05E  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E061  8808                                    eora    #$08            ; toggle it
+E063  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                       ;                       ; COLOR CYCLE THE MOUSE CURSOR
                       ;                       lda             #4
@@ -240,7 +241,7 @@ E06B  B71800                                  sta             GFX_FLAGS       ; 
                       ;                       sta             CSR_XOFS
                       ;                       sta             CSR_YOFS
                       
-E06E  20ED                                    bra             4b                              ; loop until done
+E066  20ED                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
                       

@@ -38,6 +38,7 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_XOFS:		data = mouse_x_offset;					break;
 			case CSR_YOFS:		data = mouse_y_offset;					break;
 			case CSR_SIZE:		data = s_size;							break;
+			case CSR_SCROLL:	data = mouse_wheel;	mouse_wheel = 0;	break;
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
 			case CSR_PAL_DATA:	data = palette[m_palette_index].color;	break;
@@ -62,6 +63,7 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_XOFS:	mouse_x_offset = data;	break;
 			case CSR_YOFS:	mouse_y_offset = data;	break;
 			case CSR_SIZE:	s_size = data % 16;		break;
+			case CSR_SCROLL: mouse_wheel = data;	break;
 			case CSR_FLAGS:	return data;			break;		// read only
 			case CSR_PAL_INDX:	m_palette_index = data;		break;
 			case CSR_PAL_DATA: 
@@ -226,7 +228,8 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 		}
 		case SDL_MOUSEWHEEL:
 		{
-			printf("MOUSEWHEEL: %d\n", evnt->wheel.y);
+			// printf("MOUSEWHEEL: %d\n", evnt->wheel.y);
+			mouse_wheel = evnt->wheel.y;
 			break;
 		}
 	}

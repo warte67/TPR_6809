@@ -72,7 +72,7 @@ enum MEMMAP
                                 //      bit 7: vsync
                                 //      bit 6: backbuffer enable
                                 //      bit 5: debug enable
-                                //      bit 4: mouse cursor enable      
+                                //      bit 4: mouse cursor enable
                                 //      bit 3: swap backbuffers (on write)
                                 //      bit 0-2: graphics mode (0-7)
                                 //          0) NONE (just random background noise)
@@ -101,17 +101,18 @@ enum MEMMAP
       CSR_XOFS = 0x180c,        // (Byte) horizontal mouse cursor offset
       CSR_YOFS = 0x180d,        // (Byte) vertical mouse cursor offset
       CSR_SIZE = 0x180e,        // (Byte) cursor size (0-15) 0:off
-     CSR_FLAGS = 0x180f,        // (Byte) mouse button flags:
+    CSR_SCROLL = 0x180f,        // (Signed) MouseWheel Scroll: -1, 0, 1
+     CSR_FLAGS = 0x1810,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1810,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1811,        // (Byte) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1812,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1813,        // (Byte) mouse cursor bitmap pixel color
+  CSR_PAL_INDX = 0x1811,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1812,        // (Byte) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1813,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1814,        // (Byte) mouse cursor bitmap pixel color
 
-       GFX_END = 0x1813,        // end of the GFX Hardware Registers
+       GFX_END = 0x1814,        // end of the GFX Hardware Registers
 
-  RESERVED_HDW = 0x1814,        // Reserved 2023 bytes ($1814 - $1FFB)
+  RESERVED_HDW = 0x1815,        // Reserved 2022 bytes ($1815 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks

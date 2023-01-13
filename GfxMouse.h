@@ -38,6 +38,7 @@ private:
 	int mouse_y_screen = 0;
 	int mouse_x = 0;
 	int mouse_y = 0;
+	char mouse_wheel = 0;
 	Uint8 mouse_x_offset = 0;		// mouse cursor offset x
 	Uint8 mouse_y_offset = 0;		// mouse cursor offset y
 	static Byte s_size;

@@ -120,7 +120,7 @@ private:
 	int csr_x = 0;
 	int csr_y = 0;
 	int csr_at = CSR_AT::CSR_AT_NONE;
-	int mouse_wheel = 0;
+	char mouse_wheel = 0;
 	int topOffset = -25;
 	bool bSingleStep = false;
 	bool bIsStepPaused = true;
