@@ -12,16 +12,17 @@
 #include "GfxGlyph.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
+#include "GfxBmp16.h"
 #include "GFX.h"
 
 
 // default GFX_FLAGS:
 bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
 bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
-bool GFX::m_enable_debug		= true;		// true:enabled, false:disabled
+bool GFX::m_enable_debug		= false;		// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
-int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
+int  GFX::m_gmode_index			= 3;		// active graphics mode (0-7)
 
 // default GFX_AUX:
 bool GFX::m_fullscreen			= false;	// true:fullscreen, false:windowed
@@ -205,7 +206,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxNull());
 	m_gmodes.push_back(new GfxGlyph());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxTile());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap1();
+	m_gmodes.push_back(new GfxBmp16());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap2();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap3();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
@@ -395,7 +396,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 		// change active display (monitor)
 		SDL_Keymod km = SDL_GetModState();
 		int num_displays = SDL_GetNumVideoDisplays() - 1;
-		if (km & KMOD_ALT)// && km & KMOD_CTRL)
+		//if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
 			//// toggle backbuffer enable
 			//if (evnt->key.keysym.sym == SDLK_c)

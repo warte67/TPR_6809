@@ -23,8 +23,8 @@ public:
 	virtual void OnCreate() {}						// fires when the object is created/recreated
 	virtual void OnDestroy() {}						// fires when the object is destroyed/lost focus
 	virtual void OnUpdate(float fElapsedTime);		// fires each frame, for updates
-	virtual void OnActivate();
-	virtual void OnDeactivate();
+	virtual void OnActivate() {}
+	virtual void OnDeactivate() {}
 	virtual void OnRender() {}
 
 	GFX* gfx = nullptr;
@@ -38,8 +38,7 @@ class GfxNull : public GfxMode
 public:
 	GfxNull();
 	virtual void OnUpdate(float fElapsedTime) override;	// fires each frame, for updates
-	virtual void OnActivate() override;
-	virtual void OnDeactivate() override;
+
 private:
 };
 

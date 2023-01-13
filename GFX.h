@@ -159,14 +159,11 @@ public:
 			0) GfxNull:		NONE (just random background noise)
 			1) GfxGlyph:	Glyph Mode (512x320 or 64x48 text)
 			2) GfxTile:		Tile 16x16x16 mode
-			3) GfxBitmap1:	128x80 x 16-Color
-			4) GfxBitmap2:	128x160 x 4-Color
-			5) GfxBitmap3:	256x80 x 4-Color
-			6) GfxBitmap4:	256x160 x 2-Color
-			7) GfxBitmap5:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
-
-	TIMING_WIDTH = 0x1801,        // (Word) timing width
-	TIMING_HEIGHT = 0x1803,       // (Word) timing height
+			3) GfxBmp16:	128x80 x 16-Color
+			4) GfxBmp4:	    128x160 x 4-Color
+			5) GfxBmp4W:	256x80 x 4-Color
+			6) GfxBmp2:	    256x160 x 2-Color
+			7) GfxBmpExt:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
 
 	STATIC MODES:
 		+ DEBUG
