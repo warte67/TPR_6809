@@ -10,6 +10,7 @@
 #include "Device.h"
 #include "GfxMode.h"
 #include "GfxGlyph.h"
+#include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GFX.h"
 
@@ -17,7 +18,7 @@
 // default GFX_FLAGS:
 bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
 bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
-bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
+bool GFX::m_enable_debug		= true;		// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
 int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
@@ -209,6 +210,10 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
 
+	// initialize GfxDebug
+	if (gfx_debug == nullptr)
+		gfx_debug = new GfxDebug();
+
 	// initialize GfxSystem
 	if (gfx_mouse == nullptr)
 		gfx_mouse = new GfxMouse();
@@ -219,9 +224,14 @@ GFX::~GFX()
 	for (auto& a : m_gmodes)
 		delete a;
 
-	// Destroy GfxSystem
+	// Destroy gfx_Debug
+	if (gfx_debug)
+	{
+		delete gfx_debug;
+		gfx_debug = nullptr;
+	}	// Destroy GfxSystem
 	if (gfx_mouse)
-	{		
+	{
 		delete gfx_mouse;
 		gfx_mouse = nullptr;
 	}
@@ -327,6 +337,7 @@ void GFX::OnInitialize()
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnInitialize();
+	gfx_debug->OnInitialize();
 	gfx_mouse->OnInitialize();
 }
 
@@ -340,6 +351,7 @@ void GFX::OnQuit()
 	// OnQuit() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnQuit();
+	gfx_debug->OnQuit();
 	gfx_mouse->OnQuit();
 }
 
@@ -362,13 +374,6 @@ void GFX::OnEvent(SDL_Event *evnt)
 				//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
 			}
 		}
-		// toggle backbuffer enable
-		if (evnt->key.keysym.sym == SDLK_TAB)
-		{
-			Byte data = bus->read(GFX_FLAGS);
-			data ^= 0x40;
-			bus->write(GFX_FLAGS, data);
-		}
 
 		// toggle fullscreen/windowed
 		if (evnt->key.keysym.sym == SDLK_RETURN)
@@ -386,6 +391,20 @@ void GFX::OnEvent(SDL_Event *evnt)
 		int num_displays = SDL_GetNumVideoDisplays() - 1;
 		if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
+			// toggle backbuffer enable
+			if (evnt->key.keysym.sym == SDLK_c)
+			{
+				Byte data = bus->read(GFX_FLAGS);
+				data ^= 0x40;
+				bus->write(GFX_FLAGS, data);
+			}
+			// toggle debug enable
+			if (evnt->key.keysym.sym == SDLK_d)
+			{
+				Byte data = bus->read(GFX_FLAGS);
+				data ^= 0x20;
+				bus->write(GFX_FLAGS, data);
+			}
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
@@ -442,9 +461,10 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 	}
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
+	if (DebugEnabled())
+		gfx_debug->OnEvent(evnt);
 	if (MouseEnabled())
 		gfx_mouse->OnEvent(evnt);
-
 }
 
 void GFX::OnCreate() 
@@ -538,6 +558,7 @@ void GFX::OnCreate()
 	// OnCreate all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
 		m_gmodes[t]->OnCreate();
+	gfx_debug->OnCreate();
 	gfx_mouse->OnCreate();
 
 	// output debug info to console
@@ -566,6 +587,7 @@ void GFX::OnDestroy()
 	// destroy all of the gnodes
 	for (int t=0; t<8; t++)
 		m_gmodes[t]->OnDestroy();
+	gfx_debug->OnDestroy();
 	gfx_mouse->OnDestroy();
 
 	for (int t=0; t<2; t++)
@@ -609,6 +631,8 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
+	if (DebugEnabled())
+		gfx_debug->OnUpdate(fElapsedTime);
 	if (MouseEnabled())
 		gfx_mouse->OnUpdate(fElapsedTime);
 
@@ -661,6 +685,8 @@ void GFX::_onRender()
 
 	// render outputs
 	m_gmodes[m_gmode_index]->OnRender();
+	if (DebugEnabled())
+		gfx_debug->OnRender();
 	if (MouseEnabled())
 		gfx_mouse->OnRender();
 

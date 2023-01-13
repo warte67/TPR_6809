@@ -76,7 +76,7 @@ private:
 		};
 	};
 	std::vector<PALETTE> palette;
-	Uint8 m_palette_index;
+	Uint8 m_palette_index = 0;
 
 public:
     Uint8 red(Uint8 index) 

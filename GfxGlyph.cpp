@@ -47,7 +47,7 @@ void GfxGlyph::OnQuit()
 	if (_glyph_texture)
 	{
 		SDL_DestroyTexture(_glyph_texture);
-		_glyph_texture;
+		_glyph_texture = nullptr;
 	}
 }
 

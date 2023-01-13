@@ -167,6 +167,7 @@
     <ClCompile Include="C6809.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="GFX.cpp" />
+    <ClCompile Include="GfxDebug.cpp" />
     <ClCompile Include="GfxGlyph.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="Bus.h" />
     <ClInclude Include="C6809.h" />
     <ClInclude Include="font8x8_system.h" />
+    <ClInclude Include="GfxDebug.h" />
     <ClInclude Include="GfxGlyph.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />

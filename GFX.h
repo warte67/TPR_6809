@@ -14,6 +14,7 @@
 #include "Memory.h"
 
 class GfxMode;
+class GfxDebug;
 class GfxMouse;
 
 class GFX : public REG   // ToDo: Inherit from class Memory instead
@@ -54,6 +55,8 @@ public:
     int DisplayNum() { return m_display_num; }
     bool MouseEnabled() { return m_enable_mouse; }
     void MouseEnabled(bool en) { m_enable_mouse = en; }
+    bool DebugEnabled() { return m_enable_debug; }
+    void DebugEnabled(bool en) { m_enable_debug = en; }
 
 
 protected:
@@ -100,6 +103,7 @@ protected:
     Bus* bus = nullptr;
     Memory* memory = nullptr;
     GfxMouse* gfx_mouse = nullptr;
+    GfxDebug* gfx_debug = nullptr;
 
     // Palette Stuff
     union PALETTE {

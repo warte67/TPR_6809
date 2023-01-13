@@ -134,18 +134,18 @@ void GfxMouse::OnInitialize()
 	printf("GfxMouse::OnInitialize() \n");
 
 
-	int count = 0;
-	for (int t = 0; t < 256; t++)
-	{
-		bus->write(CSR_BMP_INDX, (Byte)t);
-		Byte data = bus->read(CSR_BMP_DATA);
-		printf("%d", data);
-		if (count++ > 14)
-		{
-			count = 0;
-			printf("\n");
-		}
-	}
+	//int count = 0;
+	//for (int t = 0; t < 256; t++)
+	//{
+	//	bus->write(CSR_BMP_INDX, (Byte)t);
+	//	Byte data = bus->read(CSR_BMP_DATA);
+	//	printf("%d", data);
+	//	if (count++ > 14)
+	//	{
+	//		count = 0;
+	//		printf("\n");
+	//	}
+	//}
 }
 
 void GfxMouse::OnQuit()

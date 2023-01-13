@@ -1,10 +1,12 @@
 // font8x8_system.h
+#pragma once
 #ifndef __FONT8X8_SYSTEM__
 #define __FONT8X8_SYSTEM__
-#include "Types.h"
+//#include "types.h"
 
 // Constant: font8x8_system
 // Contains an 8x8 font map for system default font
+
 Byte font8x8_system[][8] = {
     { 0x38, 0x64, 0xF2, 0xBA, 0x9E, 0x4C, 0x38, 0x00 },    // 00
     { 0xFE, 0x92, 0xB2, 0x92, 0xBA, 0x82, 0xFE, 0x00 },    // 01
