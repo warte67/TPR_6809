@@ -52,6 +52,8 @@ public:
     float Aspect() { return _aspect; }
     bool Fullscreen() { return m_fullscreen; }
     int DisplayNum() { return m_display_num; }
+    bool MouseEnabled() { return m_enable_mouse; }
+    void MouseEnabled(bool en) { m_enable_mouse = en; }
 
 
 protected:

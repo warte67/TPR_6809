@@ -18,7 +18,7 @@
 bool GFX::m_VSYNC				= false;	// true:VSYNC, false:not throttled
 bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;	// true:enabled, false:disabled
-bool GFX::m_enable_mouse		= false;	// true:enabled, false:disabled
+bool GFX::m_enable_mouse		= true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
 int  GFX::m_gmode_index			= 0;		// active graphics mode (0-7)
 
@@ -442,7 +442,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 	}
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
-	gfx_mouse->OnEvent(evnt);
+	if (MouseEnabled())
+		gfx_mouse->OnEvent(evnt);
 
 }
 
@@ -608,7 +609,8 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
-	gfx_mouse->OnUpdate(fElapsedTime);
+	if (MouseEnabled())
+		gfx_mouse->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -659,7 +661,8 @@ void GFX::_onRender()
 
 	// render outputs
 	m_gmodes[m_gmode_index]->OnRender();
-	gfx_mouse->OnRender();
+	if (MouseEnabled())
+		gfx_mouse->OnRender();
 
 	// finally present the GFX chain 
 	SDL_RenderPresent(_renderer);

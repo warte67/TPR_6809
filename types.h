@@ -9,7 +9,7 @@
 
 
 const bool OUTPUT_MEMORY_MAP = true;	// display the memory map for copy/paste
-const bool MEMORY_MAP_CPP = false;		// display memory map definition as C++ not ASM
+const bool MEMORY_MAP_CPP = true;		// display memory map definition as C++ not ASM
 
 
 

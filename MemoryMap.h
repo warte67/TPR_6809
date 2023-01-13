@@ -72,7 +72,7 @@ enum MEMMAP
                                 //      bit 7: vsync
                                 //      bit 6: backbuffer enable
                                 //      bit 5: debug enable
-                                //      bit 4: mouse cursor enable
+                                //      bit 4: mouse cursor enable      
                                 //      bit 3: swap backbuffers (on write)
                                 //      bit 0-2: graphics mode (0-7)
                                 //          0) NONE (just random background noise)
@@ -111,7 +111,7 @@ enum MEMMAP
 
        GFX_END = 0x1813,        // end of the GFX Hardware Registers
 
-  RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
+  RESERVED_HDW = 0x1814,        // Reserved 2023 bytes ($1814 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -138,6 +138,10 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
+
+
+
 
 
 #endif // __MEMORY_MAP__

@@ -295,6 +295,9 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 	// test mouse callback
 	// printf("GfxMouse::OnUpdate() --->  XPOS: %d  YPOS: %d\n", bus->read_word(CSR_XPOS), bus->read_word(CSR_YPOS));
 
+	//if (!gfx->MouseEnabled())
+	//	return;
+
 	if (s_size && bIsDirty)
 	{
 		// update the mouse cursor colors
@@ -340,8 +343,8 @@ void GfxMouse::OnRender()
 		if (dst.y < clip.y)	dst.y = clip.y;
 		if (dst.y > clip.y + clip.h) dst.y = clip.y + clip.h;
 	}
-	dst.x -= (mouse_x_offset + s_size*2);
-	dst.y -= (mouse_y_offset + s_size*2);
+	dst.x -= mouse_x_offset;
+	dst.y -= mouse_y_offset;
 
 	SDL_RenderCopy(gfx->Renderer(), mouse_texture, NULL, &dst);
 }

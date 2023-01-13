@@ -91,25 +91,15 @@ reset
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
 
+;			lda		GFX_FLAGS
+;			ora		#$10		; enable mouse cursor
+;			; anda	#$ef		; disable mouse cursor
+;			sta		GFX_FLAGS
 
 ; ***********************
 ; *  Pre-Fill and Cycle 
 ; *  the Display Buffer
 ; ***********************
-
-;	Byte ch = 0;
-;	Byte at = 0;
-;	Byte count = 0;
-;	for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
-;	{
-;		bus->write(ofs, ch++);
-;		bus->write(ofs + 1, at);
-;		if (count++ > 8)
-;		{
-;			at++;
-;			count = 0;
-;		}
-;	}
 
 			clr		var_ch			; character = 0
 			clr		var_at			; attribute = 0
@@ -129,11 +119,7 @@ reset
 			inc		var_at			; next attribute
 			clr		var_count		; clear the count
 			bra		1b				; resume the loop
-2
-	
-;	for (int t = VIDEO_START; t <= VIDEO_END; t++)
-;		bus->write(t, bus->read(t) + 1);
-
+2	
 3
 			; INCREMENT THE SCREEN BUFFER
 			ldx		#VIDEO_START	; start beginning of video buffer
@@ -172,9 +158,9 @@ reset
 ;			bne		1b
 
 			; TEST THE CURSOR OFFSETS
-			lda		#8
-			sta		CSR_XOFS
-			sta		CSR_YOFS
+;			lda		#8
+;			sta		CSR_XOFS
+;			sta		CSR_YOFS
 
 			bra		4b				; loop until done
 	

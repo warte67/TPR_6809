@@ -81,11 +81,12 @@ Bus::Bus()
     // System RAM starts at $2000. This should reserve memory unused by
     // the hardware register devices. There should be around 2k memory
     // available to be mapped by register devices.
+    int reserved = mem_offset;
     int gfx_size = 0x2000 - mem_offset;
     mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
 
     // close memory mapping
-    mem_offset += memmap->end(mem_offset);    
+    mem_offset += memmap->end(reserved);    // mem_offset);
     delete memmap;
 
     // map temporary

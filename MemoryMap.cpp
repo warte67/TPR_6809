@@ -72,7 +72,9 @@ Word MemoryMap::end(Word offset)
 
 
 	// Reserved for future Hardware Expansion
-	std::string _future_expansion = "Reserved ($" + Bus::hex(offset, 4) + "-$" + Bus::hex(_n, 4) + ")";
+	int bytes = _n - offset;
+	std::string _future_expansion = "Reserved " + std::to_string(bytes) + " bytes ";
+	_future_expansion += "($" + Bus::hex(offset, 4) + " - $" + Bus::hex(_n, 4) + ")";
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
 	offset = 0x2000 - 4;
 
