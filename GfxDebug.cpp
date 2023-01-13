@@ -135,7 +135,37 @@ void GfxDebug::OnDeactivate() { printf("GfxDebug::OnDeactivate()\n"); }
 void GfxDebug::OnRender() 
 { 
 	//printf("GfxDebug::OnRender()\n"); 
-
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
-	SDL_RenderCopy(gfx->Renderer(), debug_texture, NULL, NULL);
+	//SDL_RenderCopy(gfx->Renderer(), debug_texture, NULL, NULL);
+
+	if (gfx->Fullscreen())		// m_fullscreen
+	{
+		// fetch the actual current display resolution
+		int ww, wh;
+		SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+		float fh = (float)wh;
+		float fw = fh * gfx->Aspect();
+		if (fw > ww)
+		{
+			fw = (float)ww;
+			fh = fw / gfx->Aspect();
+		}
+		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+		//if (m_enable_backbuffer)
+		//	SDL_RenderCopy(_renderer, _texture[1 - m_current_backbuffer], NULL, &dest);
+		//else
+		//	SDL_RenderCopy(_renderer, _texture[m_current_backbuffer], NULL, &dest);
+		SDL_RenderCopy(gfx->Renderer(), debug_texture, NULL, &dest);
+	}
+	else
+	{
+		//if (m_enable_backbuffer)
+		//	SDL_RenderCopy(_renderer, _texture[1 - m_current_backbuffer], NULL, NULL);
+		//else
+		//	SDL_RenderCopy(_renderer, _texture[m_current_backbuffer], NULL, NULL);
+		SDL_RenderCopy(gfx->Renderer(), debug_texture, NULL, NULL);
+	}
+
+
+
 }
