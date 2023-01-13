@@ -187,6 +187,8 @@ void GfxDebug::OnUpdate(float fElapsedTime)
 
 		SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	}
+
+	//printf("CSR_FLAGS: $%02X\n", bus->read(CSR_FLAGS));
 }
 
 void GfxDebug::OnRender() 

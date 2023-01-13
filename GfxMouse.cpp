@@ -42,7 +42,6 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
 			case CSR_PAL_DATA:	data = palette[m_palette_index].color;	break;
-
 			case CSR_BMP_INDX:	data = bmp_offset;						break;
 			case CSR_BMP_DATA:	
 				data = cursor_buffer[bmp_offset / 16][bmp_offset % 16];	break;
@@ -62,16 +61,26 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			// case CSR_YPOS + 1:	mouse_x = something;	break;
 			case CSR_XOFS:	mouse_x_offset = data;	break;
 			case CSR_YOFS:	mouse_y_offset = data;	break;
-			case CSR_SIZE:	s_size = data % 16;		break;
+			case CSR_SIZE:	
+				s_size = data;	
+				if (s_size >= 0x20)		
+					s_size = 0x20;
+				bus->debug_write(CSR_SIZE, s_size); 
+				return s_size;
+				break;
 			case CSR_SCROLL: mouse_wheel = data;	break;
 			case CSR_FLAGS:	return data;			break;		// read only
-			case CSR_PAL_INDX:	m_palette_index = data;		break;
-			case CSR_PAL_DATA: 
-				palette[m_palette_index].color = data;	bIsDirty = true;  
+			case CSR_PAL_INDX:	
+				m_palette_index = data;		
+				bus->debug_write(CSR_PAL_DATA, palette[m_palette_index].color);
 				break;
-			
+			case CSR_PAL_DATA: 
+				palette[m_palette_index].color = data;	
+				bIsDirty = true;  
+				break;			
 			case CSR_BMP_INDX:	
 				bmp_offset = data;	
+				bus->debug_write(CSR_BMP_DATA, cursor_buffer[bmp_offset / 16][bmp_offset % 16]);
 				break;
 			case CSR_BMP_DATA:	
 				cursor_buffer[bmp_offset / 16][bmp_offset % 16] = data;
@@ -117,9 +126,8 @@ GfxMouse::GfxMouse()
 		for (int t = 0; t < 16; t++)
 		{
 			palette[t].color = ref[t].color;
-
-			//bus->write(GFX_PAL_INDX, t);
-			//bus->write(GFX_PAL_DATA, ref[t].color);
+			bus->debug_write(CSR_PAL_INDX, t);
+			bus->debug_write(CSR_PAL_DATA, ref[t].color);
 
 			// printf("ref: $%02X, R:%1d, G:%1d, B:%1d, A:%1d\n", ref[t].color, ref[t].r, ref[t].g, ref[t].b, ref[t].a);
 		}
@@ -135,6 +143,8 @@ void GfxMouse::OnInitialize()
 {
 	printf("GfxMouse::OnInitialize() \n");
 
+	// prepare mems
+	bus->debug_write(CSR_SIZE, s_size);
 
 	//int count = 0;
 	//for (int t = 0; t < 256; t++)
@@ -224,12 +234,14 @@ void GfxMouse::OnEvent(SDL_Event* evnt)
 				button_flags |= bitmask;
 				button_flags |= (evnt->button.clicks & 0x03) << 6;
 			}
+			bus->debug_write(CSR_FLAGS, button_flags);
 			break;
 		}
 		case SDL_MOUSEWHEEL:
 		{
 			// printf("MOUSEWHEEL: %d\n", evnt->wheel.y);
 			mouse_wheel = evnt->wheel.y;
+			bus->debug_write(CSR_SCROLL, mouse_wheel);
 			break;
 		}
 	}

@@ -24,9 +24,12 @@ public:
 	virtual void OnDeactivate() override;
 	virtual void OnRender() override;
 
+	void OutGlyph(int row, int col, Byte glyph, Byte red, Byte grn, Byte blu, bool bDropShadow);
+
 private:
 
 	SDL_Texture* _glyph_texture = nullptr;
+	std::vector<SDL_Texture*> glyph_textures;
 };
 
 #endif // __GFXGLYPH_H__

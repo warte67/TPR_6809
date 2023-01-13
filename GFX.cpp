@@ -166,6 +166,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			{ 
 				ptrGfx->debug_write(ofs, data); 
 				m_palette_index = data; 
+				bus->debug_write(GFX_PAL_DATA, ptrGfx->palette[m_palette_index].color);
 			}
 			if (ofs == GFX_PAL_DATA)
 			{
@@ -334,6 +335,10 @@ void GFX::OnInitialize()
 	}
 
 	OnCreate();
+
+	// pre-initialize memories
+	bus->debug_write_word(TIMING_WIDTH, _pix_width);
+	bus->debug_write_word(TIMING_HEIGHT, _pix_height);
 	
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < 8; t++)
