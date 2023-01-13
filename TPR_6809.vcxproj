@@ -168,6 +168,7 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="GFX.cpp" />
     <ClCompile Include="GfxBmp16.cpp" />
+    <ClCompile Include="GfxBmp4.cpp" />
     <ClCompile Include="GfxDebug.cpp" />
     <ClCompile Include="GfxGlyph.cpp" />
     <ClCompile Include="GfxMode.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="C6809.h" />
     <ClInclude Include="font8x8_system.h" />
     <ClInclude Include="GfxBmp16.h" />
+    <ClInclude Include="GfxBmp4.h" />
     <ClInclude Include="GfxDebug.h" />
     <ClInclude Include="GfxGlyph.h" />
     <ClInclude Include="GfxMode.h" />

@@ -13,6 +13,7 @@
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
+#include "GfxBmp4.h"
 #include "GFX.h"
 
 
@@ -22,7 +23,7 @@ bool GFX::m_enable_backbuffer	= false;	// true:enabled, false:disabled
 bool GFX::m_enable_debug		= false;		// true:enabled, false:disabled
 bool GFX::m_enable_mouse		= true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer	= 0;		// currently active backbuffer (0-1)
-int  GFX::m_gmode_index			= 3;		// active graphics mode (0-7)
+int  GFX::m_gmode_index			= 4;		// active graphics mode (0-7)
 
 // default GFX_AUX:
 bool GFX::m_fullscreen			= false;	// true:fullscreen, false:windowed
@@ -207,7 +208,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxGlyph());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxTile());
 	m_gmodes.push_back(new GfxBmp16());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap2();
+	m_gmodes.push_back(new GfxBmp4());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap3();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
