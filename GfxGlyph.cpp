@@ -26,6 +26,50 @@ GfxGlyph::GfxGlyph()
 void GfxGlyph::OnInitialize()
 {
 	 //printf("GfxGlyph::OnInitialize()\n");
+	 // 
+	// load the default palette
+	if (default_palette.size() == 0)
+	{
+		std::vector<GFX::PALETTE> ref = {
+			{ 0x03 },	// 00 00 00 11		0
+			{ 0x07 },	// 00 00 01 11		1
+			{ 0x13 },	// 00 01 00 11		2
+			{ 0x17 },	// 00 01 01 11		3
+			{ 0x83 },	// 01 00 00 11		4
+			{ 0x87 },	// 01 00 01 11		5
+			{ 0x53 },	// 01 01 00 11		6
+			{ 0xa7 },	// 10 10 10 11		7
+			{ 0x57 },	// 01 01 01 11		8
+			{ 0x0f },	// 00 00 11 11		9
+			{ 0x33 },	// 00 11 00 11		a
+			{ 0x3f },	// 00 11 11 11		b
+			{ 0xc3 },	// 11 00 00 11		c
+			{ 0xcf },	// 11 00 11 11		d
+			{ 0xf3 },	// 11 11 00 11		e
+			{ 0xff },	// 11 11 11 11		f
+		};
+		for (int t = 0; t < 16; t++)
+			default_palette.push_back(ref[t]);
+	}
+}
+
+void GfxGlyph::OnActivate()
+{
+	// load the palette from the defaults
+	for (int t = 0; t < 16; t++)
+	{
+		bus->write(GFX_PAL_INDX, t);
+		bus->write(GFX_PAL_DATA, default_palette[t].color);
+	}
+}
+void GfxGlyph::OnDeactivate()
+{
+	// store the palette from the defaults
+	for (int t = 0; t < 16; t++)
+	{
+		bus->write(GFX_PAL_INDX, t);
+		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+	}
 }
 
 void GfxGlyph::OnQuit()
@@ -155,16 +199,3 @@ void GfxGlyph::OnRender()
 	SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, NULL);
 }
 
-void GfxGlyph::OnActivate()
-{
-	//printf("GfxGlyph::OnActivate()\n");
-
-	// initially clear the screen
-	SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
-	SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0xFF);
-	SDL_RenderClear(gfx->Renderer());
-}
-void GfxGlyph::OnDeactivate()
-{
-	//printf("GfxGlyph::OnDectivate()\n");
-}

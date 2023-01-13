@@ -129,7 +129,7 @@ Bus::Bus()
     //// ****** TESTING ***************************
 
     m_cpu->reset();
-    bCpuEnabled = true;
+    //bCpuEnabled = true;
 }
 Bus::~Bus() 
 {
@@ -154,6 +154,8 @@ std::string Bus::hex(uint32_t n, uint8_t d)
 bool Bus::Err(const char* msg)
 {
     printf("\n\nERROR: %s\n\n", msg);
+
+    s_instance->bCpuEnabled = false;
     if (s_instance != nullptr)
     {
         GFX* gfx = s_instance->m_gfx;
@@ -185,7 +187,7 @@ void Bus::_OnInitialize()
 	for (auto &a : s_instance->_devices)
 		a->OnInitialize();
 
-    s_instance->bCpuEnabled = true;
+    //s_instance->bCpuEnabled = true;
 }
 void Bus::_OnEvent(SDL_Event* evnt) 
 {
@@ -198,18 +200,18 @@ void Bus::_OnEvent(SDL_Event* evnt)
 void Bus::_OnCreate() 
 {
     //printf("Bus::_OnCreate()\n");
-    s_instance->bCpuEnabled = false;
+    //s_instance->bCpuEnabled = false;
 
 	// call OnCreate for each device
 	for (auto &a : s_instance->_devices)
 		a->OnCreate();
 
-    s_instance->bCpuEnabled = true;
+    //s_instance->bCpuEnabled = true;
 }
 void Bus::_OnDestroy() 
 { 
     //printf("Bus::_OnDestroy()\n");
-    s_instance->bCpuEnabled = false;
+    //s_instance->bCpuEnabled = false;
 
 	// call OnDestroy for each device
 	for (auto &a : s_instance->_devices)
@@ -367,9 +369,11 @@ void Bus::run()
 
         while (!m_gfx->bIsDirty)
         {
+            bCpuEnabled = true;
             SDL_Event evnt;
             while (SDL_PollEvent(&evnt))
             {
+                bCpuEnabled = true;
                 switch (evnt.type)
                 {
                 case SDL_QUIT:
@@ -409,6 +413,7 @@ void Bus::run()
             if (!s_bIsRunning)
                 break;
         }
+        bCpuEnabled = false;
 
         // call OnDestroy() for all devices
         _OnDestroy();

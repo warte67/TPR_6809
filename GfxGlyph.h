@@ -30,6 +30,7 @@ private:
 
 	SDL_Texture* _glyph_texture = nullptr;
 	std::vector<SDL_Texture*> glyph_textures;
+	std::vector<GFX::PALETTE> default_palette;
 };
 
 #endif // __GFXGLYPH_H__

@@ -46,7 +46,7 @@ private:
 	SDL_Texture* mouse_texture = nullptr;
 
 	// cursor stuff
-	Word bmp_offset = 0;
+	Byte bmp_offset = 0;
 	Byte cursor_buffer[16][16] = {		// indexed 16-color bitmap data for the mouse cursor
 		{3,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{3,4,3,3,2,1,0,0,0,0,0,0,0,0,0,0},

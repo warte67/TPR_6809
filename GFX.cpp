@@ -146,13 +146,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->bIsDirty = true;
 				if (old_gmode_index != ptrGfx->m_gmode_index)
 				{
-					bus->bCpuEnabled = false;
+					//bus->bCpuEnabled = false;
 
 					ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
 					ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
 
 					//bus->bCpuEnabled = true;
-					ptrGfx->bIsDirty = true;
+					//ptrGfx->bIsDirty = true;
 				}
 				old_gmode_index = ptrGfx->m_gmode_index;
 

@@ -24,28 +24,43 @@ GfxBmp4W::~GfxBmp4W()
 {
 }
 
+void GfxBmp4W::OnInitialize()
+{
+	//printf("GfxGlyph::OnInitialize()\n");
+	// 
+   // load the default palette
+	if (default_palette.size() == 0)
+	{
+		std::vector<GFX::PALETTE> ref = {
+			{ 0x03 },	// 00 00 00 11		0
+			{ 0xC3 },	// 11 00 00 11		1
+			{ 0x0F },	// 00 00 11 11		2
+			{ 0xFF },	// 11 11 11 11		3
+		};
+		for (int t = 0; t < 4; t++)
+			default_palette.push_back(ref[t]);
+	}
+}
+
 void GfxBmp4W::OnActivate()
 {
-	//printf("GfxBmp4W::OnActivate()\n");
-
-	// initialize the default color palette
-	if (gfx->palette.size() == 0)
-	{
-		for (int t = 0; t < 16; t++)
-			gfx->palette.push_back({ 0x00 });
-	}
-	std::vector<GFX::PALETTE> ref = {
-		{ 0x03 },	// 00 00 00 11		0
-		{ 0xc3 },	// 11 00 00 11		1
-		{ 0x0f },	// 00 00 11 11		2
-		{ 0xff },	// 11 11 11 11		3
-	};
+	// load the palette from the defaults
 	for (int t = 0; t < 4; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, ref[t].color);
+		bus->write(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
+void GfxBmp4W::OnDeactivate()
+{
+	// store the palette from the defaults
+	for (int t = 0; t < 4; t++)
+	{
+		bus->write(GFX_PAL_INDX, t);
+		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+	}
+}
+
 
 void GfxBmp4W::OnCreate()
 {
