@@ -35,10 +35,8 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_XPOS + 1:	data = mouse_x & 0xff;					break;
 			case CSR_YPOS:		data = mouse_y >> 8;					break;
 			case CSR_YPOS + 1:	data = mouse_y & 0xff;					break;
-			case CSR_XOFS:		data = mouse_x_offset >> 8;				break;
-			case CSR_XOFS + 1:	data = mouse_x_offset & 0xff;			break;
-			case CSR_YOFS:		data = mouse_y_offset >> 8;				break;
-			case CSR_YOFS + 1:	data = mouse_y_offset & 0xff;			break;
+			case CSR_XOFS:		data = mouse_x_offset;					break;
+			case CSR_YOFS:		data = mouse_y_offset;					break;
 			case CSR_SIZE:		data = s_size;							break;
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
@@ -61,12 +59,10 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			// case CSR_XPOS + 1:	mouse_x = something;	break;
 			// case CSR_YPOS:		mouse_x = something;	break;
 			// case CSR_YPOS + 1:	mouse_x = something;	break;
-			case CSR_XOFS:
-				mouse_x_offset = (mouse_x_offset & 0x00ff) | (data << 8);	break;
-			case CSR_YOFS:
-				mouse_x_offset = (mouse_x_offset & 0xff00) | (data << 0);	break;
-			case CSR_SIZE:	s_size = data % 16;	break;
-			case CSR_FLAGS:	return data;	break;		// read only
+			case CSR_XOFS:	mouse_x_offset = data;	break;
+			case CSR_YOFS:	mouse_y_offset = data;	break;
+			case CSR_SIZE:	s_size = data % 16;		break;
+			case CSR_FLAGS:	return data;			break;		// read only
 			case CSR_PAL_INDX:	m_palette_index = data;		break;
 			case CSR_PAL_DATA: 
 				palette[m_palette_index].color = data;	bIsDirty = true;  
@@ -330,10 +326,22 @@ void GfxMouse::OnDeactivate() {}
 void GfxMouse::OnRender()
 {
 	// render the textures	
-	SDL_Rect dst = { mouse_x_screen - mouse_x_offset, mouse_y_screen - mouse_y_offset, s_size * 8, s_size * 8 };
 	//SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 
 	// render the texture
+	SDL_Rect dst = { mouse_x_screen, mouse_y_screen, s_size * 8, s_size * 8 };
+	if (gfx->Fullscreen())
+	{
+		SDL_Rect clip;
+		SDL_RenderGetClipRect(gfx->Renderer(), &clip);
+		if (dst.x < clip.x)	dst.x = clip.x;
+		if (dst.x > clip.x + clip.w) dst.x = clip.x + clip.w;
+		if (dst.y < clip.y)	dst.y = clip.y;
+		if (dst.y > clip.y + clip.h) dst.y = clip.y + clip.h;
+	}
+	dst.x -= (mouse_x_offset + s_size*2);
+	dst.y -= (mouse_y_offset + s_size*2);
+
 	SDL_RenderCopy(gfx->Renderer(), mouse_texture, NULL, &dst);
 }

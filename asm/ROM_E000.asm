@@ -171,6 +171,11 @@ reset
 ;			cmpa	#0
 ;			bne		1b
 
+			; TEST THE CURSOR OFFSETS
+			lda		#8
+			sta		CSR_XOFS
+			sta		CSR_YOFS
+
 			bra		4b				; loop until done
 	
 ; done		BRA 	done			; infinate loop

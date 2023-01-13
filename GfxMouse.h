@@ -38,8 +38,8 @@ private:
 	int mouse_y_screen = 0;
 	int mouse_x = 0;
 	int mouse_y = 0;
-	Sint16 mouse_x_offset = 0;		// mouse cursor offset x
-	Sint16 mouse_y_offset = 0;		// mouse cursor offset y
+	Uint8 mouse_x_offset = 0;		// mouse cursor offset x
+	Uint8 mouse_y_offset = 0;		// mouse cursor offset y
 	static Byte s_size;
 	Uint8 button_flags = 0;
 	SDL_Texture* mouse_texture = nullptr;

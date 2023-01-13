@@ -98,18 +98,18 @@ enum MEMMAP
 //  Mouse Cursor Hardware Registers:
       CSR_XPOS = 0x1808,        // (Word) horizontal mouse cursor coordinate
       CSR_YPOS = 0x180a,        // (Word) vertical mouse cursor coordinate
-      CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
-      CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
-      CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
-     CSR_FLAGS = 0x1811,        // (Byte) mouse button flags:
+      CSR_XOFS = 0x180c,        // (Byte) horizontal mouse cursor offset
+      CSR_YOFS = 0x180d,        // (Byte) vertical mouse cursor offset
+      CSR_SIZE = 0x180e,        // (Byte) cursor size (0-15) 0:off
+     CSR_FLAGS = 0x180f,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1812,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1813,        // (Byte) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1814,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1815,        // (Byte) mouse cursor bitmap pixel color
+  CSR_PAL_INDX = 0x1810,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1811,        // (Byte) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1812,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1813,        // (Byte) mouse cursor bitmap pixel color
 
-       GFX_END = 0x1815,        // end of the GFX Hardware Registers
+       GFX_END = 0x1813,        // end of the GFX Hardware Registers
 
   RESERVED_HDW = 0x2000,        // Reserved ($2000-$1FFB)
 

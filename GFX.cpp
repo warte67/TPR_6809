@@ -269,8 +269,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "CSR_XPOS", "(Word) horizontal mouse cursor coordinate" }); offset += 2;
 	memmap->push({ offset, "CSR_YPOS", "(Word) vertical mouse cursor coordinate" }); offset += 2;
-	memmap->push({ offset, "CSR_XOFS", "(Word) horizontal mouse cursor offset" }); offset += 2;
-	memmap->push({ offset, "CSR_YOFS", "(Word) vertical mouse cursor offset" }); offset += 2;
+	memmap->push({ offset, "CSR_XOFS", "(Byte) horizontal mouse cursor offset" }); offset += 1;
+	memmap->push({ offset, "CSR_YOFS", "(Byte) vertical mouse cursor offset" }); offset += 1;
 	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
 	memmap->push({ offset, "CSR_FLAGS", "(Byte) mouse button flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
