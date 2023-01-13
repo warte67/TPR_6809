@@ -1463,7 +1463,7 @@ std::string C6809::disasm(Word addr, Word& next)
 {
 	std::string ret = "";
 	Byte InstTab = 14;
-	Byte PostTab = 18;
+	Byte PostTab = 19;
 
 	auto hex = [](uint32_t n, uint8_t d)
 	{
