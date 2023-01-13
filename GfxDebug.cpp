@@ -10,8 +10,7 @@
 #include "GfxMode.h"
 #include "GfxDebug.h"
 
-//#include "font8x8_system.h"
-extern Byte font8x8_system[256][8];
+#include "font8x8_system.h"
 
 GfxDebug::GfxDebug()
 {

@@ -15,10 +15,12 @@ const bool MEMORY_MAP_CPP = true;		// display memory map definition as C++ not A
 const bool ENABLE_DEBUG = false;
 const bool DEBUG_SINGLE_STEP = ENABLE_DEBUG;	// false;
 
+const int  DEFAULT_GRAPHICS_MODE = 1;
 const bool ENABLE_VSYNC = false;
 const bool ENABLE_BACKBUFFER = false;
 const bool DEFAULT_FULLSCREEN = true;
 const int  DEFAULT_MONITOR = 1;
+
 
 
 

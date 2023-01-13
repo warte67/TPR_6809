@@ -35,7 +35,7 @@ var_at			fcb		$00
 var_count		fcb		$00
 var_csr			fcb		$ff
 var_cycle		fdb		$0000
-var_mode		fdb		$0000
+var_mode		fcb		$01
 
 			INCLUDE "mem_map.asm"
 
@@ -142,10 +142,16 @@ reset
 			sta		GFX_FLAGS
 			lda		var_mode
 			anda	#$07
+			tsta
+			bne		5f
+			lda		#1
+5
 			sta		var_mode
-
 st
-
+			; TOGGLE THE BACKBUFFER
+			lda		GFX_FLAGS	; load current backbuffer
+			eora	#$08		; toggle it
+			sta		GFX_FLAGS	; save the backbuffer
 
 			; INCREMENT THE SCREEN BUFFER
 			ldx		#VIDEO_START	; start beginning of video buffer
@@ -155,10 +161,6 @@ st
 			inc		,x+				; increment character
 			inc		,x+				; increment the attribute
 
-			; TOGGLE THE BACKBUFFER
-			lda		GFX_FLAGS	; load current backbuffer
-			eora	#$08		; toggle it
-			sta		GFX_FLAGS	; save the backbuffer
 
 ;			; COLOR CYCLE THE MOUSE CURSOR
 ;			lda		#4

@@ -39,7 +39,7 @@
     <ClCompile Include="GfxMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GfxGlyph.cpp">
+    <ClCompile Include="GfxGlyph64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GfxMouse.cpp">
@@ -58,6 +58,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GfxBmp2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxGlyph32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,7 +89,7 @@
     <ClInclude Include="GfxMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GfxGlyph.h">
+    <ClInclude Include="GfxGlyph64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="font8x8_system.h">
@@ -108,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GfxBmp2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxGlyph32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

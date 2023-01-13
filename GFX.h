@@ -20,7 +20,8 @@ class GfxMouse;
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
-    friend class GfxGlyph;
+    friend class GfxGlyph64;
+    friend class GfxGlyph32;
     friend class GfxBmp16;
     friend class GfxBmp4;
     friend class GfxBmp4W;

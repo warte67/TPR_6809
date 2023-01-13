@@ -1,29 +1,32 @@
-// * GfxGlyph.cpp ***************************************
+// * GfxGlyph64.cpp ***************************************
 // *
 // *  64x40 Text Glyph Mode 
 // ************************************
 
 #include "types.h"
-#include "font8x8_system.h"
 #include "C6809.h"
 #include "Bus.h"
 #include "GFX.h"
 #include "GfxMode.h"
-#include "GfxGlyph.h"
+#include "GfxGlyph64.h"
 
-GfxGlyph::GfxGlyph()
+//#include "font8x8_system.h"
+extern Byte font8x8_system[256][8];
+
+
+GfxGlyph64::GfxGlyph64()
 {
-	//printf("GfxGlyph::GfxGlyph()\n");
+	//printf("GfxGlyph64::GfxGlyph64()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 	if (gfx == nullptr)
 	{
-		Bus::Err("ERROR: GfxGlyph::GfxGlyph() -- gfx == nullptr");
+		Bus::Err("ERROR: GfxGlyph64::GfxGlyph64() -- gfx == nullptr");
 	}
 }
 
-void GfxGlyph::OnInitialize()
+void GfxGlyph64::OnInitialize()
 {
 	 //printf("GfxGlyph::OnInitialize()\n");
 	 // 
@@ -53,7 +56,7 @@ void GfxGlyph::OnInitialize()
 	}
 }
 
-void GfxGlyph::OnActivate()
+void GfxGlyph64::OnActivate()
 {
 	// load the palette from the defaults
 	for (int t = 0; t < 16; t++)
@@ -62,7 +65,7 @@ void GfxGlyph::OnActivate()
 		bus->write(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
-void GfxGlyph::OnDeactivate()
+void GfxGlyph64::OnDeactivate()
 {
 	// store the palette from the defaults
 	for (int t = 0; t < 16; t++)
@@ -72,12 +75,12 @@ void GfxGlyph::OnDeactivate()
 	}
 }
 
-void GfxGlyph::OnQuit()
+void GfxGlyph64::OnQuit()
 {
 	//printf("GfxGlyph::OnQuit()\n");
 }
 
-void GfxGlyph::OnCreate()
+void GfxGlyph64::OnCreate()
 {
 	//printf("GfxGlyph::OnCreate()\n");
 	// 
@@ -118,7 +121,7 @@ void GfxGlyph::OnCreate()
 		SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
 	}
 }
-void GfxGlyph::OnDestroy()
+void GfxGlyph64::OnDestroy()
 {
 	//printf("GfxGlyph::OnDestroy()\n");
 	
@@ -136,7 +139,7 @@ void GfxGlyph::OnDestroy()
 }
 
 
-void GfxGlyph::OnUpdate(float fElapsedTime)
+void GfxGlyph64::OnUpdate(float fElapsedTime)
 {
 	// printf("GfxGlyph::OnUpdate()\n");
 
@@ -178,7 +181,7 @@ void GfxGlyph::OnUpdate(float fElapsedTime)
 	}
 }
 
-void GfxGlyph::OutGlyph(int row, int col, Byte glyph, Byte red=255, Byte grn=255, Byte blu=255, bool bDropShadow = false)
+void GfxGlyph64::OutGlyph(int row, int col, Byte glyph, Byte red=255, Byte grn=255, Byte blu=255, bool bDropShadow = false)
 {
 	SDL_Rect dst = { row * 8, col * 8, 8, 8 };
 	SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
@@ -192,7 +195,7 @@ void GfxGlyph::OutGlyph(int row, int col, Byte glyph, Byte red=255, Byte grn=255
 	SDL_RenderCopy(gfx->Renderer(), glyph_textures[glyph], NULL, &dst);
 }
 
-void GfxGlyph::OnRender()
+void GfxGlyph64::OnRender()
 {
 	// SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());

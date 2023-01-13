@@ -172,7 +172,8 @@
     <ClCompile Include="GfxBmp4.cpp" />
     <ClCompile Include="GfxBmp4W.cpp" />
     <ClCompile Include="GfxDebug.cpp" />
-    <ClCompile Include="GfxGlyph.cpp" />
+    <ClCompile Include="GfxGlyph32.cpp" />
+    <ClCompile Include="GfxGlyph64.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
     <ClCompile Include="main.cpp" />
@@ -188,7 +189,8 @@
     <ClInclude Include="GfxBmp4.h" />
     <ClInclude Include="GfxBmp4W.h" />
     <ClInclude Include="GfxDebug.h" />
-    <ClInclude Include="GfxGlyph.h" />
+    <ClInclude Include="GfxGlyph32.h" />
+    <ClInclude Include="GfxGlyph64.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />
     <ClInclude Include="Memory.h" />

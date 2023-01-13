@@ -9,7 +9,8 @@
 #include "Memory.h"
 #include "Device.h"
 #include "GfxMode.h"
-#include "GfxGlyph.h"
+#include "GfxGlyph32.h"
+#include "GfxGlyph64.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
@@ -26,16 +27,12 @@ bool GFX::m_enable_debug		= ENABLE_DEBUG;
 // default GFX_AUX:
 bool GFX::m_fullscreen			= DEFAULT_FULLSCREEN;
 int  GFX::m_display_num			= DEFAULT_MONITOR;
+int  GFX::m_gmode_index			= DEFAULT_GRAPHICS_MODE;
 
 
 // these don't need to be static anymore
 bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
-int  GFX::m_gmode_index = 4;		// active graphics mode (0-7)
-
-
-
-
 
 // Palette Index
 Uint8 GFX::m_palette_index = 0;
@@ -139,7 +136,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->m_current_backbuffer = 0;
 
 				ptrGfx->m_gmode_index			= (data & 0x07);
-				//
 
 				// only go "dirty" on VSYNC change
 				if (old_VSYNC != ptrGfx->m_VSYNC)
@@ -209,21 +205,15 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	bus = Bus::getInstance();
 	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
-	//// pre-build the graphics modes
-	//for (int t = 0; t < 8; t++)
-	//{
-	//	GfxMode* mode = new GfxMode();
-	//	m_gmodes.push_back(mode);
-	//}
-	//// replace the for loop above with:
+	// pre-build the graphics modes
 	m_gmodes.push_back(new GfxNull());
-	m_gmodes.push_back(new GfxGlyph());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxTile());
+	m_gmodes.push_back(new GfxGlyph32());
+	m_gmodes.push_back(new GfxGlyph64());
+	m_gmodes.push_back(new GfxMode());	// GfxTile
 	m_gmodes.push_back(new GfxBmp16());
 	m_gmodes.push_back(new GfxBmp4());
 	m_gmodes.push_back(new GfxBmp4W());
 	m_gmodes.push_back(new GfxBmp2());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
@@ -355,7 +345,7 @@ void GFX::OnInitialize()
 	bus->debug_write_word(TIMING_HEIGHT, _pix_height);
 	
 	// OnInitialize() all of the graphics mode layers
-	for (int t = 0; t < 8; t++)
+	for (int t = 0; t < m_gmodes.size(); t++)
 		m_gmodes[t]->OnInitialize();
 	gfx_debug->OnInitialize();
 	gfx_mouse->OnInitialize();
@@ -369,7 +359,7 @@ void GFX::OnQuit()
 	palette.clear();
 	
 	// OnQuit() all of the graphics mode layers
-	for (int t = 0; t < 8; t++)
+	for (int t = 0; t < m_gmodes.size(); t++)
 		m_gmodes[t]->OnQuit();
 	gfx_debug->OnQuit();
 	gfx_mouse->OnQuit();
@@ -576,7 +566,7 @@ void GFX::OnCreate()
 	//bus->cpu_pause = false;
 
 	// OnCreate all of the graphics mode layers
-	for (int t = 0; t < 8; t++)
+	for (int t = 0; t < m_gmodes.size(); t++)
 		m_gmodes[t]->OnCreate();
 	gfx_debug->OnCreate();
 	gfx_mouse->OnCreate();
@@ -605,7 +595,7 @@ void GFX::OnDestroy()
 	//bus->cpu_pause = true;
 
 	// destroy all of the gnodes
-	for (int t=0; t<8; t++)
+	for (int t=0; t< m_gmodes.size(); t++)
 		m_gmodes[t]->OnDestroy();
 	gfx_debug->OnDestroy();
 	gfx_mouse->OnDestroy();

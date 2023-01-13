@@ -16,9 +16,9 @@
 
 #include "types.h"
 #include "Bus.h"
-#include "GFX.h"
-#include "GfxMode.h"
-#include "GfxGlyph.h"
+//#include "GFX.h"
+//#include "GfxMode.h"
+//#include "GfxGlyph64.h"
 
 int main(int argc, char* argv[])
 {

@@ -1,18 +1,18 @@
-// * GfxGlyph.h ***************************************
+// * GfxGlyph64.h ***************************************
 // *
 // *  64x40 Text Glyph Mode 
 // ************************************
 
 
 #pragma once
-#ifndef __GFXGLYPH_H__
-#define __GFXGLYPH_H__
+#ifndef __GFXGLYPH64_H__
+#define __GFXGLYPH64_H__
 
-class GfxGlyph : public GfxMode
+class GfxGlyph64 : public GfxMode
 {
 public:
-	GfxGlyph();
-	virtual ~GfxGlyph() {}
+	GfxGlyph64();
+	virtual ~GfxGlyph64() {}
 
 	virtual void OnInitialize() override;				// runs once after all devices are created
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
@@ -33,4 +33,4 @@ private:
 	std::vector<GFX::PALETTE> default_palette;
 };
 
-#endif // __GFXGLYPH_H__
+#endif // __GFXGLYPH64_H__
