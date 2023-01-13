@@ -15,6 +15,7 @@
 #include "GfxBmp16.h"
 #include "GfxBmp4.h"
 #include "GfxBmp4W.h"
+#include "GfxBmp2.h"
 #include "GFX.h"
 
 
@@ -211,7 +212,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxBmp16());
 	m_gmodes.push_back(new GfxBmp4());
 	m_gmodes.push_back(new GfxBmp4W());
-	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap4();
+	m_gmodes.push_back(new GfxBmp2());
 	m_gmodes.push_back(new GfxMode());	// m_gmode.push_back(new GfxGfxBitmap5();
 
 	// initialize GfxDebug
