@@ -17,7 +17,7 @@ const bool DEBUG_SINGLE_STEP = ENABLE_DEBUG;	// false;
 
 const bool ENABLE_VSYNC = false;
 const bool ENABLE_BACKBUFFER = false;
-const bool DEFAULT_FULLSCREEN = false;
+const bool DEFAULT_FULLSCREEN = true;
 const int  DEFAULT_MONITOR = 1;
 
 
