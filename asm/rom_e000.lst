@@ -208,7 +208,7 @@ E052                  3
 E052  FC0014                                  ldd             var_cycle
 E055  C30001                                  addd    #1
 E058  FD0014                                  std             var_cycle
-E05B  10830025                                cmpd    #$25
+E05B  10830010                                cmpd    #$10
 E05F  2D1F                                    blt             st
                       
 E061  CC0000                                  ldd             #0
