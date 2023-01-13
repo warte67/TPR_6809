@@ -1,30 +1,30 @@
-// * GfxBmp4.cpp ***************************************
+// * GfxBmp4W.h ***************************************
 // *
-// *  128x160 x 4-Color BMP Graphics Mode 
+// *  256x80 x 4-Color BMP Graphics Mode 
 // ************************************
-
 #include "types.h"
 #include "bus.h"
 #include "GFX.h"
-#include "GfxBmp4.h"
+#include "GfxBmp4W.h"
+
 
 // statics:
-const int GfxBmp4::pixel_width = 128;
-const int GfxBmp4::pixel_height = 160;
+const int GfxBmp4W::pixel_width = 256;
+const int GfxBmp4W::pixel_height = 80;
 
 // constructor
-GfxBmp4::GfxBmp4() : GfxMode()
+GfxBmp4W::GfxBmp4W() : GfxMode()
 {
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
 
 // destructor
-GfxBmp4::~GfxBmp4()
+GfxBmp4W::~GfxBmp4W()
 {
 }
 
-void GfxBmp4::OnCreate()
+void GfxBmp4W::OnCreate()
 {
 	if (bitmap_texture == nullptr)
 	{
@@ -35,7 +35,7 @@ void GfxBmp4::OnCreate()
 	}
 }
 
-void GfxBmp4::OnDestroy()
+void GfxBmp4W::OnDestroy()
 {
 	if (bitmap_texture)
 	{
@@ -44,7 +44,7 @@ void GfxBmp4::OnDestroy()
 	}
 }
 
-void GfxBmp4::OnUpdate(float fElapsedTime)
+void GfxBmp4W::OnUpdate(float fElapsedTime)
 {
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
@@ -82,7 +82,7 @@ void GfxBmp4::OnUpdate(float fElapsedTime)
 	}
 }
 
-void GfxBmp4::OnRender()
+void GfxBmp4W::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	if (gfx->Fullscreen())
@@ -102,3 +102,4 @@ void GfxBmp4::OnRender()
 	else
 		SDL_RenderCopy(gfx->Renderer(), bitmap_texture, NULL, NULL);
 }
+
