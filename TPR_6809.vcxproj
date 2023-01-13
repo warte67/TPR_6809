@@ -176,6 +176,7 @@
     <ClCompile Include="GfxGlyph64.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
+    <ClCompile Include="GfxTile.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="GfxGlyph64.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />
+    <ClInclude Include="GfxTile.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />

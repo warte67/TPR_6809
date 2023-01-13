@@ -22,6 +22,7 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class Bus;
     friend class GfxGlyph64;
     friend class GfxGlyph32;
+    friend class GfxTile;
     friend class GfxBmp16;
     friend class GfxBmp4;
     friend class GfxBmp4W;
@@ -161,18 +162,30 @@ public:
 		bit 6: vsync
 		bit 3-5: display monitor (0-7)
 		bit 0-2: graphics mode (0-7)
+
+
 			0) GfxNull:		NONE (just random background noise)
-			1) GfxGlyph:	Glyph Mode (512x320 or 64x48 text)
-			2) GfxTile:		Tile 16x16x16 mode
-			3) GfxBmp16:	128x80 x 16-Color
-			4) GfxBmp4:	    128x160 x 4-Color
-			5) GfxBmp4W:	256x80 x 4-Color
-			6) GfxBmp2:	    256x160 x 2-Color
-			7) GfxBmpExt:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
+			1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)
+            2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)
+            3) GfxTile:		Tile 16x16x16 mode
+			4) GfxBmp16:	128x80 x 16-Color
+			5) GfxBmp4:	    128x160 x 4-Color
+			6) GfxBmp4W:	256x80 x 4-Color
+			7) GfxBmp2:	    256x160 x 2-Color
+
+            What if GfxBmp2 (256x160 Mode 7) had a special 64-color (RRGGBBXX) or 256-color (RRGGBBII)
+                    that uses an external 40k (256x160 = 40960) buffer?
+                - What to do with the stock 5120 (5KB) byte video buffer memory?
+                - What to do with the remaining 16KB of an external 64KB RAM chip?
+                - Is it likely implementation on a PICO would be a pain-in-the-arse? (probably so)
+			    - GfxBmpExt:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
+                - Maybe leave this mode as an option for for later, but for now, DON'T DO IT!
+
+
 
 	STATIC MODES:
 		+ DEBUG
-		+ SPRITES
+		+ SPRITES (What about priority display layers?)
 		+ SYSTEM (Mouse Cursor)
 
 Revision ///////////////////

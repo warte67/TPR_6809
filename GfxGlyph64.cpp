@@ -176,7 +176,13 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 			alf = gfx->alf(fg);
 			int row = x / 8;
 			int col = y / 8;
+
 			OutGlyph(row, col, glyph, red, grn, blu, false);
+
+			//if (fg==0)
+			//	OutGlyph(row, col, glyph, red, grn, blu, false);
+			//else
+			//	OutGlyph(row, col, glyph, red, grn, blu, true);
 		}
 	}
 }

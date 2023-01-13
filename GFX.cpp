@@ -11,6 +11,7 @@
 #include "GfxMode.h"
 #include "GfxGlyph32.h"
 #include "GfxGlyph64.h"
+#include "GfxTile.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
@@ -209,7 +210,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxNull());
 	m_gmodes.push_back(new GfxGlyph32());
 	m_gmodes.push_back(new GfxGlyph64());
-	m_gmodes.push_back(new GfxMode());	// GfxTile
+	m_gmodes.push_back(new GfxTile());	// GfxMode
 	m_gmodes.push_back(new GfxBmp16());
 	m_gmodes.push_back(new GfxBmp4());
 	m_gmodes.push_back(new GfxBmp4W());

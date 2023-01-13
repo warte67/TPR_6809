@@ -165,7 +165,7 @@ void GfxDebug::OnUpdate(float fElapsedTime)
 	{
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), debug_texture);
-		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0xCC);
+		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0x88);
 		SDL_RenderClear(gfx->Renderer());
 
 		MouseStuff();
