@@ -188,7 +188,7 @@ public:
 		+ SPRITES (What about priority display layers?)
 		+ SYSTEM (Mouse Cursor)
 
-Revision ///////////////////
+Revision Notes ///////////////////
 
     GFX_FLAGS: (hardware)
         bits:
@@ -211,16 +211,52 @@ Revision ///////////////////
 
 
     Color Palette Entry:
-
         +-+-+-+-+-+-+-+-+
         |R|R|G|G|B|B|A|A|   64-Color Palette with ALPHA BLENDING
         +-+-+-+-+-+-+-+-+
-
 
     "256-Color" Palette Entry:
         +-+-+-+-+-+-+-+-+
         |R|R|G|G|B|B|I|I|    Uses 2 Intensity Bits instead of Alpha
         +-+-+-+-+-+-+-+-+
+
+
+//// OBSERVATION Notes ///////////////////
+
+        64-colors (RRGGBBAA) = yuck 
+            pros:
+                - only uses 6 pins on the PICO hardware
+                - fewer bits required to store color data
+                 - color data fits nicely witin a single byte
+            cons:
+                - no equivalent native SDL Pixel Format (SLOWER - software rendering ONLY)
+                - very ugly and restricted color palette               
+
+        4096 color (RRRRGGGGBBBBAAAA) = acceptable (12-pins on the PICO)
+            pros:
+                - FASTER - direct hardware mapping to native SDL Pixel Format (SDL_PIXELFORMAT_RGBA4444)
+                - Color Palette is comprehensive
+            cons: 
+                - color data requires two bytes per palette entry
+                - uses 12 pins on the PICO (in addition to VSYNC, HSYNC, and PIXELCLOCK)
+
+
+    
+        The 4-Color modes are very ugly with non-square pixels. It would be best to restrict
+            display resolutions to be fixed at a single aspect ratio (using 16/10).
+
+                Replace with:
+
+                    0) GfxNull:		NONE (just random background noise)
+                    1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)   1280 bytes each (4 layers)
+                    2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)   5120 bytes each (1 layer)
+                    3) GfxTile16:   Tile 16x16 x 256 colors in 256x160 screen bitmap   
+                    4) GfxBmp16:	128x80 x 16-Color (5120)
+                    5) GfxBmp2:	    256x160 x 2-Color (5120)
+
+                    6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+                    7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
+
 
 
 ************************************************/
