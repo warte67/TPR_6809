@@ -43,25 +43,27 @@ TIMING_WIDTH    equ     $1802   ; (Word) timing width
 TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
 GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits r4g4b4a4
+GFX_EXT_ADDR    equ     $1809   ; (Word) 20K extended graphics addresses $0000-$4fff
+GFX_EXT_DATA    equ     $180b   ; (Byte) 20K extended graphics RAM data
 
 ;  Mouse Cursor Hardware Registers:
-CSR_XPOS        equ     $1809   ; (Word) horizontal mouse cursor coordinate
-CSR_YPOS        equ     $180b   ; (Word) vertical mouse cursor coordinate
-CSR_XOFS        equ     $180d   ; (Byte) horizontal mouse cursor offset
-CSR_YOFS        equ     $180e   ; (Byte) vertical mouse cursor offset
-CSR_SIZE        equ     $180f   ; (Byte) cursor size (0-15) 0:off
-CSR_SCROLL      equ     $1810   ; (Signed) MouseWheel Scroll: -1, 0, 1
-CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
+CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate
+CSR_YPOS        equ     $180e   ; (Word) vertical mouse cursor coordinate
+CSR_XOFS        equ     $1810   ; (Byte) horizontal mouse cursor offset
+CSR_YOFS        equ     $1811   ; (Byte) vertical mouse cursor offset
+CSR_SIZE        equ     $1812   ; (Byte) cursor size (0-15) 0:off
+CSR_SCROLL      equ     $1813   ; (Signed) MouseWheel Scroll: -1, 0, 1
+CSR_FLAGS       equ     $1814   ; (Byte) mouse button flags:
                                 ;      bits 0-5: button states
                                 ;      bits 6-7: number of clicks
-CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
-CSR_PAL_DATA    equ     $1813   ; (Word) mouse cursor color palette data RRGGBBAA
-CSR_BMP_INDX    equ     $1815   ; (Byte) mouse cursor bitmap pixel offset
-CSR_BMP_DATA    equ     $1816   ; (Byte) mouse cursor bitmap pixel color
+CSR_PAL_INDX    equ     $1815   ; (Byte) mouse cursor color palette index (0-15)
+CSR_PAL_DATA    equ     $1816   ; (Word) mouse cursor color palette data RRGGBBAA
+CSR_BMP_INDX    equ     $1818   ; (Byte) mouse cursor bitmap pixel offset
+CSR_BMP_DATA    equ     $1819   ; (Byte) mouse cursor bitmap pixel color
 
-GFX_END equ     $1816   ; end of the GFX Hardware Registers
+GFX_END equ     $1819   ; end of the GFX Hardware Registers
 
-RESERVED_HDW    equ     $1817   ; Reserved 2020 bytes ($1817 - $1FFB)
+RESERVED_HDW    equ     $181a   ; Reserved 2017 bytes ($181A - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

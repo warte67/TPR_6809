@@ -83,25 +83,27 @@
 1804                  TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
 1807                  GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits r4g4b4a4
+1809                  GFX_EXT_ADDR    equ     $1809   ; (Word) 20K extended graphics addresses $0000-$4fff
+180B                  GFX_EXT_DATA    equ     $180b   ; (Byte) 20K extended graphics RAM data
                       
                       ;  Mouse Cursor Hardware Registers:
-1809                  CSR_XPOS        equ     $1809   ; (Word) horizontal mouse cursor coordinate
-180B                  CSR_YPOS        equ     $180b   ; (Word) vertical mouse cursor coordinate
-180D                  CSR_XOFS        equ     $180d   ; (Byte) horizontal mouse cursor offset
-180E                  CSR_YOFS        equ     $180e   ; (Byte) vertical mouse cursor offset
-180F                  CSR_SIZE        equ     $180f   ; (Byte) cursor size (0-15) 0:off
-1810                  CSR_SCROLL      equ     $1810   ; (Signed) MouseWheel Scroll: -1, 0, 1
-1811                  CSR_FLAGS       equ     $1811   ; (Byte) mouse button flags:
+180C                  CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate
+180E                  CSR_YPOS        equ     $180e   ; (Word) vertical mouse cursor coordinate
+1810                  CSR_XOFS        equ     $1810   ; (Byte) horizontal mouse cursor offset
+1811                  CSR_YOFS        equ     $1811   ; (Byte) vertical mouse cursor offset
+1812                  CSR_SIZE        equ     $1812   ; (Byte) cursor size (0-15) 0:off
+1813                  CSR_SCROLL      equ     $1813   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1814                  CSR_FLAGS       equ     $1814   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
-1813                  CSR_PAL_DATA    equ     $1813   ; (Word) mouse cursor color palette data RRGGBBAA
-1815                  CSR_BMP_INDX    equ     $1815   ; (Byte) mouse cursor bitmap pixel offset
-1816                  CSR_BMP_DATA    equ     $1816   ; (Byte) mouse cursor bitmap pixel color
+1815                  CSR_PAL_INDX    equ     $1815   ; (Byte) mouse cursor color palette index (0-15)
+1816                  CSR_PAL_DATA    equ     $1816   ; (Word) mouse cursor color palette data RRGGBBAA
+1818                  CSR_BMP_INDX    equ     $1818   ; (Byte) mouse cursor bitmap pixel offset
+1819                  CSR_BMP_DATA    equ     $1819   ; (Byte) mouse cursor bitmap pixel color
                       
-1816                  GFX_END equ     $1816   ; end of the GFX Hardware Registers
+1819                  GFX_END equ     $1819   ; end of the GFX Hardware Registers
                       
-1817                  RESERVED_HDW    equ     $1817   ; Reserved 2020 bytes ($1817 - $1FFB)
+181A                  RESERVED_HDW    equ     $181a   ; Reserved 2017 bytes ($181A - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -207,10 +209,10 @@ E052                  3
                                                       ; COLOR CYCLE THE CURSOR
                       
 E052  8604                                            lda             #4
-E054  B71812                                          sta             CSR_PAL_INDX    ; index the 4th color entry
-E057  FC1813                                          ldd             CSR_PAL_DATA
+E054  B71815                                          sta             CSR_PAL_INDX    ; index the 4th color entry
+E057  FC1816                                          ldd             CSR_PAL_DATA
 E05A  C30010                                          addd    #$10                            ; increment the color
-E05D  FD1813                                          std             CSR_PAL_DATA
+E05D  FD1816                                          std             CSR_PAL_DATA
                       
                       
                       

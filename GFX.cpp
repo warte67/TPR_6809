@@ -15,8 +15,6 @@
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
-//#include "GfxBmp4.h"
-//#include "GfxBmp4W.h"
 #include "GfxBmp2.h"
 #include "GfxRaw.h"
 #include "GfxHires.h"
@@ -197,6 +195,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		// intercept for GfxMouse
 		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
 			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
+
+		// intercept for banked GfxMode registers
+		// ...
+
 	}
 	return data;
 }
@@ -290,6 +292,9 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
 	memmap->push({ offset, "GFX_PAL_DATA", "(Word) gfx palette color bits r4g4b4a4" }); offset += 2;
 
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses $0000-$4fff" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
+
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "CSR_XPOS", "(Word) horizontal mouse cursor coordinate" }); offset += 2;
@@ -305,6 +310,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "CSR_PAL_DATA", "(Word) mouse cursor color palette data RRGGBBAA" }); offset += 2;
 	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
 	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
+
 
 	memmap->push({ offset, "", "" }); offset -= 1;
 	memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;

@@ -25,8 +25,6 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxGlyph32;
     friend class GfxTile;
     friend class GfxBmp16;
-    friend class GfxBmp4;
-    friend class GfxBmp4W;
     friend class GfxBmp2;
     friend class GfxRaw;
     friend class GfxHires;
