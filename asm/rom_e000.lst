@@ -97,11 +97,11 @@
 1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
 1813                  CSR_PAL_DATA    equ     $1813   ; (Word) mouse cursor color palette data RRGGBBAA
 1815                  CSR_BMP_INDX    equ     $1815   ; (Byte) mouse cursor bitmap pixel offset
-1816                  CSR_BMP_DATA    equ     $1816   ; (Word) mouse cursor bitmap pixel color
+1816                  CSR_BMP_DATA    equ     $1816   ; (Byte) mouse cursor bitmap pixel color
                       
-1817                  GFX_END equ     $1817   ; end of the GFX Hardware Registers
+1816                  GFX_END equ     $1816   ; end of the GFX Hardware Registers
                       
-1818                  RESERVED_HDW    equ     $1818   ; Reserved 2019 bytes ($1818 - $1FFB)
+1817                  RESERVED_HDW    equ     $1817   ; Reserved 2020 bytes ($1817 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -202,74 +202,66 @@ E04D  7F0012                                  clr             var_count         
 E050  20DE                                    bra             1b                              ; resume the loop
 E052                  2       
 E052                  3
+                                              ; BETWEEN FRAMES
+                                                                      
+                                                      ; COLOR CYCLE THE CURSOR
+                      
+E052  8604                                            lda             #4
+E054  B71812                                          sta             CSR_PAL_INDX    ; index the 4th color entry
+E057  FC1813                                          ldd             CSR_PAL_DATA
+E05A  C30010                                          addd    #$10                            ; increment the color
+E05D  FD1813                                          std             CSR_PAL_DATA
+                      
+                      
+                      
+                      ;                                                                                       inc             CSR_SIZE
+                      ;                                                                                       lda             CSR_SIZE
+                      ;                                                                                       cmpa    #$20
+                      ;                                                                                       bne             skip
+                      ;                                                                                       clr             CSR_SIZE
+                      ;                                                       skip
                       
                       
                                               ; CYCLE COUNT 
-E052  FC0014                                  ldd             var_cycle
-E055  C30001                                  addd    #1
-E058  FD0014                                  std             var_cycle
-E05B  10830030                                cmpd    #$30
-E05F  2D24                                    blt             st
+E060  FC0014                                  ldd             var_cycle
+E063  C30001                                  addd    #1
+E066  FD0014                                  std             var_cycle
+E069  10830030                                cmpd    #$30
+E06D  2D24                                    blt             st
                       
-E061  CC0000                                  ldd             #0
-E064  FD0014                                  std             var_cycle
-E067  7F0014                                  clr             var_cycle
-E06A  B61800                                  lda             GFX_FLAGS
-E06D  84F8                                    anda    #$f8
-E06F  BA0016                                  ora             var_mode
-E072  7C0016                                  inc             var_mode
-E075  B71800                                  sta             GFX_FLAGS
-E078  B60016                                  lda             var_mode
-E07B  8407                                    anda    #$07
-E07D  4D                                      tsta
-E07E  2602                                    bne             5f
-E080  8601                                    lda             #1
-E082                  5
-E082  B70016                                  sta             var_mode
-E085                  st
+E06F  CC0000                                  ldd             #0
+E072  FD0014                                  std             var_cycle
+E075  7F0014                                  clr             var_cycle
+E078  B61800                                  lda             GFX_FLAGS
+E07B  84F8                                    anda    #$f8
+E07D  BA0016                                  ora             var_mode
+E080  7C0016                                  inc             var_mode
+E083  B71800                                  sta             GFX_FLAGS
+E086  B60016                                  lda             var_mode
+E089  8407                                    anda    #$07
+E08B  4D                                      tsta
+E08C  2602                                    bne             5f
+E08E  8601                                    lda             #1
+E090                  5
+E090  B70016                                  sta             var_mode
+                      
+                      
+                      
+E093                  st
                                               ; TOGGLE THE BACKBUFFER
-E085  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E088  8808                                    eora    #$08            ; toggle it
-E08A  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E093  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E096  8808                                    eora    #$08            ; toggle it
+E098  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; INCREMENT THE SCREEN BUFFER
-E08D  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E090                  4
-E090  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E093  2CBD                                    bge             3b                              ; restart when past the end
-E095  6C80                                    inc             ,x+                             ; increment character
-E097  6C80                                    inc             ,x+                             ; increment the attribute
+E09B  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E09E                  4
+E09E  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E0A1  2CAF                                    bge             3b                              ; restart when past the end
+E0A3  6C80                                    inc             ,x+                             ; increment character
+E0A5  6C80                                    inc             ,x+                             ; increment the attribute
                       
-                      
-                      ;                       ; COLOR CYCLE THE MOUSE CURSOR
-                      ;                       lda             #4
-                      ;                       sta             CSR_PAL_INDX
-                      ;                       lda             var_csr
-                      ;                       inca
-                      ;                       sta             var_csr
-                      ;                       lsla
-                      ;                       lsla
-                      ;                       ora             #$03
-                      ;                       sta             CSR_PAL_DATA
-                      
-                                              ; SIZE CYCLE THE CURSOR
-                                              ; inc           CSR_SIZE
-                      
-                      ;                       ; CYCLE THE CURSOR COLORS
-                      ;                       clra
-                      ;1
-                      ;                       sta             CSR_BMP_INDX
-                      ;                       inca
-                      ;                       inc             CSR_BMP_DATA
-                      ;                       cmpa    #0
-                      ;                       bne             1b
-                      
-                                              ; TEST THE CURSOR OFFSETS
-                      ;                       lda             #8
-                      ;                       sta             CSR_XOFS
-                      ;                       sta             CSR_YOFS
-                      
-E099  20F5                                    bra             4b                              ; loop until done
+E0A7  20F5                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
                       

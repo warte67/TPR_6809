@@ -106,7 +106,7 @@ enum MEMMAP
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
   CSR_PAL_INDX = 0x1812,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1813,        // (Word) mouse cursor color palette data RRGGBBAA
+  CSR_PAL_DATA = 0x1813,        // (Word) mouse cursor color palette data RGBA4444
   CSR_BMP_INDX = 0x1815,        // (Byte) mouse cursor bitmap pixel offset
   CSR_BMP_DATA = 0x1816,        // (Byte) mouse cursor bitmap pixel color
 

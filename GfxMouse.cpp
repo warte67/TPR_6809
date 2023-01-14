@@ -116,7 +116,6 @@ GfxMouse::GfxMouse()
 		//	default_palette.push_back({ 0x00 });
 
 		std::vector<GFX::PALETTE> ref = {
-
 			{ 0x0000 },		// 0000 0000.0000 0000	0
 			{ 0x0005 },		// 0000 0000.0000 0101	1
 			{ 0x000C },		// 0000 0000.0000 1010	2
@@ -133,7 +132,6 @@ GfxMouse::GfxMouse()
 			{ 0xF0FF },		// 1111 0000.1111 1111	d
 			{ 0xFF0F },		// 1111 1111.0000 1111	e
 			{ 0xFFFF },		// 1111 1111.1111 1111	f
-
 		};
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);

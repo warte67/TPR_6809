@@ -123,6 +123,24 @@ reset
 			bra		1b				; resume the loop
 2	
 3
+			; BETWEEN FRAMES
+						
+				; COLOR CYCLE THE CURSOR
+
+				lda		#4
+				sta		CSR_PAL_INDX	; index the 4th color entry
+				ldd		CSR_PAL_DATA
+				addd	#$10				; increment the color
+				std		CSR_PAL_DATA
+
+
+
+;											inc		CSR_SIZE
+;											lda		CSR_SIZE
+;											cmpa	#$20
+;											bne		skip
+;											clr		CSR_SIZE
+;							skip
 
 
 			; CYCLE COUNT 
@@ -147,6 +165,9 @@ reset
 			lda		#1
 5
 			sta		var_mode
+
+
+
 st
 			; TOGGLE THE BACKBUFFER
 			lda		GFX_FLAGS	; load current backbuffer
@@ -160,35 +181,6 @@ st
 			bge		3b				; restart when past the end
 			inc		,x+				; increment character
 			inc		,x+				; increment the attribute
-
-
-;			; COLOR CYCLE THE MOUSE CURSOR
-;			lda		#4
-;			sta		CSR_PAL_INDX
-;			lda		var_csr
-;			inca
-;			sta		var_csr
-;			lsla
-;			lsla
-;			ora		#$03
-;			sta		CSR_PAL_DATA
-
-			; SIZE CYCLE THE CURSOR
-			; inc		CSR_SIZE
-
-;			; CYCLE THE CURSOR COLORS
-;			clra
-;1
-;			sta		CSR_BMP_INDX
-;			inca
-;			inc		CSR_BMP_DATA
-;			cmpa	#0
-;			bne		1b
-
-			; TEST THE CURSOR OFFSETS
-;			lda		#8
-;			sta		CSR_XOFS
-;			sta		CSR_YOFS
 
 			bra		4b				; loop until done
 	
