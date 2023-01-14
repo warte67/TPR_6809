@@ -15,9 +15,11 @@
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
-#include "GfxBmp4.h"
-#include "GfxBmp4W.h"
+//#include "GfxBmp4.h"
+//#include "GfxBmp4W.h"
 #include "GfxBmp2.h"
+#include "GfxRaw.h"
+#include "GfxHires.h"
 #include "GFX.h"
 
 
@@ -217,11 +219,11 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_gmodes.push_back(new GfxNull());
 	m_gmodes.push_back(new GfxGlyph32());
 	m_gmodes.push_back(new GfxGlyph64());
-	m_gmodes.push_back(new GfxTile());	// GfxMode
+	m_gmodes.push_back(new GfxTile());			// GfxMode
 	m_gmodes.push_back(new GfxBmp16());
-	m_gmodes.push_back(new GfxBmp4());
-	m_gmodes.push_back(new GfxBmp4W());
 	m_gmodes.push_back(new GfxBmp2());
+	m_gmodes.push_back(new GfxRaw());			//GfxBmp4());
+	m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)

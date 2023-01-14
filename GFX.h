@@ -1,4 +1,4 @@
-// * GFX.h ***************************************
+// * Gfx.h ***************************************
 // *
 // *   Acts to emulate a Raspberry PI Pico
 // *		running an R4G4B4 VGA resistor ladder DAC
@@ -28,6 +28,8 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxBmp4;
     friend class GfxBmp4W;
     friend class GfxBmp2;
+    friend class GfxRaw;
+    friend class GfxHires;
 
 public:
     GFX();
@@ -166,9 +168,9 @@ public:
             2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)
             3) GfxTile:		Tile 16x16x16 mode
 			4) GfxBmp16:	128x80 x 16-Color
-			5) GfxBmp4:	    128x160 x 4-Color
-			6) GfxBmp4W:	256x80 x 4-Color
-			7) GfxBmp2:	    256x160 x 2-Color
+			5) GfxBmp2:	    256x160 x 2-Color
+            6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+            7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
 
             What if GfxBmp2 (256x160 Mode 7) had a special 64-color (RRGGBBXX) or 256-color (RRGGBBII)
                     that uses an external 40k (256x160 = 40960) buffer?
@@ -250,7 +252,6 @@ Revision Notes ///////////////////
                     3) GfxTile16:   Tile 16x16 x 256 colors in 256x160 screen bitmap   
                     4) GfxBmp16:	128x80 x 16-Color (5120)
                     5) GfxBmp2:	    256x160 x 2-Color (5120)
-
                     6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
                     7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
 
