@@ -106,13 +106,13 @@ enum MEMMAP
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
   CSR_PAL_INDX = 0x1812,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1813,        // (Byte) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1814,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1815,        // (Byte) mouse cursor bitmap pixel color
+  CSR_PAL_DATA = 0x1813,        // (Word) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1815,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1816,        // (Byte) mouse cursor bitmap pixel color
 
-       GFX_END = 0x1815,        // end of the GFX Hardware Registers
+       GFX_END = 0x1816,        // end of the GFX Hardware Registers
 
-  RESERVED_HDW = 0x1816,        // Reserved 2021 bytes ($1816 - $1FFB)
+  RESERVED_HDW = 0x1817,        // Reserved 2020 bytes ($1817 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks

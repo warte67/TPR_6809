@@ -41,10 +41,14 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_SCROLL:	data = mouse_wheel;	mouse_wheel = 0;	break;
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
-			case CSR_PAL_DATA:	data = palette[m_palette_index].color;	break;
+
+			case CSR_PAL_DATA:		data = default_palette[m_palette_index].color >> 8;		break;
+			case CSR_PAL_DATA+1:	data = default_palette[m_palette_index].color & 0xFF;	break;
+
 			case CSR_BMP_INDX:	data = bmp_offset;						break;
-			case CSR_BMP_DATA:	
-				data = cursor_buffer[bmp_offset / 16][bmp_offset % 16];	break;
+			case CSR_BMP_DATA:
+				data = cursor_buffer[bmp_offset / 16][bmp_offset % 16];	
+				break;
 		}
 
 		bus->debug_write(ofs, data);	// pre-write
@@ -72,17 +76,21 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_FLAGS:	return data;			break;		// read only
 			case CSR_PAL_INDX:	
 				m_palette_index = data;		
-				bus->debug_write(CSR_PAL_DATA, palette[m_palette_index].color);
+				bus->debug_write_word(CSR_PAL_DATA, default_palette[m_palette_index].color);
 				break;
-			case CSR_PAL_DATA: 
-				palette[m_palette_index].color = data;	
-				bIsDirty = true;  
-				break;			
-			case CSR_BMP_INDX:	
+			case CSR_PAL_DATA:
+				default_palette[m_palette_index].color = (default_palette[m_palette_index].color & 0x00FF) | (data << 8);
+				bIsDirty = true;
+				break;
+			case CSR_PAL_DATA+1:
+				default_palette[m_palette_index].color = (default_palette[m_palette_index].color & 0xFF00) | (data & 0xFF);
+				bIsDirty = true;
+				break;
+			case CSR_BMP_INDX:
 				bmp_offset = data;	
-				bus->debug_write(CSR_BMP_DATA, cursor_buffer[bmp_offset / 16][bmp_offset % 16]);
+				bus->debug_write_word(CSR_BMP_DATA, cursor_buffer[bmp_offset / 16][bmp_offset % 16]);
 				break;
-			case CSR_BMP_DATA:	
+			case CSR_BMP_DATA:
 				cursor_buffer[bmp_offset / 16][bmp_offset % 16] = data;
 				bIsDirty = true;
 				break;
@@ -96,41 +104,39 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 GfxMouse::GfxMouse()
 {
+	printf("GfxMouse::GfxMouse()\n");
+
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 
-	if (palette.size() == 0)
+	// Initialaize the palette
+	if (default_palette.size() == 0)
 	{
-		for (int t = 0; t < 16; t++)
-			palette.push_back({ 0x00 });
+		//for (int t = 0; t < 16; t++)
+		//	default_palette.push_back({ 0x00 });
 
-		std::vector<PALETTE> ref = {
-			{ 0x00 },		// 00 00.00 00	0
-			{ 0x01 },		// 00 00.00 01	1
-			{ 0x02 },		// 00 00.00 10	2
-			{ 0x03 },		// 00 00.00 11	3
-			{ 0xff },		// 11 11.11 11	4
-			{ 0xab },		// 10 10.10 11	5
-			{ 0x57 },		// 01 01.01 11	6
-			{ 0x0b },		// 00 00.10 11	7
-			{ 0x23 },		// 00 10.00 11	8
-			{ 0x83 },		// 10 00.00 11	9
-			{ 0x0f },		// 00 00.11 11	a
-			{ 0x33 },		// 00 11.00 11	b
-			{ 0x3f },		// 00 11.11 11	c
-			{ 0xcf },		// 11 00.11 11	d
-			{ 0xf3 },		// 11 11.00 11	e
-			{ 0xff },		// 11 11.11 11	f
+		std::vector<GFX::PALETTE> ref = {
+
+			{ 0x0000 },		// 0000 0000.0000 0000	0
+			{ 0x0005 },		// 0000 0000.0000 0101	1
+			{ 0x000C },		// 0000 0000.0000 1010	2
+			{ 0x000F },		// 0000 0000.0000 1111	3
+			{ 0xFFFF },		// 1111 1111.1111 1111	4
+			{ 0xCCCF },		// 1010 1010.1010 1111	5
+			{ 0x555F },		// 0101 0101.0101 1111	6
+			{ 0x00CF },		// 0000 0000.1010 1111	7
+			{ 0x0C0F },		// 0000 1010.0000 1111	8
+			{ 0xC0CF },		// 1010 0000.0000 1111	9
+			{ 0x00FF },		// 0000 0000.1111 1111	a
+			{ 0x0F0F },		// 0000 1111.0000 1111	b
+			{ 0x0FFF },		// 0000 1111.1111 1111	c
+			{ 0xF0FF },		// 1111 0000.1111 1111	d
+			{ 0xFF0F },		// 1111 1111.0000 1111	e
+			{ 0xFFFF },		// 1111 1111.1111 1111	f
+
 		};
-
 		for (int t = 0; t < 16; t++)
-		{
-			palette[t].color = ref[t].color;
-			bus->debug_write(CSR_PAL_INDX, t);
-			bus->debug_write(CSR_PAL_DATA, ref[t].color);
-
-			// printf("ref: $%02X, R:%1d, G:%1d, B:%1d, A:%1d\n", ref[t].color, ref[t].r, ref[t].g, ref[t].b, ref[t].a);
-		}
+			default_palette.push_back(ref[t]);
 	}
 }
 
@@ -145,20 +151,28 @@ void GfxMouse::OnInitialize()
 
 	// prepare mems
 	bus->debug_write(CSR_SIZE, s_size);
+}
 
-	//int count = 0;
-	//for (int t = 0; t < 256; t++)
+void GfxMouse::OnActivate() 
+{
+	//// load the palette from the defaults
+	//for (int t = 0; t < 16; t++)
 	//{
-	//	bus->write(CSR_BMP_INDX, (Byte)t);
-	//	Byte data = bus->read(CSR_BMP_DATA);
-	//	printf("%d", data);
-	//	if (count++ > 14)
-	//	{
-	//		count = 0;
-	//		printf("\n");
-	//	}
+	//	bus->write(GFX_PAL_INDX, t);
+	//	bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	//}
 }
+
+void GfxMouse::OnDeactivate() 
+{
+	//// store the palette from the defaults
+	//for (int t = 0; t < 16; t++)
+	//{
+	//	bus->write(GFX_PAL_INDX, t);
+	//	bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
+	//}
+}
+
 
 void GfxMouse::OnQuit()
 {
@@ -263,10 +277,10 @@ void GfxMouse::OnCreate()
 			for (int v = 0; v < 16; v++)
 			{
 				Byte i = cursor_buffer[v][h] & 0x0f;
-				Byte r = red(i);
-				Byte g = grn(i);
-				Byte b = blu(i);
-				Byte a = alf(i);
+				Byte r = _red(i);
+				Byte g = _grn(i);
+				Byte b = _blu(i);
+				Byte a = _alf(i);
 				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, a);
 				SDL_RenderDrawPoint(gfx->Renderer(), h, v);
 			}
@@ -324,10 +338,10 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 			for (int v = 0; v < 16; v++)
 			{
 				Byte i = cursor_buffer[v][h] & 0x0f;
-				Byte r = red(i);
-				Byte g = grn(i);
-				Byte b = blu(i);
-				Byte a = alf(i);
+				Byte r = _red(i);
+				Byte g = _grn(i);
+				Byte b = _blu(i);
+				Byte a = _alf(i);
 				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, a);
 				SDL_RenderDrawPoint(gfx->Renderer(), h, v);
 			}
@@ -335,9 +349,6 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 		bIsDirty = false;
 	}
 }
-
-void GfxMouse::OnActivate() {}
-void GfxMouse::OnDeactivate() {}
 
 
 void GfxMouse::OnRender()

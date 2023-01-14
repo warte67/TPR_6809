@@ -35,7 +35,7 @@ void GfxBmp2::OnInitialize()
 		{ 0x000F },	// 0000 0000 0000 1111		0
 		{ 0xFFFF },	// 1111 1111 1111 1111		1
 		};
-		for (int t = 0; t < 4; t++)
+		for (int t = 0; t < 2; t++)
 			default_palette.push_back(ref[t]);
 	}
 }

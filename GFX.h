@@ -20,6 +20,7 @@ class GfxMouse;
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
+    friend class GfxMouse;
     friend class GfxGlyph64;
     friend class GfxGlyph32;
     friend class GfxTile;
@@ -125,14 +126,10 @@ protected:
     static Uint8 m_palette_index;
 
 public:
-    Uint8 red(Uint8 index) 
-        { Uint8 c = palette[index].r; return c | (c << 4) | (c << 8) | (c << 12); }
-    Uint8 grn(Uint8 index) 
-        { Uint8 c = palette[index].g; return c | (c << 4) | (c << 8) | (c << 12); }
-    Uint8 blu(Uint8 index) 
-        { Uint8 c = palette[index].b; return c | (c << 4) | (c << 8) | (c << 12); }
-    Uint8 alf(Uint8 index) 
-        { Uint8 c = palette[index].a; return c | (c << 4) | (c << 8) | (c << 12); }
+    Uint8 red(Uint8 index)      { Uint8 c = palette[index].r;  return c | (c << 4); }
+    Uint8 grn(Uint8 index)      { Uint8 c = palette[index].g;  return c | (c << 4); }
+    Uint8 blu(Uint8 index)      { Uint8 c = palette[index].b;  return c | (c << 4); }
+    Uint8 alf(Uint8 index)      { Uint8 c = palette[index].a;  return c | (c << 4); }
 };
 
 

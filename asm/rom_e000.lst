@@ -95,13 +95,13 @@
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
 1812                  CSR_PAL_INDX    equ     $1812   ; (Byte) mouse cursor color palette index (0-15)
-1813                  CSR_PAL_DATA    equ     $1813   ; (Byte) mouse cursor color palette data RRGGBBAA
-1814                  CSR_BMP_INDX    equ     $1814   ; (Byte) mouse cursor bitmap pixel offset
-1815                  CSR_BMP_DATA    equ     $1815   ; (Byte) mouse cursor bitmap pixel color
+1813                  CSR_PAL_DATA    equ     $1813   ; (Word) mouse cursor color palette data RRGGBBAA
+1815                  CSR_BMP_INDX    equ     $1815   ; (Byte) mouse cursor bitmap pixel offset
+1816                  CSR_BMP_DATA    equ     $1816   ; (Word) mouse cursor bitmap pixel color
                       
-1815                  GFX_END equ     $1815   ; end of the GFX Hardware Registers
+1817                  GFX_END equ     $1817   ; end of the GFX Hardware Registers
                       
-1816                  RESERVED_HDW    equ     $1816   ; Reserved 2021 bytes ($1816 - $1FFB)
+1818                  RESERVED_HDW    equ     $1818   ; Reserved 2019 bytes ($1818 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

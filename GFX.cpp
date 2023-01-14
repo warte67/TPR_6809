@@ -300,7 +300,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
 	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
 	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Word) mouse cursor color palette data RRGGBBAA" }); offset += 2;
 	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
 	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
 

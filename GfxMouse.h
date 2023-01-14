@@ -43,7 +43,7 @@ private:
 	Uint8 mouse_y_offset = 0;		// mouse cursor offset y
 	static Byte s_size;
 	Uint8 button_flags = 0;
-	SDL_Texture* mouse_texture = nullptr;
+	SDL_Texture* mouse_texture = nullptr;	
 
 	// cursor stuff
 	Byte bmp_offset = 0;
@@ -67,27 +67,24 @@ private:
 	};
 
 	// Palette Stuff
-	union PALETTE {
-		Byte color;
-		struct {
-			Uint8 a : 2;
-			Uint8 b : 2;
-			Uint8 g : 2;
-			Uint8 r : 2;
-		};
-	};
-	std::vector<PALETTE> palette;
+	// std::vector<GFX::PALETTE> palette;
 	Uint8 m_palette_index = 0;
+	std::vector<GFX::PALETTE> default_palette;
 
 public:
-    Uint8 red(Uint8 index) 
-        { Uint8 c = palette[index].r; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 grn(Uint8 index) 
-        { Uint8 c = palette[index].g; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 blu(Uint8 index) 
-        { Uint8 c = palette[index].b; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 alf(Uint8 index) 
-        { Uint8 c = palette[index].a; return c | (c << 2) | (c << 4) | (c << 6); }
+    //Uint8 red(Uint8 index) 
+    //    { Uint8 c = palette[index].r; return c | (c << 4) | (c << 8) | (c << 12); }
+    //Uint8 grn(Uint8 index) 
+    //    { Uint8 c = palette[index].g; return c | (c << 4) | (c << 8) | (c << 12); }
+    //Uint8 blu(Uint8 index) 
+    //    { Uint8 c = palette[index].b; return c | (c << 4) | (c << 8) | (c << 12); }
+    //Uint8 alf(Uint8 index) 
+    //    { Uint8 c = palette[index].a; return c | (c << 4) | (c << 8) | (c << 12); }
+
+	Uint8 _red(Uint8 index) { Uint8 c = default_palette[index].r;  return c | (c << 4); }
+	Uint8 _grn(Uint8 index) { Uint8 c = default_palette[index].g;  return c | (c << 4); }
+	Uint8 _blu(Uint8 index) { Uint8 c = default_palette[index].b;  return c | (c << 4); }
+	Uint8 _alf(Uint8 index) { Uint8 c = default_palette[index].a;  return c | (c << 4); }
 };
 
 
