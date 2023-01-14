@@ -32,10 +32,10 @@ void GfxBmp4W::OnInitialize()
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-			{ 0x03 },	// 00 00 00 11		0
-			{ 0xC3 },	// 11 00 00 11		1
-			{ 0x0F },	// 00 00 11 11		2
-			{ 0xFF },	// 11 11 11 11		3
+			{ 0x000F },	// 0000 0000 0000 1111		0
+			{ 0xF00F },	// 1111 0000 0000 1111		1
+			{ 0x00FF },	// 0000 0000 1111 1111		2
+			{ 0xFFFF },	// 1111 1111 1111 1111		3
 		};
 		for (int t = 0; t < 4; t++)
 			default_palette.push_back(ref[t]);
@@ -48,7 +48,7 @@ void GfxBmp4W::OnActivate()
 	for (int t = 0; t < 4; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, default_palette[t].color);
+		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
 void GfxBmp4W::OnDeactivate()
@@ -57,7 +57,7 @@ void GfxBmp4W::OnDeactivate()
 	for (int t = 0; t < 4; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
 	}
 }
 

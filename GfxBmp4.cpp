@@ -24,19 +24,18 @@ GfxBmp4::~GfxBmp4()
 {
 }
 
-
 void GfxBmp4::OnInitialize()
 {
-	//printf("GfxGlyph::OnInitialize()\n");
+	//printf("GfxBmp4::OnInitialize()\n");
 	// 
    // load the default palette
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-		{ 0x03 },	// 00 00 00 11		0
-		{ 0x33 },	// 00 11 00 11		1
-		{ 0xcf },	// 11 00 11 11		2
-		{ 0xf3 },	// 11 11 00 11		3
+		{ 0x000F },	// 0000 0000 0000 1111		0
+		{ 0x0F0F },	// 0000 1111 0000 1111		1
+		{ 0xF0FF },	// 1111 0000 1111 1111		2
+		{ 0xFF0F },	// 1111 1111 0000 1111		3
 		};
 		for (int t = 0; t < 4; t++)
 			default_palette.push_back(ref[t]);
@@ -49,7 +48,7 @@ void GfxBmp4::OnActivate()
 	for (int t = 0; t < 4; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, default_palette[t].color);
+		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
 void GfxBmp4::OnDeactivate()
@@ -58,7 +57,7 @@ void GfxBmp4::OnDeactivate()
 	for (int t = 0; t < 4; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
 	}
 }
 

@@ -8,7 +8,6 @@
 #include "GFX.h"
 #include "GfxBmp2.h"
 
-
 // statics:
 const int GfxBmp2::pixel_width = 256;
 const int GfxBmp2::pixel_height = 160;
@@ -25,26 +24,44 @@ GfxBmp2::~GfxBmp2()
 {
 }
 
+void GfxBmp2::OnInitialize()
+{
+	//printf("GfxBmp4::OnInitialize()\n");
+	// 
+   // load the default palette
+	if (default_palette.size() == 0)
+	{
+		std::vector<GFX::PALETTE> ref = {
+		{ 0x000F },	// 0000 0000 0000 1111		0
+		{ 0xFFFF },	// 1111 1111 1111 1111		1
+		};
+		for (int t = 0; t < 4; t++)
+			default_palette.push_back(ref[t]);
+	}
+}
+
+
 void GfxBmp2::OnActivate()
 {
-	//printf("GfxBmp2:OnActivate()\n");
-
-	// initialize the default color palette
-	if (gfx->palette.size() == 0)
-	{
-		for (int t = 0; t < 16; t++)
-			gfx->palette.push_back({ 0x00 });
-	}
-	std::vector<GFX::PALETTE> ref = {
-		{ 0x03 },	// 00 00 00 11		0
-		{ 0xff },	// 11 11 11 11		1
-	};
+	// load the palette from the defaults
 	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, ref[t].color);
+		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
+void GfxBmp2::OnDeactivate()
+{
+	// store the palette from the defaults
+	for (int t = 0; t < 2; t++)
+	{
+		bus->write(GFX_PAL_INDX, t);
+		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
+	}
+}
+
+
+
 
 void GfxBmp2::OnCreate()
 {
