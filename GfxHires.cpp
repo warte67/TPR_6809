@@ -95,13 +95,22 @@ void GfxHires::OnUpdate(float fElapsedTime)
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
-		static Byte data = 0;
-		// Word ofs = VIDEO_START;
+		//static Byte data = 0;
+		Word ofs = VIDEO_START;
 		for (int y = 0; y < pixel_height; y++)
 		{
 			for (int x = 0; x < pixel_width; x += 8)
 			{
-				// Byte data = bus->debug_read(ofs++);
+
+
+
+				// temporary solution
+				Byte data = bus->debug_read(ofs++);
+				if (ofs > VIDEO_END)
+					ofs = VIDEO_START;
+
+
+
 				for (int b = 0; b < 8; b++)
 				{
 					Byte c1 = (data >> (7 - b)) & 0x01;
@@ -109,9 +118,9 @@ void GfxHires::OnUpdate(float fElapsedTime)
 					SDL_RenderDrawPoint(gfx->Renderer(), x + b, y);
 				}
 			}
-			data++;
+			//data++;
 		}
-		data++;
+		//data++;
 	}
 }
 

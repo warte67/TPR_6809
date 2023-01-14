@@ -74,10 +74,16 @@ void GfxRaw::OnUpdate(float fElapsedTime)
 		{
 			for (int x = 0; x < pixel_width; x++)
 			{
-				// Byte data = bus->debug_read(ofs++);
+				
+
+				// temporary solution
+				Word data = bus->debug_read_word(ofs+=2);
+				if (ofs > VIDEO_END)
+					ofs = VIDEO_START;
+
+
 
 				// RRRR GGGG BBBB AAAA
-				Word data = ((rand() % 4096) << 4) | 0xF;
 				Byte r = Byte((data >> 12) & 0x0f); r += r << 4;
 				Byte g = Byte((data >> 8) & 0x0f); g += g << 4;
 				Byte b = Byte((data >> 4) & 0x0f); b += b << 4;
