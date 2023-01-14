@@ -13,7 +13,7 @@ public:
 	GfxMouse();
 	virtual ~GfxMouse();
 
-	Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead);
+	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead) override;
 
 	virtual void OnInitialize() override;				
 	virtual void OnQuit() override;						
