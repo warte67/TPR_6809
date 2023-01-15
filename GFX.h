@@ -116,10 +116,10 @@ protected:
     union PALETTE {
         Word color;
         struct {
-            Uint8 a : 4;
-            Uint8 b : 4;
-            Uint8 g : 4;
-            Uint8 r : 4;
+            Uint8 a : 4;    // : 2;
+            Uint8 b : 4;    // : 2;
+            Uint8 g : 4;    // : 2;
+            Uint8 r : 4;    // : 2;
         };
     };
     std::vector<PALETTE> palette;
@@ -128,10 +128,14 @@ protected:
     Word ext_video_index = 0;
 
 public:
-    Uint8 red(Uint8 index)      { Uint8 c = palette[index].r;  return c | (c << 4); }
-    Uint8 grn(Uint8 index)      { Uint8 c = palette[index].g;  return c | (c << 4); }
-    Uint8 blu(Uint8 index)      { Uint8 c = palette[index].b;  return c | (c << 4); }
-    Uint8 alf(Uint8 index)      { Uint8 c = palette[index].a;  return c | (c << 4); }
+    // Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
+    // Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
+    // Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 2) | (c << 4) | (c << 6); }
+    // Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 4); }
+    Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 4); }
+    Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 4); }
+    Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 4); }
 };
 
 
@@ -227,6 +231,20 @@ Revision Notes ///////////////////
                 1) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
                 2) GfxBmp16()       128x80 x 16-Color
                 3) GfxBmp2()        256x160 x 2-Color
+
+
+
+    Raspberry PI PICO has 26 Multifunction GPIO Pins:
+        - 1 x LED (used internally, not available externally?)
+        - 3 x Analogue Inputs
+        - 2 x UART controllers
+        - 2 x SPI controllers
+        - 2 x I2C controllers, 
+        - 16 x PWM channels
+
+
+
+        
 
 
 ************************************************/

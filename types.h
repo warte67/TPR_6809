@@ -11,7 +11,6 @@
 const bool OUTPUT_MEMORY_MAP = false;	// display the memory map for copy/paste
 const bool MEMORY_MAP_CPP = true;		// display memory map definition as C++ not ASM
 
-
 const bool ENABLE_DEBUG = false;
 const bool DEBUG_SINGLE_STEP = ENABLE_DEBUG;	// false;
 
@@ -20,7 +19,6 @@ const bool ENABLE_VSYNC = false;
 const bool ENABLE_BACKBUFFER = false;
 const bool DEFAULT_FULLSCREEN = true;
 const int  DEFAULT_MONITOR = 1;
-
 
 
 
