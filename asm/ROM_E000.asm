@@ -129,9 +129,14 @@ reset
 
 				lda		#4
 				sta		CSR_PAL_INDX	; index the 4th color entry
-				ldd		CSR_PAL_DATA
-				addd	#$10				; increment the color (but not the alpha)
-				std		CSR_PAL_DATA
+
+				lda		CSR_PAL_DATA
+				adda	#$10
+				sta		CSR_PAL_DATA
+
+;				ldd		CSR_PAL_DATA
+;				addd	#$10				; increment the color (but not the alpha)
+;				std		CSR_PAL_DATA
 
 
 ;											inc		CSR_SIZE

@@ -34,22 +34,22 @@ void GfxTile::OnInitialize()
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-			{ 0x000F },	// 0000 0000 0000 1111		0
-			{ 0x005F },	// 0000 0000 0101 1111		1
-			{ 0x050F },	// 0000 0101 0000 1111		2
-			{ 0x055F },	// 0000 0101 0101 1111		3
-			{ 0x500F },	// 0101 0000 0000 1111		4
-			{ 0x505F },	// 0101 0000 0101 1111		5
-			{ 0x550F },	// 0101 0101 0000 1111		6
-			{ 0xCCCF },	// 1010 1010 1010 1111		7
-			{ 0x555F },	// 0101 0101 0101 1111		8
-			{ 0x00FF },	// 0000 0000 1111 1111		9
-			{ 0x0F0F },	// 0000 1111 0000 1111		a
-			{ 0x0FFF },	// 0000 1111 1111 1111		b
-			{ 0xF00F },	// 1111 0000 0000 1111		c
-			{ 0xF0FF },	// 1111 0000 1111 1111		d
-			{ 0xFF0F },	// 1111 1111 0000 1111		e
-			{ 0xFFFF },	// 1111 1111 1111 1111		f
+			{ 0x03 },	// 00 00.00 11		0
+			{ 0x07 },	// 00 00.01 11		1
+			{ 0x13 },	// 00 01.00 11		2
+			{ 0x17 },	// 00 01.01 11		3
+			{ 0x83 },	// 01 00.00 11		4
+			{ 0x87 },	// 01 00.01 11		5
+			{ 0x53 },	// 01 01.00 11		6
+			{ 0xCB },	// 10 10.10 11		7
+			{ 0x57 },	// 01 01.01 11		8
+			{ 0x0F },	// 00 00.11 11		9
+			{ 0x33 },	// 00 11.00 11		a
+			{ 0x3F },	// 00 11.11 11		b
+			{ 0xC3 },	// 11 00.00 11		c
+			{ 0xC7 },	// 11 00.11 11		d
+			{ 0xF3 },	// 11 11.00 11		e
+			{ 0xFF },	// 11 11.11 11		f
 		};
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
@@ -62,7 +62,7 @@ void GfxTile::OnActivate()
 	for (int t = 0; t < 16; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
+		bus->write(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
 void GfxTile::OnDeactivate()
@@ -71,7 +71,7 @@ void GfxTile::OnDeactivate()
 	for (int t = 0; t < 16; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
 	}
 }
 
@@ -133,14 +133,9 @@ void GfxTile::OnUpdate(float fElapsedTime)
 		{
 			for (int x = 0; x < pixel_width; x+=16)
 			{
-				Word data = bus->debug_read_word(ofs++);	// = 2);
+				Word data = bus->debug_read_word(ofs++);
 				if (ofs > VIDEO_END)
 					ofs = VIDEO_START;
-
-				//Byte r = (data & 0xF000) >> 12;	r |= r << 4;
-				//Byte g = (data & 0x0F00) >> 8;	g |= g << 4;
-				//Byte b = (data & 0x00F0) >> 4;	b |= b << 4;
-				//Byte a = (data & 0x000F) >> 0;	a |= a << 4;
 
 				Byte r = (data & 0xC0) >> 6;	r |= r << 2 | r << 4 | r << 6;
 				Byte g = (data & 0x30) >> 4;	g |= g << 2 | g << 4 | g << 6;

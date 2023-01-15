@@ -65,7 +65,6 @@ public:
     bool DebugEnabled() { return m_enable_debug; }
     void DebugEnabled(bool en) { m_enable_debug = en; }
 
-
 protected:
 
     void _onRender();   // render the GFX children (graphics modes)
@@ -116,10 +115,10 @@ protected:
     union PALETTE {
         Word color;
         struct {
-            Uint8 a : 4;    // : 2;
-            Uint8 b : 4;    // : 2;
-            Uint8 g : 4;    // : 2;
-            Uint8 r : 4;    // : 2;
+            Uint8 a : 2;
+            Uint8 b : 2;
+            Uint8 g : 2;
+            Uint8 r : 2;
         };
     };
     std::vector<PALETTE> palette;
@@ -128,14 +127,16 @@ protected:
     Word ext_video_index = 0;
 
 public:
-    // Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
-    // Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
-    // Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 2) | (c << 4) | (c << 6); }
-    // Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 4); }
-    Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 4); }
-    Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 4); }
-    Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 4); }
+     Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
+     Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
+     Uint8 blu(Uint8 index)
+     {
+         Uint8 c = palette[index].b;
+         c = c | (c << 2) | (c << 4) | (c << 6);
+         return c;
+     }
+     Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
+
 };
 
 

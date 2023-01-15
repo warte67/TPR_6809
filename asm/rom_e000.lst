@@ -215,9 +215,14 @@ E052                  3
                       
 E052  8604                                            lda             #4
 E054  B71815                                          sta             CSR_PAL_INDX    ; index the 4th color entry
-E057  FC1816                                          ldd             CSR_PAL_DATA
-E05A  C30010                                          addd    #$10                            ; increment the color (but not the alpha)
-E05D  FD1816                                          std             CSR_PAL_DATA
+                      
+E057  B61816                                          lda             CSR_PAL_DATA
+E05A  8B10                                            adda    #$10
+E05C  B71816                                          sta             CSR_PAL_DATA
+                      
+                      ;                               ldd             CSR_PAL_DATA
+                      ;                               addd    #$10                            ; increment the color (but not the alpha)
+                      ;                               std             CSR_PAL_DATA
                       
                       
                       ;                                                                                       inc             CSR_SIZE
@@ -229,45 +234,45 @@ E05D  FD1816                                          std             CSR_PAL_DA
                       
                       
                                               ; CYCLE COUNT 
-E060  FC0014                                  ldd             var_cycle
-E063  C30001                                  addd    #1
-E066  FD0014                                  std             var_cycle
-E069  10830040                                cmpd    #$40                    ; number of cycles before mode change
-E06D  2D24                                    blt             st
+E05F  FC0014                                  ldd             var_cycle
+E062  C30001                                  addd    #1
+E065  FD0014                                  std             var_cycle
+E068  10830040                                cmpd    #$40                    ; number of cycles before mode change
+E06C  2D24                                    blt             st
                       
-E06F  CC0000                                  ldd             #0
-E072  FD0014                                  std             var_cycle
-E075  7F0014                                  clr             var_cycle
-E078  B61800                                  lda             GFX_FLAGS
-E07B  84F8                                    anda    #$f8
-E07D  BA0016                                  ora             var_mode
-E080  7C0016                                  inc             var_mode
-E083  B71800                                  sta             GFX_FLAGS
-E086  B60016                                  lda             var_mode
-E089  8407                                    anda    #$07
-E08B  4D                                      tsta
-E08C  2602                                    bne             5f
-E08E  8601                                    lda             #1
-E090                  5
-E090  B70016                                  sta             var_mode
+E06E  CC0000                                  ldd             #0
+E071  FD0014                                  std             var_cycle
+E074  7F0014                                  clr             var_cycle
+E077  B61800                                  lda             GFX_FLAGS
+E07A  84F8                                    anda    #$f8
+E07C  BA0016                                  ora             var_mode
+E07F  7C0016                                  inc             var_mode
+E082  B71800                                  sta             GFX_FLAGS
+E085  B60016                                  lda             var_mode
+E088  8407                                    anda    #$07
+E08A  4D                                      tsta
+E08B  2602                                    bne             5f
+E08D  8601                                    lda             #1
+E08F                  5
+E08F  B70016                                  sta             var_mode
                       
                       
                       
-E093                  st
+E092                  st
                                               ; TOGGLE THE BACKBUFFER
-E093  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E096  8808                                    eora    #$08            ; toggle it
-E098  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E092  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E095  8808                                    eora    #$08            ; toggle it
+E097  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; INCREMENT THE SCREEN BUFFER
-E09B  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E09E                  4
-E09E  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E0A1  2CAF                                    bge             3b                              ; restart when past the end
-E0A3  6C80                                    inc             ,x+                             ; increment character
-E0A5  6C80                                    inc             ,x+                             ; increment the attribute
+E09A  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E09D                  4
+E09D  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E0A0  2CB0                                    bge             3b                              ; restart when past the end
+E0A2  6C80                                    inc             ,x+                             ; increment character
+E0A4  6C80                                    inc             ,x+                             ; increment the attribute
                       
-E0A7  20F5                                    bra             4b                              ; loop until done
+E0A6  20F5                                    bra             4b                              ; loop until done
                               
                       ; done          BRA     done                    ; infinate loop
                       

@@ -10,8 +10,11 @@
 #include "GfxHires.h"
 
 // statics:
-const int GfxHires::pixel_width = 512;
-const int GfxHires::pixel_height = 320;
+const int GfxHires::pixel_width = 512;	
+const int GfxHires::pixel_height = 320;			
+
+// NOTES:
+//		- a 40KB buffer allows room for a backbuffer in this mode
 
 // Graphics Mode Unique Callback Function:
 Byte GfxHires::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
@@ -47,8 +50,8 @@ void GfxHires::OnInitialize()
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-		{ 0x000F },	// 0000 0000 0000 1111		0
-		{ 0xFFFF },	// 1111 1111 1111 1111		1
+			{ 0x03 },	// 00 00.00 11		0
+			{ 0xFF },	// 11 11.11 11		1
 		};
 		for (int t = 0; t < 2; t++)
 			default_palette.push_back(ref[t]);
@@ -62,7 +65,7 @@ void GfxHires::OnActivate()
 	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
+		bus->write(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
 void GfxHires::OnDeactivate()
@@ -71,7 +74,7 @@ void GfxHires::OnDeactivate()
 	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
 	}
 }
 
