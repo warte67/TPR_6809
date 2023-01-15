@@ -51,12 +51,6 @@
     <ClCompile Include="GfxBmp16.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GfxBmp4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GfxBmp4W.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GfxBmp2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -64,6 +58,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GfxTile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxRaw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GfxHires.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,12 +107,6 @@
     <ClInclude Include="GfxBmp16.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GfxBmp4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GfxBmp4W.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GfxBmp2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -120,6 +114,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GfxTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxRaw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxHires.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

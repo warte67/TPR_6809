@@ -15,9 +15,9 @@
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
-#include "GfxBmp4.h"
-#include "GfxBmp4W.h"
 #include "GfxBmp2.h"
+#include "GfxRaw.h"
+#include "GfxHires.h"
 #include "GFX.h"
 
 
@@ -42,6 +42,8 @@ Uint8 GFX::m_palette_index = 0;
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
+
+
 	Bus* bus = Bus::getInstance();
 
 	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
@@ -104,7 +106,9 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs == GFX_PAL_INDX)
 				return m_palette_index;
 			if (ofs == GFX_PAL_DATA)
-				return ptrGfx->palette[m_palette_index].color;
+				return (ptrGfx->palette[m_palette_index].color) >> 8;
+			if (ofs == GFX_PAL_DATA+1)
+				return (ptrGfx->palette[m_palette_index].color) & 0x00ff;
 		}
 		else
 		{	// WRITTEN TO
@@ -177,17 +181,26 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			{ 
 				ptrGfx->debug_write(ofs, data); 
 				m_palette_index = data; 
-				bus->debug_write(GFX_PAL_DATA, ptrGfx->palette[m_palette_index].color);
+				bus->debug_write_word(GFX_PAL_DATA, ptrGfx->palette[m_palette_index].color);
 			}
 			if (ofs == GFX_PAL_DATA)
 			{
 				bus->debug_write(ofs, data);
-				ptrGfx->palette[m_palette_index].color = data;
+				ptrGfx->palette[m_palette_index].color = (ptrGfx->palette[m_palette_index].color & 0x00FF) | (data << 8);
+			}
+			if (ofs == GFX_PAL_DATA + 1)
+			{
+				bus->debug_write(ofs, data);
+				ptrGfx->palette[m_palette_index].color = (ptrGfx->palette[m_palette_index].color & 0xFF00) | (data & 0xff);
 			}
 		}
 		// intercept for GfxMouse
 		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
 			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
+
+		// intercept for banked GfxMode registers
+		if (ofs >= GFX_PG_BEGIN && ofs <= GFX_PG_END)
+			return ptrGfx->m_gmodes[m_gmode_index]->OnCallback(memDev, ofs, data, bWasRead);
 	}
 	return data;
 }
@@ -206,15 +219,16 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	bus = Bus::getInstance();
 	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
+
 	// pre-build the graphics modes
 	m_gmodes.push_back(new GfxNull());
 	m_gmodes.push_back(new GfxGlyph32());
 	m_gmodes.push_back(new GfxGlyph64());
-	m_gmodes.push_back(new GfxTile());	// GfxMode
+	m_gmodes.push_back(new GfxTile());			// GfxMode
 	m_gmodes.push_back(new GfxBmp16());
-	m_gmodes.push_back(new GfxBmp4());
-	m_gmodes.push_back(new GfxBmp4W());
 	m_gmodes.push_back(new GfxBmp2());
+	m_gmodes.push_back(new GfxRaw());			//GfxBmp4());
+	m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
@@ -279,7 +293,16 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
 	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_DATA", "(Byte) gfx palette color bits RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_DATA", "(Word) gfx palette color bits r4g4b4a4" }); offset += 2;
+
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Paged Graphics Mode Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_PG_BEGIN", "start of paged gfxmode registers" }); offset += 0;
+
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses $0000-$4fff" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
+	
+	memmap->push({ --offset, "GFX_PG_END", "end of paged gfxmode registers" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
@@ -293,9 +316,10 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
 	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
 	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Word) mouse cursor color palette data RRGGBBAA" }); offset += 2;
 	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
 	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
+
 
 	memmap->push({ offset, "", "" }); offset -= 1;
 	memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;
@@ -314,28 +338,28 @@ void GFX::OnInitialize()
 		for (int t = 0; t < 16; t++)
 			palette.push_back({0x00});
 		std::vector<PALETTE> ref = {
-			{ 0x03 },	// 00 00 00 11		0
-			{ 0x07 },	// 00 00 01 11		1
-			{ 0x13 },	// 00 01 00 11		2
-			{ 0x17 },	// 00 01 01 11		3
-			{ 0x83 },	// 01 00 00 11		4
-			{ 0x87 },	// 01 00 01 11		5
-			{ 0x53 },	// 01 01 00 11		6
-			{ 0xa7 },	// 10 10 10 11		7
-			{ 0x57 },	// 01 01 01 11		8
-			{ 0x0f },	// 00 00 11 11		9
-			{ 0x33 },	// 00 11 00 11		a
-			{ 0x3f },	// 00 11 11 11		b
-			{ 0xc3 },	// 11 00 00 11		c
-			{ 0xcf },	// 11 00 11 11		d
-			{ 0xf3 },	// 11 11 00 11		e
-			{ 0xff },	// 11 11 11 11		f
+			{ 0x000f },	// 0000 0000 0000 1111		0
+			{ 0x005f },	// 0000 0000 0101 1111		1
+			{ 0x050f },	// 0000 0101 0000 1111		2
+			{ 0x055f },	// 0000 0101 0101 1111		3
+			{ 0x500f },	// 0101 0000 0000 1111		4
+			{ 0x505f },	// 0101 0000 0101 1111		5
+			{ 0x550f },	// 0101 0101 0000 1111		6
+			{ 0xCCCF },	// 1010 1010 1010 1111		7
+			{ 0x555F },	// 0101 0101 0101 1111		8
+			{ 0x00FF },	// 0000 0000 1111 1111		9
+			{ 0x0F0F },	// 0000 1111 0000 1111		a
+			{ 0x0FFF },	// 0000 1111 1111 1111		b
+			{ 0xF00F },	// 1111 0000 0000 1111		c
+			{ 0xF0FF },	// 1111 0000 1111 1111		d
+			{ 0xFF0F },	// 1111 1111 0000 1111		e
+			{ 0xFFFF },	// 1111 1111 1111 1111		f
 		};
+
 		for (int t=0; t<16; t++)
 		{
 			bus->write(GFX_PAL_INDX, t);
-			bus->write(GFX_PAL_DATA, ref[t].color);
-			//printf("ref: $%02X, R:%1d, G:%1d, B:%1d, A:%1d\n", ref[t].color, ref[t].r, ref[t].g, ref[t].b, ref[t].a);
+			bus->write_word(GFX_PAL_DATA, ref[t].color);
 		}
 	}
 
@@ -540,6 +564,10 @@ void GFX::OnCreate()
 	// create the main renderer for the window
 	if (_renderer == nullptr)
 	{
+		//_renderer_flags = SDL_RENDERER_SOFTWARE | SDL_RENDERER_TARGETTEXTURE;
+		//if (m_VSYNC)
+		//	_renderer_flags = SDL_RENDERER_SOFTWARE | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC;
+
 		_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
 		if (m_VSYNC)
 			_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | SDL_RENDERER_PRESENTVSYNC;

@@ -1,18 +1,22 @@
-// * GfxBmp4.h ***************************************
+// * GfxRaw.h ***************************************
 // *
-// *  128x160 x 4-Color BMP Graphics Mode 
+// * 128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
 // ************************************
-#ifndef __GFXBMP4_H__
-#define __GFXBMP4_H__
+#ifndef __GFXRAW_H__
+#define __GFXRAW_H__
 #pragma once
+
+
 
 #include "GfxMode.h"
 
-class GfxBmp4 : public GfxMode
+class GfxRaw : public GfxMode
 {
 public:
-	GfxBmp4();
-	virtual ~GfxBmp4();
+	GfxRaw();
+	virtual ~GfxRaw();
+
+	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)  override;
 
 	virtual void OnInitialize() override;
 	virtual void OnActivate() override;
@@ -24,10 +28,9 @@ public:
 private:
 
 	SDL_Texture* bitmap_texture = nullptr;
-	std::vector<GFX::PALETTE> default_palette;
 	static const int pixel_width;
 	static const int pixel_height;
 };
 
+#endif // __GFXRAW_H__
 
-#endif // __GFXBMP4_H__

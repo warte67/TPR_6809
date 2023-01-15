@@ -1,4 +1,4 @@
-// * GFX.h ***************************************
+// * Gfx.h ***************************************
 // *
 // *   Acts to emulate a Raspberry PI Pico
 // *		running an R4G4B4 VGA resistor ladder DAC
@@ -20,13 +20,14 @@ class GfxMouse;
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
     friend class Bus;
+    friend class GfxMouse;
     friend class GfxGlyph64;
     friend class GfxGlyph32;
     friend class GfxTile;
     friend class GfxBmp16;
-    friend class GfxBmp4;
-    friend class GfxBmp4W;
     friend class GfxBmp2;
+    friend class GfxRaw;
+    friend class GfxHires;
 
 public:
     GFX();
@@ -113,26 +114,24 @@ protected:
 
     // Palette Stuff
     union PALETTE {
-        Byte color;
+        Word color;
         struct {
-            Uint8 a : 2;
-            Uint8 b : 2;
-            Uint8 g : 2;
-            Uint8 r : 2;
+            Uint8 a : 4;
+            Uint8 b : 4;
+            Uint8 g : 4;
+            Uint8 r : 4;
         };
     };
     std::vector<PALETTE> palette;
     static Uint8 m_palette_index;
 
+    Word ext_video_index = 0;
+
 public:
-    Uint8 red(Uint8 index) 
-        { Uint8 c = palette[index].r; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 grn(Uint8 index) 
-        { Uint8 c = palette[index].g; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 blu(Uint8 index) 
-        { Uint8 c = palette[index].b; return c | (c << 2) | (c << 4) | (c << 6); }
-    Uint8 alf(Uint8 index) 
-        { Uint8 c = palette[index].a; return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 red(Uint8 index)      { Uint8 c = palette[index].r;  return c | (c << 4); }
+    Uint8 grn(Uint8 index)      { Uint8 c = palette[index].g;  return c | (c << 4); }
+    Uint8 blu(Uint8 index)      { Uint8 c = palette[index].b;  return c | (c << 4); }
+    Uint8 alf(Uint8 index)      { Uint8 c = palette[index].a;  return c | (c << 4); }
 };
 
 
@@ -163,15 +162,14 @@ public:
 		bit 3-5: display monitor (0-7)
 		bit 0-2: graphics mode (0-7)
 
-
 			0) GfxNull:		NONE (just random background noise)
 			1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)
             2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)
             3) GfxTile:		Tile 16x16x16 mode
 			4) GfxBmp16:	128x80 x 16-Color
-			5) GfxBmp4:	    128x160 x 4-Color
-			6) GfxBmp4W:	256x80 x 4-Color
-			7) GfxBmp2:	    256x160 x 2-Color
+			5) GfxBmp2:	    256x160 x 2-Color
+            6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+            7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
 
             What if GfxBmp2 (256x160 Mode 7) had a special 64-color (RRGGBBXX) or 256-color (RRGGBBII)
                     that uses an external 40k (256x160 = 40960) buffer?
@@ -181,23 +179,6 @@ public:
 			    - GfxBmpExt:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
                 - Maybe leave this mode as an option for for later, but for now, DON'T DO IT!
 
-
-
-	STATIC MODES:
-		+ DEBUG
-		+ SPRITES (What about priority display layers?)
-		+ SYSTEM (Mouse Cursor)
-
-Revision ///////////////////
-
-    GFX_FLAGS: (hardware)
-        bits:
-        7)   VSYNC
-        6)   backbuffer enable
-        5)   enable debug
-        4)   enable mouse cursor
-        3)   swap backbuffer (on write); current backbuffer (on read)
-        0-2) graphics mode index
 
     GFX_AUX: (emulator only)
         bits:
@@ -210,17 +191,42 @@ Revision ///////////////////
 
 
 
-    Color Palette Entry:
+	STATIC MODES:
+		+ DEBUG
+        + LABELS ("labels" are text based sprites)
+		+ SPRITES (What about priority display layers?)
+		+ SYSTEM (Mouse Cursor)
 
-        +-+-+-+-+-+-+-+-+
-        |R|R|G|G|B|B|A|A|   64-Color Palette with ALPHA BLENDING
-        +-+-+-+-+-+-+-+-+
+Revision Notes ///////////////////
 
 
-    "256-Color" Palette Entry:
-        +-+-+-+-+-+-+-+-+
-        |R|R|G|G|B|B|I|I|    Uses 2 Intensity Bits instead of Alpha
-        +-+-+-+-+-+-+-+-+
+
+
+    GFX_FLAGS: (hardware)
+        bits:
+        7)   VSYNC
+        6)   backbuffer enable
+        5)   enable debug
+        4)   enable mouse cursor
+        3)   swap backbuffer (on write); current backbuffer (on read)
+        0-2) graphics mode index
+
+        NOTES:  
+            - Remove the rendundant "enable mouse cursor" flag. 
+            - When CSR_SIZE is reduced to zero, the mouse cursor is effectively off.
+            - move the "swap backbuffer" to bit 4/
+            - bits 2-3 = "Foreground" graphics mode
+            - bits 0-1 = "Background" graphics mode
+            - "Background" Modes:
+                0) GfxNull()        NONE (forced black background)
+                1) GfxTile()        Tile 16x16x16 mode
+                2) GfxRaw()         128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer 
+                3) GfxHires()       512x320 x 2-Color (1 bpp 20KB) - Serial Buffer
+            - "Foreground" Modes:
+                0) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
+                1) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
+                2) GfxBmp16()       128x80 x 16-Color
+                3) GfxBmp2()        256x160 x 2-Color
 
 
 ************************************************/

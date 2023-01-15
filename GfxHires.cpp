@@ -1,69 +1,84 @@
-// * GfxBmp4.cpp ***************************************
+// * GfxRaw.cpp ***************************************
 // *
-// *  128x160 x 4-Color BMP Graphics Mode 
+// * 512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
 // ************************************
+#pragma once
 
 #include "types.h"
 #include "bus.h"
 #include "GFX.h"
-#include "GfxBmp4.h"
+#include "GfxHires.h"
 
 // statics:
-const int GfxBmp4::pixel_width = 128;
-const int GfxBmp4::pixel_height = 160;
+const int GfxHires::pixel_width = 512;
+const int GfxHires::pixel_height = 320;
+
+// Graphics Mode Unique Callback Function:
+Byte GfxHires::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		printf("GfxHires::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxHires::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
 
 // constructor
-GfxBmp4::GfxBmp4() : GfxMode()
+GfxHires::GfxHires() : GfxMode()
 {
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
 
 // destructor
-GfxBmp4::~GfxBmp4()
+GfxHires::~GfxHires()
 {
 }
 
-
-void GfxBmp4::OnInitialize()
+void GfxHires::OnInitialize()
 {
-	//printf("GfxGlyph::OnInitialize()\n");
+	//printf("GfxBmp4::OnInitialize()\n");
 	// 
    // load the default palette
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-		{ 0x03 },	// 00 00 00 11		0
-		{ 0x33 },	// 00 11 00 11		1
-		{ 0xcf },	// 11 00 11 11		2
-		{ 0xf3 },	// 11 11 00 11		3
+		{ 0x000F },	// 0000 0000 0000 1111		0
+		{ 0xFFFF },	// 1111 1111 1111 1111		1
 		};
-		for (int t = 0; t < 4; t++)
+		for (int t = 0; t < 2; t++)
 			default_palette.push_back(ref[t]);
 	}
 }
 
-void GfxBmp4::OnActivate()
+
+void GfxHires::OnActivate()
 {
 	// load the palette from the defaults
-	for (int t = 0; t < 4; t++)
+	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, default_palette[t].color);
+		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	}
 }
-void GfxBmp4::OnDeactivate()
+void GfxHires::OnDeactivate()
 {
 	// store the palette from the defaults
-	for (int t = 0; t < 4; t++)
+	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
 	}
 }
 
 
-void GfxBmp4::OnCreate()
+
+
+void GfxHires::OnCreate()
 {
 	if (bitmap_texture == nullptr)
 	{
@@ -74,7 +89,7 @@ void GfxBmp4::OnCreate()
 	}
 }
 
-void GfxBmp4::OnDestroy()
+void GfxHires::OnDestroy()
 {
 	if (bitmap_texture)
 	{
@@ -83,7 +98,7 @@ void GfxBmp4::OnDestroy()
 	}
 }
 
-void GfxBmp4::OnUpdate(float fElapsedTime)
+void GfxHires::OnUpdate(float fElapsedTime)
 {
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
@@ -94,34 +109,32 @@ void GfxBmp4::OnUpdate(float fElapsedTime)
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
-		Word ofs = VIDEO_START;
+		static Byte data = 0;
+		//Word ofs = VIDEO_START;
+
 		for (int y = 0; y < pixel_height; y++)
 		{
-			for (int x = 0; x < pixel_width; x += 4)
+			for (int x = 0; x < pixel_width; x += 8)
 			{
-				Byte data = bus->debug_read(ofs++);
-				Byte c1 = (data >> 6) & 0x03;
-				Byte c2 = (data >> 4) & 0x03;
-				Byte c3 = (data >> 2) & 0x03;
-				Byte c4 = (data >> 0) & 0x03;
+				// temporary solution
+				//Byte data = bus->debug_read(ofs++);
+				//if (ofs > VIDEO_END)
+				//	ofs = VIDEO_START;
 
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawPoint(gfx->Renderer(), x + 1, y);
-
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c3), gfx->grn(c3), gfx->blu(c3), SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawPoint(gfx->Renderer(), x + 2, y);
-
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c4), gfx->grn(c4), gfx->blu(c4), SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawPoint(gfx->Renderer(), x + 3, y);
+				for (int b = 0; b < 8; b++)
+				{
+					Byte c1 = (data >> (7 - b)) & 0x01;
+					SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), SDL_ALPHA_OPAQUE);
+					SDL_RenderDrawPoint(gfx->Renderer(), x + b, y);
+				}
 			}
+			data++;
 		}
+		data++;
 	}
 }
 
-void GfxBmp4::OnRender()
+void GfxHires::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	if (gfx->Fullscreen())
@@ -141,3 +154,4 @@ void GfxBmp4::OnRender()
 	else
 		SDL_RenderCopy(gfx->Renderer(), bitmap_texture, NULL, NULL);
 }
+

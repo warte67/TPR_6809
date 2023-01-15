@@ -1,18 +1,20 @@
-// * GfxBmp4W.h ***************************************
+// * GfxRaw.h ***************************************
 // *
-// *  256x80 x 4-Color BMP Graphics Mode 
+// * 512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
 // ************************************
 #pragma once
-#ifndef __GFXBMP4W_H__
-#define __GFXBMP4W_H__
+#ifndef __GFXHIRES_H__
+#define __GFXHIRES_H__
+
 
 #include "GfxMode.h"
-
-class GfxBmp4W : public GfxMode
+class GfxHires : public GfxMode
 {
 public:
-	GfxBmp4W();
-	virtual ~GfxBmp4W();
+	GfxHires();
+	virtual ~GfxHires();
+
+	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead) override;
 
 	virtual void OnInitialize() override;
 	virtual void OnActivate() override;
@@ -29,4 +31,5 @@ private:
 	static const int pixel_height;
 };
 
-#endif // __GFXBMP4W_H__
+
+#endif	// __GFXHIRES_H__

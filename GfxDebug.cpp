@@ -14,7 +14,7 @@
 
 GfxDebug::GfxDebug()
 {
-	printf("GfxDebug::GfxDebug()\n");
+	//printf("GfxDebug::GfxDebug()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
@@ -25,13 +25,13 @@ GfxDebug::GfxDebug()
 
 GfxDebug::~GfxDebug()
 {
-	printf("GfxDebug::~GfxDebug()\n");
+	//printf("GfxDebug::~GfxDebug()\n");
 }
 
 
 Byte GfxDebug::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
-	printf("GfxDebug::OnCallback()\n");
+	//printf("GfxDebug::OnCallback()\n");
 
 	if (bWasRead)
 	{
