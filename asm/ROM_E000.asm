@@ -130,9 +130,8 @@ reset
 				lda		#4
 				sta		CSR_PAL_INDX	; index the 4th color entry
 				ldd		CSR_PAL_DATA
-				addd	#$10				; increment the color
+				addd	#$10				; increment the color (but not the alpha)
 				std		CSR_PAL_DATA
-
 
 
 ;											inc		CSR_SIZE
@@ -147,7 +146,7 @@ reset
 			ldd		var_cycle
 			addd	#1
 			std		var_cycle
-			cmpd	#$30
+			cmpd	#$40			; number of cycles before mode change
 			blt		st
 
 			ldd		#0

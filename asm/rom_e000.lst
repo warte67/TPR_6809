@@ -216,9 +216,8 @@ E052                  3
 E052  8604                                            lda             #4
 E054  B71815                                          sta             CSR_PAL_INDX    ; index the 4th color entry
 E057  FC1816                                          ldd             CSR_PAL_DATA
-E05A  C30010                                          addd    #$10                            ; increment the color
+E05A  C30010                                          addd    #$10                            ; increment the color (but not the alpha)
 E05D  FD1816                                          std             CSR_PAL_DATA
-                      
                       
                       
                       ;                                                                                       inc             CSR_SIZE
@@ -233,7 +232,7 @@ E05D  FD1816                                          std             CSR_PAL_DA
 E060  FC0014                                  ldd             var_cycle
 E063  C30001                                  addd    #1
 E066  FD0014                                  std             var_cycle
-E069  10830030                                cmpd    #$30
+E069  10830040                                cmpd    #$40                    ; number of cycles before mode change
 E06D  2D24                                    blt             st
                       
 E06F  CC0000                                  ldd             #0

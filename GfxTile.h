@@ -26,6 +26,8 @@ private:
 
 	SDL_Texture* _tile_texture = nullptr;
 	std::vector<GFX::PALETTE> default_palette;
+	static const int pixel_width;
+	static const int pixel_height;
 };
 
 #endif // __GFXTILE_H__

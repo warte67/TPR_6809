@@ -10,7 +10,9 @@
 #include "GfxMode.h"
 #include "GfxTile.h"
 
-
+// statics:
+const int GfxTile::pixel_width = 512;		// or 256 for "Double Scan"
+const int GfxTile::pixel_height = 320;		// or 160 for "Double Scan"
 
 GfxTile::GfxTile()
 {
@@ -88,8 +90,8 @@ void GfxTile::OnCreate()
 	// create the main texture
 	if (_tile_texture == nullptr)
 	{
-		int pw = gfx->PixWidth() / 2;
-		int ph = gfx->PixHeight() / 2;
+		int pw = pixel_width;
+		int ph = pixel_height;
 		_tile_texture = SDL_CreateTexture(gfx->Renderer(), SDL_PIXELFORMAT_RGBA4444,
 			SDL_TEXTUREACCESS_TARGET, pw, ph);
 		SDL_SetTextureBlendMode(_tile_texture, SDL_BLENDMODE_BLEND);
@@ -126,15 +128,37 @@ void GfxTile::OnUpdate(float fElapsedTime)
 		SDL_SetRenderTarget(gfx->Renderer(), _tile_texture);
 
 		// TEMPORARY: For now just display static
-		for (int x = 0; x < gfx->PixWidth(); x++)
+		Word ofs = VIDEO_START;
+		for (int y = 0; y < pixel_height; y+=16)
 		{
-			for (int y = 0; y < gfx->PixHeight(); y++)
+			for (int x = 0; x < pixel_width; x+=16)
 			{
-				Uint8 r = (rand() % 4) * 85;
-				Uint8 g = (rand() % 4) * 85;
-				Uint8 b = (rand() % 4) * 85;
-				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, 0xFF);
-				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
+				Word data = bus->debug_read_word(ofs += 2);
+				if (ofs > VIDEO_END)
+					ofs = VIDEO_START;
+
+				Byte r = (data & 0xF000) >> 12;	r |= r << 4;
+				Byte g = (data & 0x0F00) >> 8;	g |= g << 4;
+				Byte b = (data & 0x00F0) >> 4;	b |= b << 4;
+				Byte a = (data & 0x000F) >> 0;	a |= a << 4;
+
+				SDL_Rect dst = { x, y, 16, 16 };
+				SDL_SetRenderDrawColor(gfx->Renderer(), 255, 255, 255, SDL_ALPHA_OPAQUE);
+				SDL_RenderDrawRect(gfx->Renderer(), &dst);
+				dst.x = x + 1;
+				dst.y = y + 1;
+				dst.w = 15;
+				dst.h = 15;
+				SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, SDL_ALPHA_OPAQUE);
+				SDL_RenderDrawRect(gfx->Renderer(), &dst);
+				dst.x = x + 1;
+				dst.y = y + 1;
+				dst.w = 14;
+				dst.h = 14;
+				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, SDL_ALPHA_OPAQUE);
+				SDL_RenderFillRect(gfx->Renderer(), &dst);
+
+				//SDL_RenderDrawPoint(gfx->Renderer(), x, y);
 			}
 		}
 	}
@@ -142,7 +166,21 @@ void GfxTile::OnUpdate(float fElapsedTime)
 
 void GfxTile::OnRender()
 {
-	// SDL_SetRenderTarget(gfx->Renderer(), NULL);
-	SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
-	SDL_RenderCopy(gfx->Renderer(), _tile_texture, NULL, NULL);
+	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+	if (gfx->Fullscreen())
+	{
+		int ww, wh;
+		SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+		float fh = (float)wh;
+		float fw = fh * gfx->Aspect();
+		if (fw > ww)
+		{
+			fw = (float)ww;
+			fh = fw / gfx->Aspect();
+		}
+		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+		SDL_RenderCopy(gfx->Renderer(), _tile_texture, NULL, &dest);
+	}
+	else
+		SDL_RenderCopy(gfx->Renderer(), _tile_texture, NULL, NULL);
 }
