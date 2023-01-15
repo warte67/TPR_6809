@@ -162,7 +162,6 @@ public:
 		bit 3-5: display monitor (0-7)
 		bit 0-2: graphics mode (0-7)
 
-
 			0) GfxNull:		NONE (just random background noise)
 			1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)
             2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)
@@ -181,23 +180,6 @@ public:
                 - Maybe leave this mode as an option for for later, but for now, DON'T DO IT!
 
 
-
-	STATIC MODES:
-		+ DEBUG
-		+ SPRITES (What about priority display layers?)
-		+ SYSTEM (Mouse Cursor)
-
-Revision Notes ///////////////////
-
-    GFX_FLAGS: (hardware)
-        bits:
-        7)   VSYNC
-        6)   backbuffer enable
-        5)   enable debug
-        4)   enable mouse cursor
-        3)   swap backbuffer (on write); current backbuffer (on read)
-        0-2) graphics mode index
-
     GFX_AUX: (emulator only)
         bits:
         7)   0:fullscreen / 1:windowed
@@ -209,52 +191,42 @@ Revision Notes ///////////////////
 
 
 
-    Color Palette Entry:
-        +-+-+-+-+-+-+-+-+
-        |R|R|G|G|B|B|A|A|   64-Color Palette with ALPHA BLENDING
-        +-+-+-+-+-+-+-+-+
+	STATIC MODES:
+		+ DEBUG
+        + LABELS ("labels" are text based sprites)
+		+ SPRITES (What about priority display layers?)
+		+ SYSTEM (Mouse Cursor)
 
-    "256-Color" Palette Entry:
-        +-+-+-+-+-+-+-+-+
-        |R|R|G|G|B|B|I|I|    Uses 2 Intensity Bits instead of Alpha
-        +-+-+-+-+-+-+-+-+
+Revision Notes ///////////////////
 
 
-//// OBSERVATION Notes ///////////////////
-
-        64-colors (RRGGBBAA) = yuck 
-            pros:
-                - only uses 6 pins on the PICO hardware
-                - fewer bits required to store color data
-                 - color data fits nicely witin a single byte
-            cons:
-                - no equivalent native SDL Pixel Format (SLOWER - software rendering ONLY)
-                - very ugly and restricted color palette               
-
-        4096 color (RRRRGGGGBBBBAAAA) = acceptable (12-pins on the PICO)
-            pros:
-                - FASTER - direct hardware mapping to native SDL Pixel Format (SDL_PIXELFORMAT_RGBA4444)
-                - Color Palette is comprehensive
-            cons: 
-                - color data requires two bytes per palette entry
-                - uses 12 pins on the PICO (in addition to VSYNC, HSYNC, and PIXELCLOCK)
 
 
-    
-        The 4-Color modes are very ugly with non-square pixels. It would be best to restrict
-            display resolutions to be fixed at a single aspect ratio (using 16/10).
+    GFX_FLAGS: (hardware)
+        bits:
+        7)   VSYNC
+        6)   backbuffer enable
+        5)   enable debug
+        4)   enable mouse cursor
+        3)   swap backbuffer (on write); current backbuffer (on read)
+        0-2) graphics mode index
 
-                Replace with:
-
-                    0) GfxNull:		NONE (just random background noise)
-                    1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)   1280 bytes each (4 layers)
-                    2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)   5120 bytes each (1 layer)
-                    3) GfxTile16:   Tile 16x16 x 256 colors in 256x160 screen bitmap   
-                    4) GfxBmp16:	128x80 x 16-Color (5120)
-                    5) GfxBmp2:	    256x160 x 2-Color (5120)
-                    6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
-                    7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
-
+        NOTES:  
+            - Remove the rendundant "enable mouse cursor" flag. 
+            - When CSR_SIZE is reduced to zero, the mouse cursor is effectively off.
+            - move the "swap backbuffer" to bit 4/
+            - bits 2-3 = "Foreground" graphics mode
+            - bits 0-1 = "Background" graphics mode
+            - "Background" Modes:
+                0) GfxNull()        NONE (forced black background)
+                1) GfxTile()        Tile 16x16x16 mode
+                2) GfxRaw()         128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer 
+                3) GfxHires()       512x320 x 2-Color (1 bpp 20KB) - Serial Buffer
+            - "Foreground" Modes:
+                0) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
+                1) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
+                2) GfxBmp16()       128x80 x 16-Color
+                3) GfxBmp2()        256x160 x 2-Color
 
 
 ************************************************/
