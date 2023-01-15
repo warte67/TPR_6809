@@ -42,6 +42,8 @@ Uint8 GFX::m_palette_index = 0;
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
+
+
 	Bus* bus = Bus::getInstance();
 
 	GFX* ptrGfx = dynamic_cast<GFX*>(memDev);
@@ -197,8 +199,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
 
 		// intercept for banked GfxMode registers
-		// ...
-
+		if (ofs >= GFX_PG_BEGIN && ofs <= GFX_PG_END)
+			return ptrGfx->m_gmodes[m_gmode_index]->OnCallback(memDev, ofs, data, bWasRead);
 	}
 	return data;
 }
@@ -217,6 +219,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	bus = Bus::getInstance();
 	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
+
 	// pre-build the graphics modes
 	m_gmodes.push_back(new GfxNull());
 	m_gmodes.push_back(new GfxGlyph32());
@@ -292,8 +295,14 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
 	memmap->push({ offset, "GFX_PAL_DATA", "(Word) gfx palette color bits r4g4b4a4" }); offset += 2;
 
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Paged Graphics Mode Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_PG_BEGIN", "start of paged gfxmode registers" }); offset += 0;
+
 	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses $0000-$4fff" }); offset += 2;
 	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
+	
+	memmap->push({ --offset, "GFX_PG_END", "end of paged gfxmode registers" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;

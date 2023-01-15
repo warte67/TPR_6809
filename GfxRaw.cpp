@@ -13,6 +13,19 @@
 const int GfxRaw::pixel_width = 128;
 const int GfxRaw::pixel_height = 80;
 
+// Graphics Mode Unique Callback Function:
+Byte GfxRaw::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		printf("GfxRaw::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxRaw::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
 
 // constructor
 GfxRaw::GfxRaw() : GfxMode()
@@ -30,12 +43,17 @@ void GfxRaw::OnInitialize()
 {
 }
 
+
 void GfxRaw::OnActivate()
 {
 }
+
 void GfxRaw::OnDeactivate()
 {
+
 }
+
+
 
 
 void GfxRaw::OnCreate()
@@ -72,22 +90,16 @@ void GfxRaw::OnUpdate(float fElapsedTime)
 		Word ofs = VIDEO_START;
 		for (int y = 0; y < pixel_height; y++)
 		{
-			for (int x = 0; x < pixel_width; x++)
+			for (int x = 0; x < pixel_width; x++) 
 			{
-				
-
-				// temporary solution
 				Word data = bus->debug_read_word(ofs+=2);
 				if (ofs > VIDEO_END)
 					ofs = VIDEO_START;
 
-
-
-				// RRRR GGGG BBBB AAAA
-				Byte r = Byte((data >> 12) & 0x0f); r += r << 4;
-				Byte g = Byte((data >> 8) & 0x0f); g += g << 4;
-				Byte b = Byte((data >> 4) & 0x0f); b += b << 4;
-				Byte a = Byte((data >> 0) & 0x0f); a += a << 4;
+				Byte r = (data & 0xF000) >> 12;	r |= r << 4;
+				Byte g = (data & 0x0F00) >> 8;	g |= g << 4;
+				Byte b = (data & 0x00F0) >> 4;	b |= b << 4;
+				Byte a = (data & 0x000F) >> 0;	a |= a << 4;
 
 				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, SDL_ALPHA_OPAQUE);
 				SDL_RenderDrawPoint(gfx->Renderer(), x, y);

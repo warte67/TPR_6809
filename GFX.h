@@ -125,6 +125,8 @@ protected:
     std::vector<PALETTE> palette;
     static Uint8 m_palette_index;
 
+    Word ext_video_index = 0;
+
 public:
     Uint8 red(Uint8 index)      { Uint8 c = palette[index].r;  return c | (c << 4); }
     Uint8 grn(Uint8 index)      { Uint8 c = palette[index].g;  return c | (c << 4); }

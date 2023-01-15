@@ -3,6 +3,7 @@
 ;  **********************************************
 
 
+
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
 
@@ -43,8 +44,12 @@ TIMING_WIDTH    equ     $1802   ; (Word) timing width
 TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
 GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits r4g4b4a4
+
+;  Paged Graphics Mode Hardware Registers:
+GFX_PG_BEGIN    equ     $1809   ; start of paged gfxmode registers
 GFX_EXT_ADDR    equ     $1809   ; (Word) 20K extended graphics addresses $0000-$4fff
 GFX_EXT_DATA    equ     $180b   ; (Byte) 20K extended graphics RAM data
+GFX_PG_END      equ     $180b   ; end of paged gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
 CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate

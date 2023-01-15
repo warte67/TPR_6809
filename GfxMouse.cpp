@@ -11,17 +11,6 @@
 
 Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
 
-//  Mouse Cursor Hardware Registers:
-//      CSR_XPOS = 0x1808,        // (Word) horizontal mouse cursor coordinate
-//      CSR_YPOS = 0x180a,        // (Word) vertical mouse cursor coordinate
-//      CSR_XOFS = 0x180c,        // (Word) horizontal mouse cursor offset
-//      CSR_YOFS = 0x180e,        // (Word) vertical mouse cursor offset
-//      CSR_SIZE = 0x1810,        // (Byte) cursor size (0-15) 0:off
-//     CSR_FLAGS = 0x1811,        // (Byte) mouse button flags:
-//                                //      bits 0-5: button states
-//                                //      bits 6-7: number of clicks
-//  CSR_PAL_INDX = 0x1812,        // (Byte) mouse color palette color index (0-15)
-//  CSR_PAL_DATA = 0x1813,        // (Byte) mouse color palette color bits RRGGBBAA
 
 Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
@@ -104,7 +93,7 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 GfxMouse::GfxMouse()
 {
-	printf("GfxMouse::GfxMouse()\n");
+	//printf("GfxMouse::GfxMouse()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
@@ -145,7 +134,7 @@ GfxMouse::~GfxMouse()
 
 void GfxMouse::OnInitialize()
 {
-	printf("GfxMouse::OnInitialize() \n");
+	//printf("GfxMouse::OnInitialize() \n");
 
 	// prepare mems
 	bus->debug_write(CSR_SIZE, s_size);

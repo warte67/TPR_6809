@@ -94,8 +94,12 @@ enum MEMMAP
   TIMING_HEIGHT = 0x1804,       // (Word) timing height
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
   GFX_PAL_DATA = 0x1807,        // (Word) gfx palette color bits r4g4b4a4
+
+//  Paged Graphics Mode Hardware Registers:
+  GFX_PG_BEGIN = 0x1809,        // start of paged gfxmode registers
   GFX_EXT_ADDR = 0x1809,        // (Word) 20K extended graphics addresses $0000-$4fff
   GFX_EXT_DATA = 0x180b,        // (Byte) 20K extended graphics RAM data
+    GFX_PG_END = 0x180b,        // end of paged gfxmode registers
 
 //  Mouse Cursor Hardware Registers:
       CSR_XPOS = 0x180c,        // (Word) horizontal mouse cursor coordinate

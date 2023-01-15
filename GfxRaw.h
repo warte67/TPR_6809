@@ -16,6 +16,8 @@ public:
 	GfxRaw();
 	virtual ~GfxRaw();
 
+	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)  override;
+
 	virtual void OnInitialize() override;
 	virtual void OnActivate() override;
 	virtual void OnDeactivate() override;
