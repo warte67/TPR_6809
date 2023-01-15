@@ -18,4 +18,8 @@ main
 *.vcxproj
 *.dll
 *.json
+<<<<<<< HEAD
 TPR_6809.exe
+=======
+*.exe
+>>>>>>> 1b58daf37659bfe5840d85d46f16e7d0cf7c8a52
