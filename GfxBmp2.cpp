@@ -85,6 +85,9 @@ void GfxBmp2::OnDestroy()
 
 void GfxBmp2::OnUpdate(float fElapsedTime)
 {
+	//if ((bus->read(GFX_FLAGS) & 0x0f) != 0x04)
+	//	return;
+
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
 	static float delayAcc = fElapsedTime;
@@ -113,6 +116,9 @@ void GfxBmp2::OnUpdate(float fElapsedTime)
 
 void GfxBmp2::OnRender()
 {
+	//if ((bus->read(GFX_FLAGS) & 0x0f) != 0x04)
+	//	return;
+
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	if (gfx->Fullscreen())
 	{

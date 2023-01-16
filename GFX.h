@@ -95,6 +95,9 @@ protected:
     // static bool m_enable_mouse;         // 1:enabled, 0:disabled
     static int  m_current_backbuffer;   // currently active backbuffer
     static int  m_gmode_index;          // (0-7)
+    // TODO:  change m_gmode_index to m_fg_mode_index and m_bg_mode_index
+
+
     // statics (auxillary)
     static bool m_fullscreen;	        // 1:fullscreen, 0:windowed
     static int  m_display_num;	        // which monitor to use

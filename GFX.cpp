@@ -180,15 +180,26 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
 
-	// pre-build the graphics modes
+	//// pre-build the graphics modes
+	//m_gmodes.push_back(new GfxNull());
+	//m_gmodes.push_back(new GfxGlyph32());
+	//m_gmodes.push_back(new GfxGlyph64());
+	//m_gmodes.push_back(new GfxTile());			// GfxMode
+	//m_gmodes.push_back(new GfxBmp16());
+	//m_gmodes.push_back(new GfxBmp2());
+	//m_gmodes.push_back(new GfxRaw());			//GfxBmp4());
+	//m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
+
+	// background graphics modes
 	m_gmodes.push_back(new GfxNull());
+	m_gmodes.push_back(new GfxTile());
+	m_gmodes.push_back(new GfxRaw());
+	m_gmodes.push_back(new GfxHires());
+	// foreground graphics modes
+	m_gmodes.push_back(new GfxBmp2());
 	m_gmodes.push_back(new GfxGlyph32());
 	m_gmodes.push_back(new GfxGlyph64());
-	m_gmodes.push_back(new GfxTile());			// GfxMode
 	m_gmodes.push_back(new GfxBmp16());
-	m_gmodes.push_back(new GfxBmp2());
-	m_gmodes.push_back(new GfxRaw());			//GfxBmp4());
-	m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
@@ -630,6 +641,8 @@ void GFX::OnUpdate(float fElapsedTime)
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
+	gfx_mouse->OnUpdate(fElapsedTime);
+	gfx_debug->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.

@@ -34,6 +34,7 @@ var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00
 var_csr			fcb		$ff
+num_cycles		equ		$30
 var_cycle		fcb		$00
 var_mode_index	fcb		$00
 
@@ -93,14 +94,21 @@ reset
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
 			
-			clr		var_cycle		; initially clear the cycle variable
+			lda		#num_cycles		; initially clear the cycle variable
+			sta		var_cycle
+
+;			; enable backbuffer mode
+;			lda		GFX_FLAGS
+;			ora		#$40
+;			sta		GFX_FLAGS
 
 			; set up the initial graphics mode 
-;			clr		var_mode_index	; start with index 0
-;			ldx		#mode_data
-;			lda		GFX_FLAGS
-;			ora		,x
-;			sta		GFX_FLAGS
+			clr		var_mode_index	; start with index 0
+			ldx		#mode_data
+			lda		GFX_FLAGS
+			anda	#$f0
+			ora		,x
+			sta		GFX_FLAGS
 
 
 ; ***********************
@@ -142,15 +150,22 @@ reset
 			eora	#$20		; toggle it
 			sta		GFX_FLAGS	; save the backbuffer
 
+			; COLOR CYCLE THE MOUSE CURSOR
+			lda		#4
+			sta		CSR_PAL_INDX
+			lda		CSR_PAL_DATA
+			adda	#$04
+			sta		CSR_PAL_DATA		
+
 			; INCREMENT THE CYCLE COUNTER
 			inc		var_cycle	; increment the cycle counter
 			lda		var_cycle
-			cmpa	#32			; 32 cycles yet?
-			bne		continue	; nope, continue with the main loop
+			cmpa	#num_cycles		; max cycles yet?
+			bls		continue	; nope, continue with the main loop
 			clr		var_cycle	; reset the cycle count
 
 			; MODE CHANGES
-
+6
 			ldb		var_mode_index
 			inc		var_mode_index
 			ldx		#mode_data
@@ -164,20 +179,17 @@ reset
 			bra		continue
 5	
 			clr		var_mode_index
+			bra		6b
 continue
 
-			; COLOR CYCLE THE MOUSE CURSOR
-			lda		#4
-			sta		CSR_PAL_INDX
-			lda		CSR_PAL_DATA
-			adda	#$04
-			sta		CSR_PAL_DATA
-			
+	
 
 			bra		2b
 
+; ***********************************************************
 
-mode_data	fcb		$01, $02, $03, $04, $05, $06, $07
+
+mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
 
 			fcb		$ff
 

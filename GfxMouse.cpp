@@ -32,7 +32,6 @@ Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
 
 			case CSR_PAL_DATA:		data = default_palette[m_palette_index].color;		break;
-			//case CSR_PAL_DATA+1:	data = default_palette[m_palette_index].color & 0xFF;	break;
 
 			case CSR_BMP_INDX:	data = bmp_offset;						break;
 			case CSR_BMP_DATA:
@@ -71,10 +70,6 @@ Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 				default_palette[m_palette_index].color = data;
 				bIsDirty = true;
 				break;
-			//case CSR_PAL_DATA+1:
-			//	default_palette[m_palette_index].color = (default_palette[m_palette_index].color & 0xFF00) | (data & 0xFF);
-			//	bIsDirty = true;
-			//	break;
 			case CSR_BMP_INDX:
 				bmp_offset = data;	
 				bus->debug_write_word(CSR_BMP_DATA, cursor_buffer[bmp_offset / 16][bmp_offset % 16]);
