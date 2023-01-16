@@ -12,6 +12,23 @@
 const int GfxBmp2::pixel_width = 256;
 const int GfxBmp2::pixel_height = 160;
 
+
+
+// Graphics Mode Unique Callback Function:
+Byte GfxBmp2::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		printf("GfxBmp2::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxBmp2::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
+
+
 // constructor
 GfxBmp2::GfxBmp2() : GfxMode()
 {
@@ -26,14 +43,12 @@ GfxBmp2::~GfxBmp2()
 
 void GfxBmp2::OnInitialize()
 {
-	//printf("GfxBmp4::OnInitialize()\n");
-	// 
-   // load the default palette
+	// load the default palette
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-			{ 0x03 },	// 00 00.00 11		0
-			{ 0xFF },	// 11 11.11 11		1
+			{ 0x00 },	// 00 00.00 00		0
+			{ 0xFE },	// 11 11.11 10		1
 		};
 		for (int t = 0; t < 2; t++)
 		{
@@ -52,7 +67,7 @@ void GfxBmp2::OnActivate()
 	{
 		bus->write(GFX_PAL_INDX, t);
 		bus->write(GFX_PAL_DATA, default_palette[t].color);
-	}
+	}	
 }
 void GfxBmp2::OnDeactivate()
 {
@@ -61,11 +76,8 @@ void GfxBmp2::OnDeactivate()
 	{
 		bus->write(GFX_PAL_INDX, t);
 		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
-	}
+	}	
 }
-
-
-
 
 void GfxBmp2::OnCreate()
 {
@@ -89,17 +101,17 @@ void GfxBmp2::OnDestroy()
 
 void GfxBmp2::OnUpdate(float fElapsedTime)
 {
-	if ((bus->read(GFX_FLAGS) & 0x0f) != 0x00)
-		return;
-
 	// only update once every 10ms (timing my need further adjustment)
-	const float delay = 0.010f;
+	const float delay = 0.015f;
 	static float delayAcc = fElapsedTime;
 	delayAcc += fElapsedTime;
 	if (delayAcc >= delay)
 	{
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
+
+		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0);
+		SDL_RenderClear(gfx->Renderer());
 
 		Word ofs = VIDEO_START;
 		for (int y = 0; y < pixel_height; y++)
@@ -110,7 +122,12 @@ void GfxBmp2::OnUpdate(float fElapsedTime)
 				for (int b = 0; b < 8; b++)
 				{					
 					Byte c1 = (data >> (7-b)) & 0x01;
-					SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), SDL_ALPHA_OPAQUE);
+					Byte red = gfx->red(c1);
+					Byte grn = gfx->grn(c1);
+					Byte blu = gfx->blu(c1);
+					Byte alf = gfx->alf(c1);
+					//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1));
+					SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 					SDL_RenderDrawPoint(gfx->Renderer(), x + b, y);
 				}
 			}
@@ -120,9 +137,6 @@ void GfxBmp2::OnUpdate(float fElapsedTime)
 
 void GfxBmp2::OnRender()
 {
-	if ((bus->read(GFX_FLAGS) & 0x0f) != 0x00)
-		return;
-
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	if (gfx->Fullscreen())
 	{

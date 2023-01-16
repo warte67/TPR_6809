@@ -1,4 +1,4 @@
-// * GfxTile.h ***************************************
+// * GfxTile16.h ***************************************
 // *
 // *  16x16 Tile Mode
 // ************************************
@@ -8,79 +8,50 @@
 #include "Bus.h"
 #include "GFX.h"
 #include "GfxMode.h"
-#include "GfxTile.h"
+#include "GfxTile16.h"
 
-// statics:
-const int GfxTile::pixel_width = 512;		// or 256 for "Double Scan"
-const int GfxTile::pixel_height = 320;		// or 160 for "Double Scan"
 
-GfxTile::GfxTile()
+// Graphics Mode Unique Callback Function:
+Byte GfxTile16::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
-	//printf("GfxTile::GfxTile()\n");
+	if (bWasRead)
+	{	// READ	
+		printf("GfxTile16::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxTile16::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
+
+GfxTile16::GfxTile16()
+{
+	//printf("GfxTile16::GfxTile16()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
-	if (gfx == nullptr)
-	{
-		Bus::Err("ERROR: GfxTile::GfxGlyph64() -- gfx == nullptr");
-	}
+
+	pixel_width = 512;
+	pixel_height = 320;
 }
 
-void GfxTile::OnInitialize()
+void GfxTile16::OnInitialize()
 {
-	//printf("GfxTile::OnInitialize()\n");
-	// 
-   // load the default palette
-	if (default_palette.size() == 0)
-	{
-		std::vector<GFX::PALETTE> ref = {
-			{ 0x03 },	// 00 00.00 11		0
-			{ 0x07 },	// 00 00.01 11		1
-			{ 0x13 },	// 00 01.00 11		2
-			{ 0x17 },	// 00 01.01 11		3
-			{ 0x83 },	// 01 00.00 11		4
-			{ 0x87 },	// 01 00.01 11		5
-			{ 0x53 },	// 01 01.00 11		6
-			{ 0xCB },	// 10 10.10 11		7
-			{ 0x57 },	// 01 01.01 11		8
-			{ 0x0F },	// 00 00.11 11		9
-			{ 0x33 },	// 00 11.00 11		a
-			{ 0x3F },	// 00 11.11 11		b
-			{ 0xC3 },	// 11 00.00 11		c
-			{ 0xC7 },	// 11 00.11 11		d
-			{ 0xF3 },	// 11 11.00 11		e
-			{ 0xFF },	// 11 11.11 11		f
-		};
-		for (int t = 0; t < 16; t++)
-			default_palette.push_back(ref[t]);
-	}
 }
 
-void GfxTile::OnActivate()
+void GfxTile16::OnActivate()
 {
-	// load the palette from the defaults
-	for (int t = 0; t < 16; t++)
-	{
-		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, default_palette[t].color);
-	}
 }
-void GfxTile::OnDeactivate()
+void GfxTile16::OnDeactivate()
 {
-	// store the palette from the defaults
-	for (int t = 0; t < 16; t++)
-	{
-		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
-	}
 }
 
-void GfxTile::OnQuit()
+void GfxTile16::OnQuit()
 {
-	//printf("GfxGlyph::OnQuit()\n");
 }
 
-void GfxTile::OnCreate()
+void GfxTile16::OnCreate()
 {
 	//printf("GfxGlyph::OnCreate()\n");
 	// 
@@ -98,7 +69,7 @@ void GfxTile::OnCreate()
 		SDL_SetRenderTarget(gfx->Renderer(), _tile_texture);
 	}
 }
-void GfxTile::OnDestroy()
+void GfxTile16::OnDestroy()
 {
 	//printf("GfxGlyph::OnDestroy()\n");
 
@@ -114,7 +85,7 @@ void GfxTile::OnDestroy()
 }
 
 
-void GfxTile::OnUpdate(float fElapsedTime)
+void GfxTile16::OnUpdate(float fElapsedTime)
 {
 	// printf("GfxGlyph::OnUpdate()\n");
 
@@ -164,7 +135,7 @@ void GfxTile::OnUpdate(float fElapsedTime)
 	}
 }
 
-void GfxTile::OnRender()
+void GfxTile16::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 

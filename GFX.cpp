@@ -12,13 +12,13 @@
 #include "GfxMode.h"
 #include "GfxGlyph32.h"
 #include "GfxGlyph64.h"
-#include "GfxTile.h"
+#include "GfxTile16.h"
+#include "GfxTile32.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
 #include "GfxRaw.h"
-#include "GfxHires.h"
 #include "GFX.h"
 
 
@@ -29,7 +29,7 @@ bool GFX::m_enable_debug		= ENABLE_DEBUG;
 // default GFX_AUX:
 bool GFX::m_fullscreen			= DEFAULT_FULLSCREEN;
 int  GFX::m_display_num			= DEFAULT_MONITOR;
-int  GFX::m_gmode_index			= DEFAULT_GRAPHICS_MODE;
+//int  GFX::m_gmode_index			= DEFAULT_GRAPHICS_MODE;
 
 
 // these don't need to be static anymore
@@ -60,11 +60,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_current_backbuffer)	ret |= 0x20;
 				if (ptrGfx->m_enable_debug)			ret |= 0x10;
 
-						// Out with the old!
-						ret |= ptrGfx->m_gmode_index & 0x0F;
-				// in with the new!
 				ret |= ptrGfx->m_fg_mode_index & 0x03;
-				ret |= (ptrGfx->m_bg_mode_index << 2) & 0x03;
+				ret |= (ptrGfx->m_bg_mode_index << 2) & 0x0C;
 
 				ptrGfx->write(ofs, ret);	// pre-write
 				return ret;
@@ -113,9 +110,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->m_current_backbuffer = ((data & 0x20) == 0x20);
 				ptrGfx->m_enable_debug = ((data & 0x10) == 0x10);
 
-				// Out with the old!
-				ptrGfx->m_gmode_index			= data & 0x0F;
-				// in with the new!
 				ptrGfx->m_fg_mode_index = data & 0x03;
 				ptrGfx->m_bg_mode_index = (data >> 2) & 0x03;
 
@@ -124,19 +118,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->bIsDirty = true;
 
 				// activate / deactivate 
-
-				//static int old_gmode_index = 0;
-				//if (old_gmode_index != ptrGfx->m_gmode_index)
-				//{
-				//	ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
-				//	ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
-				//	printf("GFX::OnCallback() =---> GFX Index: %d\n", ptrGfx->m_gmode_index);
-				//	printf("GFX::OnCallback() =---> FG Index: %d\n", ptrGfx->m_fg_mode_index);
-				//	printf("GFX::OnCallback() =---> BG Index: %d\n\n", ptrGfx->m_bg_mode_index);
-				//	//bus->bCpuEnabled = true;
-				//	//ptrGfx->bIsDirty = true;
-				//}
-				//old_gmode_index = ptrGfx->m_gmode_index;
 
 				// FG Out with the old, in with the new
 				static int old_fg_gmode_index = ptrGfx->m_fg_mode_index;
@@ -195,11 +176,19 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
 			return ptrGfx->gfx_mouse->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
 
-		// intercept for banked GfxMode registers
-		if (ofs >= GFX_PG_BEGIN && ofs <= GFX_PG_END)
+		// intercept for banked foreground GfxMode registers
+		if (ofs >= GFX_FG_BEGIN && ofs <= GFX_FG_END)
 		{
-			ptrGfx->m_bg_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_bg_gmodes[m_gmode_index], ofs, data, bWasRead);
-			ptrGfx->m_fg_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_fg_gmodes[m_gmode_index], ofs, data, bWasRead);
+			ptrGfx->m_fg_gmodes[
+				ptrGfx->m_fg_mode_index]->OnCallback(ptrGfx->m_fg_gmodes[ptrGfx->m_fg_mode_index
+				], ofs, data, bWasRead);
+		}
+		// intercept for banked background GfxMode registers
+		if (ofs >= GFX_BG_BEGIN && ofs <= GFX_BG_END)
+		{
+			ptrGfx->m_bg_gmodes[
+					ptrGfx->m_bg_mode_index]->OnCallback(ptrGfx->m_bg_gmodes[ptrGfx->m_bg_mode_index
+				], ofs, data, bWasRead);
 		}
 	}
 	return data;
@@ -232,9 +221,9 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 
 	// background graphics modes
 	m_bg_gmodes.push_back(new GfxNull());
-	m_bg_gmodes.push_back(new GfxTile());
+	m_bg_gmodes.push_back(new GfxTile16());
+	m_bg_gmodes.push_back(new GfxTile32());
 	m_bg_gmodes.push_back(new GfxRaw());
-	m_bg_gmodes.push_back(new GfxHires());
 	// foreground graphics modes
 	m_fg_gmodes.push_back(new GfxBmp2());
 	m_fg_gmodes.push_back(new GfxGlyph32());
@@ -289,8 +278,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bits 2-3 = 'Background' graphics mode (40KB buffer)" }); offset += 0;
 	memmap->push({ offset, "", ">        0) NONE (forced black background) " }); offset += 0;
 	memmap->push({ offset, "", ">        1) Tiled 16x16 mode               " }); offset += 0;
-	memmap->push({ offset, "", ">        2) 256x160 x 64-Colors            " }); offset += 0;
-	memmap->push({ offset, "", ">        3) 512x320 x 4-Color              " }); offset += 0;
+	memmap->push({ offset, "", ">        2) Overscan Tile 16x16 mode       " }); offset += 0;
+	memmap->push({ offset, "", ">        3) 256x160 x 64-Colors (40k)      " }); offset += 0;
 	memmap->push({ offset, "", ">    bits 0-1 = 'Foreground' graphics mode (5KB buffer)" }); offset += 0;
 	memmap->push({ offset, "", ">        0) 256x160 x 2-Color (with disable flag) " }); offset += 0;
 	memmap->push({ offset, "", ">        1) Glyph Mode (32x20 text)               " }); offset += 0;
@@ -310,13 +299,17 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_PAL_DATA", "(Byte) gfx palette color bits r4g4b4a4" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
-	memmap->push({ offset, "", "Paged Graphics Mode Hardware Registers:" }); offset += 0;
-	memmap->push({ offset, "GFX_PG_BEGIN", "start of paged gfxmode registers" }); offset += 0;
-
+	memmap->push({ offset, "", "Paged Foreground Graphics Mode Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_FG_BEGIN", "start of paged foreground gfxmode registers" }); offset += 0;
 	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 64K extended graphics addresses" }); offset += 2;
-	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;
-	
-	memmap->push({ --offset, "GFX_PG_END", "end of paged gfxmode registers" }); offset += 1;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;	
+	memmap->push({ --offset, "GFX_FG_END", "end of paged foreground gfxmode registers" }); offset += 1;
+
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Paged Background Graphics Mode Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_BG_BEGIN", "start of paged background gfxmode registers" }); offset += 0;
+	memmap->push({ offset, "GFX_BGND_TEMP", "(Byte) 64K extended graphics addresses" }); offset += 1;
+	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;

@@ -23,11 +23,11 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxMouse;
     friend class GfxGlyph64;
     friend class GfxGlyph32;
-    friend class GfxTile;
+    friend class GfxTile16;
+    friend class GfxTile32;
     friend class GfxBmp16;
     friend class GfxBmp2;
     friend class GfxRaw;
-    friend class GfxHires;
 
 public:
     GFX();
@@ -96,11 +96,9 @@ protected:
     static int  m_current_backbuffer;   // currently active backbuffer
 
     // TODO:  change m_gmode_index to m_fg_mode_index and m_bg_mode_index
-    static int  m_gmode_index;          // (0-7)
+    //static int  m_gmode_index;          // (0-7)
     int m_fg_mode_index = DEFAULT_FG_GMODE;
     int m_bg_mode_index = DEFAULT_BG_GMODE;
-
-
 
     // statics (auxillary)
     static bool m_fullscreen;	        // 1:fullscreen, 0:windowed
@@ -123,7 +121,7 @@ protected:
 
     // Palette Stuff
     union PALETTE {
-        Word color;
+        Byte color;
         struct {
             Uint8 a : 2;
             Uint8 b : 2;
@@ -156,9 +154,9 @@ public:
         bit 4: debug enable
         bits 2-3 = "Background" graphics mode (40KB buffer)
                 0) GfxNull()        NONE (forced black background)
-                1) GfxTile()        Tile 16x16x16 mode
-                2) GfxRaw()         256x160 x 64-Colors (40k)   TODO: 160x80 x 64-Colors (10k)
-                3) GfxHires()       512x320 x 4-Color  (timing change? 384x240)
+                1) GfxTile16()      Tile 16x16 mode
+                2) GfxTile32()      Overscan Tile 16x16 mode
+                3) GfxRaw()         256x160 x 64-Colors (40k)   MAYBE: 160x80 x 64-Colors (10k)
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
                 0) GfxBmp2()        256x160 x 2-Color
@@ -166,10 +164,6 @@ public:
                 2) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
                 3) GfxBmp16()       128x80 x 16-Color
 
-            Notes:
-                When the background mode is non-zero, GfxBmp2() will be disabled and
-                completely transparent. Only when the background mode is 0 will
-                GfxBmp2() display pixel data.
 
     GFX_AUX: (emulator only)
         bits:

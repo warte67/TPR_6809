@@ -39,6 +39,10 @@ class GfxNull : public GfxMode
 {
 public:
 	GfxNull();
+
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) override;
+
+
 	virtual void OnUpdate(float fElapsedTime) override;	// fires each frame, for updates
 
 private:

@@ -122,9 +122,11 @@ void GfxBmp16::OnUpdate(float fElapsedTime)
 				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2));
 				//SDL_RenderDrawPoint(gfx->Renderer(), x+1, y);
 
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1)/2);
+				Byte a1 = int((float)gfx->alf(c1) * 0.75f);
+				Byte a2 = int((float)gfx->alf(c2) * 0.75f);
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), a1);
 				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2)/2);
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), a2);
 				SDL_RenderDrawPoint(gfx->Renderer(), x + 1, y);
 			}
 		}

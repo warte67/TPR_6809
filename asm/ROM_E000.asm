@@ -34,7 +34,7 @@ var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00
 var_csr			fcb		$ff
-num_cycles		equ		$30
+num_cycles		equ		$40
 var_cycle		fcb		$00
 var_mode_index	fcb		$00
 

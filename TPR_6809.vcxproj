@@ -172,11 +172,11 @@
     <ClCompile Include="GfxDebug.cpp" />
     <ClCompile Include="GfxGlyph32.cpp" />
     <ClCompile Include="GfxGlyph64.cpp" />
-    <ClCompile Include="GfxHires.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
     <ClCompile Include="GfxRaw.cpp" />
-    <ClCompile Include="GfxTile.cpp" />
+    <ClCompile Include="GfxTile16.cpp" />
+    <ClCompile Include="GfxTile32.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
@@ -190,11 +190,11 @@
     <ClInclude Include="GfxDebug.h" />
     <ClInclude Include="GfxGlyph32.h" />
     <ClInclude Include="GfxGlyph64.h" />
-    <ClInclude Include="GfxHires.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />
     <ClInclude Include="GfxRaw.h" />
-    <ClInclude Include="GfxTile.h" />
+    <ClInclude Include="GfxTile16.h" />
+    <ClInclude Include="GfxTile32.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />

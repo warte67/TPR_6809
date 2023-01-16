@@ -34,7 +34,7 @@
 0011  00              var_at                  fcb             $00
 0012  00              var_count               fcb             $00
 0013  FF              var_csr                 fcb             $ff
-0030                  num_cycles              equ             $30
+0040                  num_cycles              equ             $40
 0014  00              var_cycle               fcb             $00
 0015  00              var_mode_index  fcb             $00
                       
@@ -66,8 +66,8 @@
                                                       ;      bits 2-3 = 'Background' graphics mode (40KB buffer)
                                                       ;          0) NONE (forced black background)
                                                       ;          1) Tiled 16x16 mode
-                                                      ;          2) 256x160 x 64-Colors
-                                                      ;          3) 512x320 x 4-Color
+                                                      ;          2) Overscan Tile 16x16 mode
+                                                      ;          3) 256x160 x 64-Colors (40k)
                                                       ;      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
                                                       ;          0) 256x160 x 2-Color (with disable flag)
                                                       ;          1) Glyph Mode (32x20 text)
@@ -85,30 +85,35 @@
 1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
 1807                  GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits r4g4b4a4
                       
-                      ;  Paged Graphics Mode Hardware Registers:
-1808                  GFX_PG_BEGIN    equ     $1808   ; start of paged gfxmode registers
+                      ;  Paged Foreground Graphics Mode Hardware Registers:
+1808                  GFX_FG_BEGIN    equ     $1808   ; start of paged foreground gfxmode registers
 1808                  GFX_EXT_ADDR    equ     $1808   ; (Word) 64K extended graphics addresses
 180A                  GFX_EXT_DATA    equ     $180a   ; (Byte) 64K extended graphics RAM data
-180A                  GFX_PG_END      equ     $180a   ; end of paged gfxmode registers
+180A                  GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
+                      
+                      ;  Paged Background Graphics Mode Hardware Registers:
+180B                  GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
+180B                  GFX_BGND_TEMP   equ     $180b   ; (Byte) 64K extended graphics addresses
+180B                  GFX_BG_END      equ     $180b   ; end of paged background gfxmode registers
                       
                       ;  Mouse Cursor Hardware Registers:
-180B                  CSR_XPOS        equ     $180b   ; (Word) horizontal mouse cursor coordinate
-180D                  CSR_YPOS        equ     $180d   ; (Word) vertical mouse cursor coordinate
-180F                  CSR_XOFS        equ     $180f   ; (Byte) horizontal mouse cursor offset
-1810                  CSR_YOFS        equ     $1810   ; (Byte) vertical mouse cursor offset
-1811                  CSR_SIZE        equ     $1811   ; (Byte) cursor size (0-15) 0:off
-1812                  CSR_SCROLL      equ     $1812   ; (Signed) MouseWheel Scroll: -1, 0, 1
-1813                  CSR_FLAGS       equ     $1813   ; (Byte) mouse button flags:
+180C                  CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate
+180E                  CSR_YPOS        equ     $180e   ; (Word) vertical mouse cursor coordinate
+1810                  CSR_XOFS        equ     $1810   ; (Byte) horizontal mouse cursor offset
+1811                  CSR_YOFS        equ     $1811   ; (Byte) vertical mouse cursor offset
+1812                  CSR_SIZE        equ     $1812   ; (Byte) cursor size (0-15) 0:off
+1813                  CSR_SCROLL      equ     $1813   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1814                  CSR_FLAGS       equ     $1814   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1814                  CSR_PAL_INDX    equ     $1814   ; (Byte) mouse cursor color palette index (0-15)
-1815                  CSR_PAL_DATA    equ     $1815   ; (Byte) mouse cursor color palette data RRGGBBAA
-1816                  CSR_BMP_INDX    equ     $1816   ; (Byte) mouse cursor bitmap pixel offset
-1817                  CSR_BMP_DATA    equ     $1817   ; (Byte) mouse cursor bitmap pixel color
+1815                  CSR_PAL_INDX    equ     $1815   ; (Byte) mouse cursor color palette index (0-15)
+1816                  CSR_PAL_DATA    equ     $1816   ; (Byte) mouse cursor color palette data RRGGBBAA
+1817                  CSR_BMP_INDX    equ     $1817   ; (Byte) mouse cursor bitmap pixel offset
+1818                  CSR_BMP_DATA    equ     $1818   ; (Byte) mouse cursor bitmap pixel color
                       
-1817                  GFX_END equ     $1817   ; end of the GFX Hardware Registers
+1818                  GFX_END equ     $1818   ; end of the GFX Hardware Registers
                       
-1818                  RESERVED_HDW    equ     $1818   ; Reserved 2019 bytes ($1818 - $1FFB)
+1819                  RESERVED_HDW    equ     $1819   ; Reserved 2018 bytes ($1819 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -124,6 +129,7 @@ C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       
                       ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+                      
                       
                       ; ***************************************
                       ; * Read Only Sytem KERNAL ROM          *
@@ -179,7 +185,7 @@ E024                  reset
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
                                               
-E024  8630                                    lda             #num_cycles             ; initially clear the cycle variable
+E024  8640                                    lda             #num_cycles             ; initially clear the cycle variable
 E026  B70014                                  sta             var_cycle
                       
                       ;                       ; enable backbuffer mode
@@ -237,15 +243,15 @@ E07A  B71800                                  sta             GFX_FLAGS       ; 
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
 E07D  8604                                    lda             #4
-E07F  B71814                                  sta             CSR_PAL_INDX
-E082  B61815                                  lda             CSR_PAL_DATA
+E07F  B71815                                  sta             CSR_PAL_INDX
+E082  B61816                                  lda             CSR_PAL_DATA
 E085  8B04                                    adda    #$04
-E087  B71815                                  sta             CSR_PAL_DATA            
+E087  B71816                                  sta             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
 E08A  7C0014                                  inc             var_cycle       ; increment the cycle counter
 E08D  B60014                                  lda             var_cycle
-E090  8130                                    cmpa    #num_cycles             ; max cycles yet?
+E090  8140                                    cmpa    #num_cycles             ; max cycles yet?
 E092  2323                                    bls             continue        ; nope, continue with the main loop
 E094  7F0014                                  clr             var_cycle       ; reset the cycle count
                       

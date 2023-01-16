@@ -14,6 +14,19 @@
 //#include "font8x8_system.h"
 extern Byte font8x8_system[256][8];
 
+// Graphics Mode Unique Callback Function:
+Byte GfxGlyph32::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		printf("GfxGlyph32::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxGlyph32::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
 
 GfxGlyph32::GfxGlyph32()
 {
@@ -21,10 +34,6 @@ GfxGlyph32::GfxGlyph32()
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
-	if (gfx == nullptr)
-	{
-		Bus::Err("ERROR: GfxGlyph64::GfxGlyph64() -- gfx == nullptr");
-	}
 }
 
 void GfxGlyph32::OnInitialize()
@@ -169,7 +178,7 @@ void GfxGlyph32::OnUpdate(float fElapsedTime)
 			Byte red = gfx->red(bg);
 			Byte grn = gfx->grn(bg);
 			Byte blu = gfx->blu(bg);
-			Byte alf = gfx->alf(bg) / 2;
+			Byte alf = gfx->alf(bg) * 0.75f;
 			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 			SDL_Rect dst = { x, y, 8, 8 };
 			SDL_RenderFillRect(gfx->Renderer(), &dst);

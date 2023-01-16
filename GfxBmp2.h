@@ -14,6 +14,8 @@ public:
 	GfxBmp2();
 	virtual ~GfxBmp2();
 
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+
 	virtual void OnInitialize() override;
 	virtual void OnActivate() override;
 	virtual void OnDeactivate() override;

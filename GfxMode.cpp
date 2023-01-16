@@ -32,19 +32,26 @@ void GfxMode::OnUpdate(float fElapsedTime)
 			SDL_RenderDrawPoint(gfx->Renderer(), x, y);
 		}
 	}
-
-	//for (int t = 0; t < 500; t++)
-	//{
-	//	int x = rand() % gfx->PixWidth();
-	//	int y = rand() % gfx->PixHeight();
-	//	int r = rand() % 2;
-	//	SDL_SetRenderDrawColor(gfx->Renderer(), r, r, r, 0xFF);
-	//	SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-	//}
 }
 
 
 //// GfxNull ///////////////////////////////////////////////////
+
+
+
+// Graphics Mode Unique Callback Function:
+Byte GfxNull::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		printf("GfxNull::OnCallback() -- READ\n");
+	}
+	else
+	{	// WRITE
+		printf("GfxNull::OnCallback() -- WRITE\n");
+	}
+	return data;
+}
 
 GfxNull::GfxNull() : GfxMode()
 {

@@ -57,13 +57,13 @@
     <ClCompile Include="GfxGlyph32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GfxTile.cpp">
+    <ClCompile Include="GfxTile16.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GfxRaw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GfxHires.cpp">
+    <ClCompile Include="GfxTile32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,13 +113,13 @@
     <ClInclude Include="GfxGlyph32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GfxTile.h">
+    <ClInclude Include="GfxTile16.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GfxRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GfxHires.h">
+    <ClInclude Include="GfxTile32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

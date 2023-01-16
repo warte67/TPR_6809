@@ -25,8 +25,8 @@ GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
                                 ;      bits 2-3 = 'Background' graphics mode (40KB buffer)
                                 ;          0) NONE (forced black background)
                                 ;          1) Tiled 16x16 mode
-                                ;          2) 256x160 x 64-Colors
-                                ;          3) 512x320 x 4-Color
+                                ;          2) Overscan Tile 16x16 mode
+                                ;          3) 256x160 x 64-Colors (40k)
                                 ;      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
                                 ;          0) 256x160 x 2-Color (with disable flag)
                                 ;          1) Glyph Mode (32x20 text)
@@ -44,30 +44,35 @@ TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
 GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits r4g4b4a4
 
-;  Paged Graphics Mode Hardware Registers:
-GFX_PG_BEGIN    equ     $1808   ; start of paged gfxmode registers
+;  Paged Foreground Graphics Mode Hardware Registers:
+GFX_FG_BEGIN    equ     $1808   ; start of paged foreground gfxmode registers
 GFX_EXT_ADDR    equ     $1808   ; (Word) 64K extended graphics addresses
 GFX_EXT_DATA    equ     $180a   ; (Byte) 64K extended graphics RAM data
-GFX_PG_END      equ     $180a   ; end of paged gfxmode registers
+GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
+
+;  Paged Background Graphics Mode Hardware Registers:
+GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
+GFX_BGND_TEMP   equ     $180b   ; (Byte) 64K extended graphics addresses
+GFX_BG_END      equ     $180b   ; end of paged background gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
-CSR_XPOS        equ     $180b   ; (Word) horizontal mouse cursor coordinate
-CSR_YPOS        equ     $180d   ; (Word) vertical mouse cursor coordinate
-CSR_XOFS        equ     $180f   ; (Byte) horizontal mouse cursor offset
-CSR_YOFS        equ     $1810   ; (Byte) vertical mouse cursor offset
-CSR_SIZE        equ     $1811   ; (Byte) cursor size (0-15) 0:off
-CSR_SCROLL      equ     $1812   ; (Signed) MouseWheel Scroll: -1, 0, 1
-CSR_FLAGS       equ     $1813   ; (Byte) mouse button flags:
+CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate
+CSR_YPOS        equ     $180e   ; (Word) vertical mouse cursor coordinate
+CSR_XOFS        equ     $1810   ; (Byte) horizontal mouse cursor offset
+CSR_YOFS        equ     $1811   ; (Byte) vertical mouse cursor offset
+CSR_SIZE        equ     $1812   ; (Byte) cursor size (0-15) 0:off
+CSR_SCROLL      equ     $1813   ; (Signed) MouseWheel Scroll: -1, 0, 1
+CSR_FLAGS       equ     $1814   ; (Byte) mouse button flags:
                                 ;      bits 0-5: button states
                                 ;      bits 6-7: number of clicks
-CSR_PAL_INDX    equ     $1814   ; (Byte) mouse cursor color palette index (0-15)
-CSR_PAL_DATA    equ     $1815   ; (Byte) mouse cursor color palette data RRGGBBAA
-CSR_BMP_INDX    equ     $1816   ; (Byte) mouse cursor bitmap pixel offset
-CSR_BMP_DATA    equ     $1817   ; (Byte) mouse cursor bitmap pixel color
+CSR_PAL_INDX    equ     $1815   ; (Byte) mouse cursor color palette index (0-15)
+CSR_PAL_DATA    equ     $1816   ; (Byte) mouse cursor color palette data RRGGBBAA
+CSR_BMP_INDX    equ     $1817   ; (Byte) mouse cursor bitmap pixel offset
+CSR_BMP_DATA    equ     $1818   ; (Byte) mouse cursor bitmap pixel color
 
-GFX_END equ     $1817   ; end of the GFX Hardware Registers
+GFX_END equ     $1818   ; end of the GFX Hardware Registers
 
-RESERVED_HDW    equ     $1818   ; Reserved 2019 bytes ($1818 - $1FFB)
+RESERVED_HDW    equ     $1819   ; Reserved 2018 bytes ($1819 - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -83,3 +88,4 @@ RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
 
 ;  Bios Kernal ROM:
 BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+

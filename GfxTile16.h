@@ -1,4 +1,4 @@
-// * GfxTile.h ***************************************
+// * GfxTile16.h ***************************************
 // *
 // *  16x16 Tile Mode
 // ************************************
@@ -6,11 +6,14 @@
 #ifndef __GFXTILE_H__
 #define __GFXTILE_H__
 
-class GfxTile : public GfxMode
+class GfxTile16 : public GfxMode
 {
+	friend class GfxTile32;
 public:
-	GfxTile();
-	virtual ~GfxTile() {}
+	GfxTile16();
+	virtual ~GfxTile16() {}
+
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
 
 	virtual void OnInitialize() override;				// runs once after all devices are created
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
@@ -26,8 +29,8 @@ private:
 
 	SDL_Texture* _tile_texture = nullptr;
 	std::vector<GFX::PALETTE> default_palette;
-	static const int pixel_width;
-	static const int pixel_height;
+	int pixel_width;
+	int pixel_height;
 };
 
 #endif // __GFXTILE_H__

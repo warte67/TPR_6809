@@ -11,8 +11,8 @@
 #include "GfxRaw.h"
 
 // statics:
-const int GfxRaw::pixel_width = 128;	// 256;
-const int GfxRaw::pixel_height = 80;	// 160;
+const int GfxRaw::pixel_width = 256;
+const int GfxRaw::pixel_height = 160;
 
 // Graphics Mode Unique Callback Function:
 Byte GfxRaw::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
@@ -47,6 +47,7 @@ void GfxRaw::OnInitialize()
 
 void GfxRaw::OnActivate()
 {
+	//bus->write_word(GFX_EXT_ADDR, 0);
 }
 
 void GfxRaw::OnDeactivate()

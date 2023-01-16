@@ -15,6 +15,8 @@ public:
 	GfxGlyph32();
 	virtual ~GfxGlyph32() {}
 
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+
 	virtual void OnInitialize() override;				// runs once after all devices are created
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
 	//virtual void OnEvent(SDL_Event* evnt) override;		// fires per SDL_Event
