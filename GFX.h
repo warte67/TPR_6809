@@ -94,8 +94,12 @@ protected:
     static bool m_enable_debug;         // 1:enabled, 0:disabled
     // static bool m_enable_mouse;         // 1:enabled, 0:disabled
     static int  m_current_backbuffer;   // currently active backbuffer
-    static int  m_gmode_index;          // (0-7)
+
     // TODO:  change m_gmode_index to m_fg_mode_index and m_bg_mode_index
+    static int  m_gmode_index;          // (0-7)
+    int m_fg_mode_index = DEFAULT_FG_GMODE;
+    int m_bg_mode_index = DEFAULT_BG_GMODE;
+
 
 
     // statics (auxillary)
@@ -107,7 +111,9 @@ protected:
     bool bIsDirty = true;
 
     // graphics modes    
-	std::vector<GfxMode*> m_gmodes;
+	//std::vector<GfxMode*> m_gmodes;
+    std::vector<GfxMode*> m_bg_gmodes;
+    std::vector<GfxMode*> m_fg_gmodes;
 
     // device objects
     Bus* bus = nullptr;

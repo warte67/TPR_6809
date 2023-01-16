@@ -59,7 +59,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
 				if (ptrGfx->m_current_backbuffer)	ret |= 0x20;
 				if (ptrGfx->m_enable_debug)			ret |= 0x10;
-				ret |= (ptrGfx->m_gmode_index & 0x07);
+
+						// Out with the old!
+						ret |= ptrGfx->m_gmode_index & 0x0F;
+				// in with the new!
+				ret |= ptrGfx->m_fg_mode_index & 0x03;
+				ret |= (ptrGfx->m_bg_mode_index << 2) & 0x03;
+
 				ptrGfx->write(ofs, ret);	// pre-write
 				return ret;
 			}
@@ -100,26 +106,57 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs == GFX_FLAGS)
 			{	// WRITE:
 				bool old_VSYNC = ptrGfx->m_VSYNC;
-				static int old_gmode_index = 0;
+				
 				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
 				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
 				if (ptrGfx->m_enable_backbuffer)
 					ptrGfx->m_current_backbuffer = ((data & 0x20) == 0x20);
 				ptrGfx->m_enable_debug = ((data & 0x10) == 0x10);
 
-				ptrGfx->m_gmode_index			= (data & 0x07);
+				// Out with the old!
+				ptrGfx->m_gmode_index			= data & 0x0F;
+				// in with the new!
+				ptrGfx->m_fg_mode_index = data & 0x03;
+				ptrGfx->m_bg_mode_index = (data >> 2) & 0x03;
 
 				// only go "dirty" on VSYNC change
 				if (old_VSYNC != ptrGfx->m_VSYNC)
 					ptrGfx->bIsDirty = true;
-				if (old_gmode_index != ptrGfx->m_gmode_index)
+
+				// activate / deactivate 
+
+				//static int old_gmode_index = 0;
+				//if (old_gmode_index != ptrGfx->m_gmode_index)
+				//{
+				//	ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
+				//	ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
+				//	printf("GFX::OnCallback() =---> GFX Index: %d\n", ptrGfx->m_gmode_index);
+				//	printf("GFX::OnCallback() =---> FG Index: %d\n", ptrGfx->m_fg_mode_index);
+				//	printf("GFX::OnCallback() =---> BG Index: %d\n\n", ptrGfx->m_bg_mode_index);
+				//	//bus->bCpuEnabled = true;
+				//	//ptrGfx->bIsDirty = true;
+				//}
+				//old_gmode_index = ptrGfx->m_gmode_index;
+
+				// FG Out with the old, in with the new
+				static int old_fg_gmode_index = ptrGfx->m_fg_mode_index;
+				if (old_fg_gmode_index != ptrGfx->m_fg_mode_index)
 				{
-					ptrGfx->m_gmodes[old_gmode_index]->OnDeactivate();
-					ptrGfx->m_gmodes[ptrGfx->m_gmode_index]->OnActivate();
-					//bus->bCpuEnabled = true;
-					//ptrGfx->bIsDirty = true;
+					ptrGfx->m_fg_gmodes[old_fg_gmode_index]->OnDeactivate();
+					ptrGfx->m_fg_gmodes[ptrGfx->m_fg_mode_index]->OnActivate();
 				}
-				old_gmode_index = ptrGfx->m_gmode_index;
+				old_fg_gmode_index = ptrGfx->m_fg_mode_index;
+
+				// BG Out with the old, in with the new
+				static int old_bg_gmode_index = ptrGfx->m_bg_mode_index;
+				if (old_bg_gmode_index != ptrGfx->m_bg_mode_index)
+				{
+					ptrGfx->m_bg_gmodes[old_bg_gmode_index]->OnDeactivate();
+					ptrGfx->m_bg_gmodes[ptrGfx->m_bg_mode_index]->OnActivate();
+				}
+				old_bg_gmode_index = ptrGfx->m_bg_mode_index;
+
+
 
 				ptrGfx->debug_write(ofs, data);
 			}
@@ -160,7 +197,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 		// intercept for banked GfxMode registers
 		if (ofs >= GFX_PG_BEGIN && ofs <= GFX_PG_END)
-			return ptrGfx->m_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_gmodes[m_gmode_index], ofs, data, bWasRead);
+		{
+			ptrGfx->m_bg_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_bg_gmodes[m_gmode_index], ofs, data, bWasRead);
+			ptrGfx->m_fg_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_fg_gmodes[m_gmode_index], ofs, data, bWasRead);
+		}
 	}
 	return data;
 }
@@ -191,15 +231,15 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	//m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
 
 	// background graphics modes
-	m_gmodes.push_back(new GfxNull());
-	m_gmodes.push_back(new GfxTile());
-	m_gmodes.push_back(new GfxRaw());
-	m_gmodes.push_back(new GfxHires());
+	m_bg_gmodes.push_back(new GfxNull());
+	m_bg_gmodes.push_back(new GfxTile());
+	m_bg_gmodes.push_back(new GfxRaw());
+	m_bg_gmodes.push_back(new GfxHires());
 	// foreground graphics modes
-	m_gmodes.push_back(new GfxBmp2());
-	m_gmodes.push_back(new GfxGlyph32());
-	m_gmodes.push_back(new GfxGlyph64());
-	m_gmodes.push_back(new GfxBmp16());
+	m_fg_gmodes.push_back(new GfxBmp2());
+	m_fg_gmodes.push_back(new GfxGlyph32());
+	m_fg_gmodes.push_back(new GfxGlyph64());
+	m_fg_gmodes.push_back(new GfxBmp16());
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
@@ -212,7 +252,9 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 GFX::~GFX()
 {    
 	// clean up the graphics modes
-	for (auto& a : m_gmodes)
+	for (auto& a : m_bg_gmodes)
+		delete a;
+	for (auto& a : m_fg_gmodes)
 		delete a;
 
 	// Destroy gfx_Debug
@@ -310,7 +352,7 @@ void GFX::OnInitialize()
 		for (int t = 0; t < 16; t++)
 			palette.push_back({0x00});
 		std::vector<PALETTE> ref = {
-			{ 0x03 },	// 00 00.00 11		0
+			{ 0x00 },	// 00 00.00 00		0
 			{ 0x07 },	// 00 00.01 11		1
 			{ 0x13 },	// 00 01.00 11		2
 			{ 0x17 },	// 00 01.01 11		3
@@ -341,8 +383,10 @@ void GFX::OnInitialize()
 	bus->debug_write_word(TIMING_HEIGHT, _pix_height);
 	
 	// OnInitialize() all of the graphics mode layers
-	for (int t = 0; t < m_gmodes.size(); t++)
-		m_gmodes[t]->OnInitialize();
+	for (int t = 0; t < m_bg_gmodes.size(); t++)
+		m_bg_gmodes[t]->OnInitialize();
+	for (int t = 0; t < m_fg_gmodes.size(); t++)
+		m_fg_gmodes[t]->OnInitialize();
 	gfx_debug->OnInitialize();
 	gfx_mouse->OnInitialize();
 }
@@ -355,8 +399,10 @@ void GFX::OnQuit()
 	palette.clear();
 	
 	// OnQuit() all of the graphics mode layers
-	for (int t = 0; t < m_gmodes.size(); t++)
-		m_gmodes[t]->OnQuit();
+	for (int t = 0; t < m_bg_gmodes.size(); t++)
+		m_bg_gmodes[t]->OnQuit();
+	for (int t = 0; t < m_fg_gmodes.size(); t++)
+		m_fg_gmodes[t]->OnQuit();
 	gfx_debug->OnQuit();
 	gfx_mouse->OnQuit();
 }
@@ -469,7 +515,9 @@ void GFX::OnEvent(SDL_Event *evnt)
 		}
 	}
 	// run the gmodes
-	m_gmodes[m_gmode_index]->OnEvent(evnt);
+	//m_gmodes[m_gmode_index]->OnEvent(evnt);
+	m_bg_gmodes[m_bg_mode_index]->OnEvent(evnt);
+	m_fg_gmodes[m_fg_mode_index]->OnEvent(evnt);
 
 	// run the debugger
 	if (DebugEnabled())
@@ -572,8 +620,10 @@ void GFX::OnCreate()
 	//bus->cpu_pause = false;
 
 	// OnCreate all of the graphics mode layers
-	for (int t = 0; t < m_gmodes.size(); t++)
-		m_gmodes[t]->OnCreate();
+	for (int t = 0; t < m_bg_gmodes.size(); t++)
+		m_bg_gmodes[t]->OnCreate();
+	for (int t = 0; t < m_fg_gmodes.size(); t++)
+		m_fg_gmodes[t]->OnCreate();
 	gfx_debug->OnCreate();
 	gfx_mouse->OnCreate();
 
@@ -601,8 +651,10 @@ void GFX::OnDestroy()
 	//bus->cpu_pause = true;
 
 	// destroy all of the gnodes
-	for (int t=0; t< m_gmodes.size(); t++)
-		m_gmodes[t]->OnDestroy();
+	for (int t = 0; t < m_bg_gmodes.size(); t++)
+		m_bg_gmodes[t]->OnDestroy();
+	for (int t = 0; t < m_fg_gmodes.size(); t++)
+		m_fg_gmodes[t]->OnDestroy();
 	gfx_debug->OnDestroy();
 	gfx_mouse->OnDestroy();
 
@@ -640,7 +692,9 @@ void GFX::OnUpdate(float fElapsedTime)
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
 	// render the graphics mode
-	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
+	//m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
+	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);
+	m_fg_gmodes[m_fg_mode_index]->OnUpdate(fElapsedTime);
 	gfx_mouse->OnUpdate(fElapsedTime);
 	gfx_debug->OnUpdate(fElapsedTime);
 
@@ -655,6 +709,9 @@ void GFX::OnUpdate(float fElapsedTime)
 		std::string title = "FPS: " + std::to_string(Bus::getFPS());
 		SDL_SetWindowTitle(_window, title.c_str());
 	}
+
+	printf("GFX::OnCallback() =---> FG Index: %d\n", m_fg_mode_index);
+	printf("GFX::OnCallback() =---> BG Index: %d\n\n", m_bg_mode_index);
 
 	// render the GFX object to the main screen texture
 	_onRender();
@@ -692,7 +749,9 @@ void GFX::_onRender()
 	}
 
 	// render outputs
-	m_gmodes[m_gmode_index]->OnRender();
+	//m_gmodes[m_gmode_index]->OnRender();
+	m_bg_gmodes[m_bg_mode_index]->OnRender();
+	m_fg_gmodes[m_fg_mode_index]->OnRender();
 
 	if (DebugEnabled())
 		gfx_debug->OnRender();

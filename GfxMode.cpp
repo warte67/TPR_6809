@@ -53,8 +53,6 @@ GfxNull::GfxNull() : GfxMode()
 
 void GfxNull::OnUpdate(float fElapsedTime) 
 {
-	
-
 	const float delay = 0.100f;
 	static float delayAcc = fElapsedTime;
 	delayAcc += fElapsedTime;
@@ -79,7 +77,6 @@ void GfxNull::OnUpdate(float fElapsedTime)
 			case 5: r = gr; g = gr; break;
 			case 6: r = gr; g = gr; b = gr; break;
 		}
-
 		//Uint8 r = (rand() % 4) * 85;
 		//Uint8 g = (rand() % 4) * 85;
 		//Uint8 b = (rand() % 4) * 85;

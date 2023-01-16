@@ -51,7 +51,11 @@ void GfxHires::OnInitialize()
 			{ 0xFF },	// 11 11.11 11		1
 		};
 		for (int t = 0; t < 2; t++)
+		{
 			default_palette.push_back(ref[t]);
+			bus->write(GFX_PAL_INDX, t);
+			bus->write(GFX_PAL_DATA, default_palette[t].color);
+		}
 	}
 }
 

@@ -105,6 +105,9 @@ void GfxBmp16::OnUpdate(float fElapsedTime)
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
+		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0);
+		SDL_RenderClear(gfx->Renderer());
+
 		Word ofs = VIDEO_START;
 		for (int y = 0; y < pixel_height; y++)
 		{
@@ -113,10 +116,16 @@ void GfxBmp16::OnUpdate(float fElapsedTime)
 				Byte data = bus->debug_read(ofs++);
 				Byte c1 = data >> 4;
 				Byte c2 = data & 0x0f;
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), SDL_ALPHA_OPAQUE);
+			
+				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1));
+				//SDL_RenderDrawPoint(gfx->Renderer(), x, y);
+				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2));
+				//SDL_RenderDrawPoint(gfx->Renderer(), x+1, y);
+
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1)/2);
 				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawPoint(gfx->Renderer(), x+1, y);
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2)/2);
+				SDL_RenderDrawPoint(gfx->Renderer(), x + 1, y);
 			}
 		}
 	}

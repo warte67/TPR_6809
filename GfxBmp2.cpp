@@ -36,7 +36,11 @@ void GfxBmp2::OnInitialize()
 			{ 0xFF },	// 11 11.11 11		1
 		};
 		for (int t = 0; t < 2; t++)
+		{
 			default_palette.push_back(ref[t]);
+			bus->write(GFX_PAL_INDX, t);
+			bus->write(GFX_PAL_DATA, default_palette[t].color);
+		}
 	}
 }
 
@@ -85,8 +89,8 @@ void GfxBmp2::OnDestroy()
 
 void GfxBmp2::OnUpdate(float fElapsedTime)
 {
-	//if ((bus->read(GFX_FLAGS) & 0x0f) != 0x04)
-	//	return;
+	if ((bus->read(GFX_FLAGS) & 0x0f) != 0x00)
+		return;
 
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
@@ -116,8 +120,8 @@ void GfxBmp2::OnUpdate(float fElapsedTime)
 
 void GfxBmp2::OnRender()
 {
-	//if ((bus->read(GFX_FLAGS) & 0x0f) != 0x04)
-	//	return;
+	if ((bus->read(GFX_FLAGS) & 0x0f) != 0x00)
+		return;
 
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 	if (gfx->Fullscreen())

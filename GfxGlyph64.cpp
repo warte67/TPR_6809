@@ -51,6 +51,7 @@ void GfxGlyph64::OnInitialize()
 			{ 0xF3 },	// 11 11.00 11		e
 			{ 0xFF },	// 11 11.11 11		f
 		};
+
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
 	}
@@ -151,6 +152,10 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 	{
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), _glyph_texture);
+
+		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0);
+		SDL_RenderClear(gfx->Renderer());
+
 		for (int ofs = VIDEO_START; ofs <= VIDEO_END; ofs += 2)
 		{
 			Word index = ofs - VIDEO_START;
@@ -163,7 +168,7 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 			Byte red = gfx->red(bg);
 			Byte grn = gfx->grn(bg);
 			Byte blu = gfx->blu(bg);
-			Byte alf = gfx->alf(bg);
+			Byte alf = gfx->alf(bg) / 2;
 			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 			SDL_Rect dst = { x, y, 8, 8 };
 			SDL_RenderFillRect(gfx->Renderer(), &dst);
@@ -173,7 +178,7 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 			red = gfx->red(fg);
 			grn = gfx->grn(fg);
 			blu = gfx->blu(fg);
-			alf = gfx->alf(fg);
+			alf = gfx->alf(fg) / 2;
 			int row = x / 8;
 			int col = y / 8;
 
@@ -203,8 +208,25 @@ void GfxGlyph64::OutGlyph(int row, int col, Byte glyph, Byte red=255, Byte grn=2
 
 void GfxGlyph64::OnRender()
 {
-	// SDL_SetRenderTarget(gfx->Renderer(), NULL);
-	SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
-	SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, NULL);
+	//SDL_SetRenderTarget(gfx->Renderer(), gfx->Texture());
+	//SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, NULL);
+
+	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+	if (gfx->Fullscreen())
+	{
+		int ww, wh;
+		SDL_GetWindowSize(gfx->Window(), &ww, &wh);
+		float fh = (float)wh;
+		float fw = fh * gfx->Aspect();
+		if (fw > ww)
+		{
+			fw = (float)ww;
+			fh = fw / gfx->Aspect();
+		}
+		SDL_Rect dest = { int(ww / 2 - (int)fw / 2), int(wh / 2 - (int)fh / 2), (int)fw, (int)fh };
+		SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, &dest);
+	}
+	else
+		SDL_RenderCopy(gfx->Renderer(), _glyph_texture, NULL, NULL);
 }
 
