@@ -179,85 +179,92 @@ E024                  reset
                                               ;               with ascending values to display
                                               
 E024  7F0014                                  clr             var_cycle               ; initially clear the cycle variable
-E027  7F0015                                  clr             var_mode_index  ; start with index 0
+                      
+                                              ; set up the initial graphics mode 
+                      ;                       clr             var_mode_index  ; start with index 0
+                      ;                       ldx             #mode_data
+                      ;                       lda             GFX_FLAGS
+                      ;                       ora             ,x
+                      ;                       sta             GFX_FLAGS
+                      
                       
                       ; ***********************
                       ; *  Pre-Fill and Cycle 
                       ; *  the Display Buffer
                       ; ***********************
                       
-E02A  7F0010                                  clr             var_ch                  ; character = 0
-E02D  7F0011                                  clr             var_at                  ; attribute = 0
-E030  7F0012                                  clr             var_count               ; count = 0
-E033  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-E036                  1
-E036  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-E039  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-E03B  B60010                                  lda             var_ch                  ; load the current character
-E03E  F60011                                  ldb             var_at                  ; load the current attribute
-E041  ED81                                    std             ,x++                    ; store both character and attribute
-E043  7C0010                                  inc             var_ch                  ; next character
-E046  7C0012                                  inc             var_count               ; increment count
-E049  B60012                                  lda             var_count               ; load the count
-E04C  8111                                    cmpa    #17                             ; compare the count with this amount
-E04E  2DE6                                    blt             1b                              ; loop if count lower than
-E050  7C0011                                  inc             var_at                  ; next attribute
-E053  7F0012                                  clr             var_count               ; clear the count
-E056  20DE                                    bra             1b                              ; resume the loop
+E027  7F0010                                  clr             var_ch                  ; character = 0
+E02A  7F0011                                  clr             var_at                  ; attribute = 0
+E02D  7F0012                                  clr             var_count               ; count = 0
+E030  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+E033                  1
+E033  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+E036  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+E038  B60010                                  lda             var_ch                  ; load the current character
+E03B  F60011                                  ldb             var_at                  ; load the current attribute
+E03E  ED81                                    std             ,x++                    ; store both character and attribute
+E040  7C0010                                  inc             var_ch                  ; next character
+E043  7C0012                                  inc             var_count               ; increment count
+E046  B60012                                  lda             var_count               ; load the count
+E049  8111                                    cmpa    #17                             ; compare the count with this amount
+E04B  2DE6                                    blt             1b                              ; loop if count lower than
+E04D  7C0011                                  inc             var_at                  ; next attribute
+E050  7F0012                                  clr             var_count               ; clear the count
+E053  20DE                                    bra             1b                              ; resume the loop
                       
                                               ; INCREMENT THE SCREEN BUFFER
-E058                  2
-E058  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E05B                  4
-E05B  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E05E  2C06                                    bge             3f                              ; restart when past the end
-E060  6C80                                    inc             ,x+                             ; increment character
-E062  6C80                                    inc             ,x+                             ; increment the attribute
-E064  20F5                                    bra             4b                              ; loop until done
-E066                  3
+E055                  2
+E055  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E058                  4
+E058  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E05B  2C06                                    bge             3f                              ; restart when past the end
+E05D  6C80                                    inc             ,x+                             ; increment character
+E05F  6C80                                    inc             ,x+                             ; increment the attribute
+E061  20F5                                    bra             4b                              ; loop until done
+E063                  3
                                               ; TOGGLE THE BACKBUFFER
-E066  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E069  8820                                    eora    #$20            ; toggle it
-E06B  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E063  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E066  8820                                    eora    #$20            ; toggle it
+E068  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; INCREMENT THE CYCLE COUNTER
-E06E  7C0014                                  inc             var_cycle       ; increment the cycle counter
-E071  B60014                                  lda             var_cycle
-E074  8120                                    cmpa    #32                     ; 32 cycles yet?
-E076  2621                                    bne             continue        ; nope, continue with the main loop
-E078  7F0014                                  clr             var_cycle       ; reset the cycle count
+E06B  7C0014                                  inc             var_cycle       ; increment the cycle counter
+E06E  B60014                                  lda             var_cycle
+E071  8120                                    cmpa    #32                     ; 32 cycles yet?
+E073  2621                                    bne             continue        ; nope, continue with the main loop
+E075  7F0014                                  clr             var_cycle       ; reset the cycle count
                       
                                               ; MODE CHANGES
                       
-E07B  F60015                                  ldb             var_mode_index
-E07E  7C0015                                  inc             var_mode_index
-E081  8EE0A8                                  ldx             #mode_data
-E084  A685                                    lda             b,x
-E086  81FF                                    cmpa    #$ff
-E088  270C                                    beq             5f
-E08A  B61800                                  lda             GFX_FLAGS
-E08D  84F0                                    anda    #$f0
-E08F  AA85                                    ora             b,x
-E091  B71800                                  sta             GFX_FLAGS
-E094  2003                                    bra             continue
-E096                  5       
-E096  7F0015                                  clr             var_mode_index
-E099                  continue
+E078  F60015                                  ldb             var_mode_index
+E07B  7C0015                                  inc             var_mode_index
+E07E  8EE0A5                                  ldx             #mode_data
+E081  A685                                    lda             b,x
+E083  81FF                                    cmpa    #$ff
+E085  270C                                    beq             5f
+E087  B61800                                  lda             GFX_FLAGS
+E08A  84F0                                    anda    #$f0
+E08C  AA85                                    ora             b,x
+E08E  B71800                                  sta             GFX_FLAGS
+E091  2003                                    bra             continue
+E093                  5       
+E093  7F0015                                  clr             var_mode_index
+E096                  continue
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
-E099  8604                                    lda             #4
-E09B  B71814                                  sta             CSR_PAL_INDX
-E09E  B61815                                  lda             CSR_PAL_DATA
-E0A1  8B04                                    adda    #$04
-E0A3  B71815                                  sta             CSR_PAL_DATA
+E096  8604                                    lda             #4
+E098  B71814                                  sta             CSR_PAL_INDX
+E09B  B61815                                  lda             CSR_PAL_DATA
+E09E  8B04                                    adda    #$04
+E0A0  B71815                                  sta             CSR_PAL_DATA
                                               
                       
-E0A6  20B0                                    bra             2b
+E0A3  20B0                                    bra             2b
                       
                       
-E0A8  01020304050607  mode_data       fcb             $01, $02, $03, $04, $05, $06, $07
+E0A5  01020304050607  mode_data       fcb             $01, $02, $03, $04, $05, $06, $07
                       
-E0AF  FF                                      fcb             $ff
+E0AC  FF                                      fcb             $ff
                       
                       
                       

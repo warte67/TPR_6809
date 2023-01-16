@@ -94,7 +94,14 @@ reset
 			;		with ascending values to display
 			
 			clr		var_cycle		; initially clear the cycle variable
-			clr		var_mode_index	; start with index 0
+
+			; set up the initial graphics mode 
+;			clr		var_mode_index	; start with index 0
+;			ldx		#mode_data
+;			lda		GFX_FLAGS
+;			ora		,x
+;			sta		GFX_FLAGS
+
 
 ; ***********************
 ; *  Pre-Fill and Cycle 

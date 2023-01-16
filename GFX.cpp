@@ -459,6 +459,7 @@ void GFX::OnEvent(SDL_Event *evnt)
 	}
 	// run the gmodes
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
+
 	// run the debugger
 	if (DebugEnabled())
 		gfx_debug->OnEvent(evnt);
@@ -623,21 +624,12 @@ void GFX::OnDestroy()
 
 void GFX::OnUpdate(float fElapsedTime)
 {
-	//// automatically flip the backbuffer
-	//Byte data = bus->read(GFX_FLAGS);
-	//data ^= 0x08;
-	//bus->write(GFX_FLAGS, data);
-
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
 	// render the graphics mode
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
-	if (DebugEnabled())
-		gfx_debug->OnUpdate(fElapsedTime);
-	if (gfx_mouse->Mouse_Size() > 0)
-		gfx_mouse->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
 	// in Linux. Only call it once per second.
@@ -688,6 +680,7 @@ void GFX::_onRender()
 
 	// render outputs
 	m_gmodes[m_gmode_index]->OnRender();
+
 	if (DebugEnabled())
 		gfx_debug->OnRender();
 	if (gfx_mouse->Mouse_Size() > 0)

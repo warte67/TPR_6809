@@ -46,7 +46,8 @@ public:
     virtual void OnDestroy();					// fires when the object is destroyed/lost focus
     virtual void OnUpdate(float fElapsedTime);	// fires each frame, for updates
     //virtual void OnRender();					// render the current frames texture
- 
+
+
 	// accessors:
     int PixWidth() { return _pix_width; }
     int PixHeight() { return _pix_height; }
@@ -127,16 +128,8 @@ protected:
 public:
      Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
      Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
-     Uint8 blu(Uint8 index)
-     {
-         Uint8 c = palette[index].b;
-         c = c | (c << 2) | (c << 4) | (c << 6);
-         return c;
-     }
+     Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 2) | (c << 4) | (c << 6); }
      Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
-
-
-
 };
 
 
@@ -159,10 +152,15 @@ public:
                 3) GfxHires()       512x320 x 4-Color
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
-                0) GfxBmp2()        256x160 x 2-Color (with disable flag for fully transparent foreground)
+                0) GfxBmp2()        256x160 x 2-Color
                 1) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
                 2) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
                 3) GfxBmp16()       128x80 x 16-Color
+
+            Notes:
+                When the background mode is non-zero, GfxBmp2() will be disabled and
+                completely transparent. Only when the background mode is 0 will
+                GfxBmp2() display pixel data.
 
     GFX_AUX: (emulator only)
         bits:
@@ -183,6 +181,9 @@ public:
 
 
     ************************************************************
+    
+
+
     
 
     Raspberry PI PICO has 26 Multifunction GPIO Pins:
