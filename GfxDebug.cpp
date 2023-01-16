@@ -55,8 +55,10 @@ void GfxDebug::OnQuit()
 void GfxDebug::OnEvent(SDL_Event* evnt) 
 { 
 	//printf("GfxDebug::OnEvent()\n"); 
-	if (evnt->type == SDL_KEYDOWN) {
-		if (evnt->key.keysym.sym == SDLK_ESCAPE) {
+	if (evnt->type == SDL_KEYDOWN) 
+	{
+		if (evnt->key.keysym.sym == SDLK_ESCAPE) 
+		{
 			bIsCursorVisible = false;
 		}
 		if (bIsCursorVisible)

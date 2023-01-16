@@ -443,15 +443,17 @@ void GFX::OnEvent(SDL_Event *evnt)
 			//	data ^= 0x40;
 			//	bus->write(GFX_FLAGS, data);
 			//}
+			
 			// toggle debug enable
 			if (evnt->key.keysym.sym == SDLK_d)
 			{
 				Byte data = bus->read(GFX_FLAGS);
 				data ^= 0x10;
-				if (data & 0x10)
-					gfx_debug->SetSingleStep(true);
+				//if (data & 0x10)
+				//	gfx_debug->SetSingleStep(true);
 				bus->write(GFX_FLAGS, data);
 			}
+
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
