@@ -11,8 +11,8 @@
 #include "GfxRaw.h"
 
 // statics:
-const int GfxRaw::pixel_width = 256;
-const int GfxRaw::pixel_height = 160;
+const int GfxRaw::pixel_width = 128;	// 256;
+const int GfxRaw::pixel_height = 80;	// 160;
 
 // Graphics Mode Unique Callback Function:
 Byte GfxRaw::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
@@ -117,6 +117,7 @@ void GfxRaw::OnUpdate(float fElapsedTime)
 void GfxRaw::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+
 	if (gfx->Fullscreen())
 	{
 		int ww, wh;

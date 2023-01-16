@@ -1,6 +1,8 @@
 // * GfxRaw.cpp ***************************************
 // *
 // * 512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
+// *
+// *  TOO SLOW!!!
 // ************************************
 #pragma once
 
@@ -10,8 +12,8 @@
 #include "GfxHires.h"
 
 // statics:
-const int GfxHires::pixel_width = 512;	
-const int GfxHires::pixel_height = 320;			
+const int GfxHires::pixel_width = 512;
+const int GfxHires::pixel_height = 320;
 
 // Graphics Mode Unique Callback Function:
 Byte GfxHires::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
@@ -141,6 +143,7 @@ void GfxHires::OnUpdate(float fElapsedTime)
 void GfxHires::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+
 	if (gfx->Fullscreen())
 	{
 		int ww, wh;

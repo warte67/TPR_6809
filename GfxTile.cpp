@@ -167,6 +167,7 @@ void GfxTile::OnUpdate(float fElapsedTime)
 void GfxTile::OnRender()
 {
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
+
 	if (gfx->Fullscreen())
 	{
 		int ww, wh;

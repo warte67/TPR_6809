@@ -157,8 +157,8 @@ public:
         bits 2-3 = "Background" graphics mode (40KB buffer)
                 0) GfxNull()        NONE (forced black background)
                 1) GfxTile()        Tile 16x16x16 mode
-                2) GfxRaw()         256x160 x 64-Colors
-                3) GfxHires()       512x320 x 4-Color
+                2) GfxRaw()         256x160 x 64-Colors (40k)   TODO: 160x80 x 64-Colors (10k)
+                3) GfxHires()       512x320 x 4-Color  (timing change? 384x240)
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
                 0) GfxBmp2()        256x160 x 2-Color
@@ -191,6 +191,12 @@ public:
 
     ************************************************************
     
+    Notes:
+        GfxHires() is entirely TOO SLOW. I propose Renaming GfxTile() to GfxTile16() and
+        add a new GfxTile32() which is simply a double scan version. 
+
+
+
 
 
     

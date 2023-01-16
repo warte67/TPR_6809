@@ -710,8 +710,8 @@ void GFX::OnUpdate(float fElapsedTime)
 		SDL_SetWindowTitle(_window, title.c_str());
 	}
 
-	printf("GFX::OnCallback() =---> FG Index: %d\n", m_fg_mode_index);
-	printf("GFX::OnCallback() =---> BG Index: %d\n\n", m_bg_mode_index);
+	//printf("GFX::OnCallback() =---> FG Index: %d\n", m_fg_mode_index);
+	//printf("GFX::OnCallback() =---> BG Index: %d\n\n", m_bg_mode_index);
 
 	// render the GFX object to the main screen texture
 	_onRender();
