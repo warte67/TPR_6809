@@ -17,7 +17,7 @@ public:
 	GfxMode();
 	virtual ~GfxMode();
 
-	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead) { return 0xCC; }
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) { return 0xCC; }
 
 	virtual void OnInitialize() {}					// runs once after all devices are created
 	virtual void OnQuit() {}						// fires on exit -- reverses OnInitialize()

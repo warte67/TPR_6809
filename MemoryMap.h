@@ -69,20 +69,20 @@ enum MEMMAP
 
 //  Graphics Hardware Registers:
      GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
-                                //      bit 7: vsync
+                                //      bit 7: VSYNC
                                 //      bit 6: backbuffer enable
-                                //      bit 5: debug enable
-                                //      bit 4: mouse cursor enable
-                                //      bit 3: swap backbuffers (on write)
-                                //      bit 0-2: graphics mode (0-7)
-                                //          0) NONE (just random background noise)
-                                //          1) Glyph Mode (512x320 or 64x40 text)
-                                //          2) Tile 16x16x16 mode
+                                //      bit 5: swap backbuffers (on write)
+                                //      bit 4: debug enable
+                                //      bits 2-3 = 'Background' graphics mode (40KB buffer)
+                                //          0) NONE (forced black background)
+                                //          1) Tiled 16x16 mode
+                                //          2) 256x160 x 64-Colors
+                                //          3) 512x320 x 4-Color
+                                //      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
+                                //          0) 256x160 x 2-Color (with disable flag)
+                                //          1) Glyph Mode (32x20 text)
+                                //          2) Glyph Mode (64x40 text)
                                 //          3) 128x80 x 16-Color
-                                //          4) 128x160 x 4-Color
-                                //          5) 256x80 x 4-Color
-                                //          6) 256x160 x 2-Color
-                                //          7) 256x192 256-color RGBI2222 (64k BUFFER)
        GFX_AUX = 0x1801,        // (Byte) gfx auxillary/emulation flags:
                                 //      bit 7: 1:fullscreen / 0:windowed
                                 //      bit 6: reserved
@@ -93,32 +93,32 @@ enum MEMMAP
   TIMING_WIDTH = 0x1802,        // (Word) timing width
   TIMING_HEIGHT = 0x1804,       // (Word) timing height
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
-  GFX_PAL_DATA = 0x1807,        // (Word) gfx palette color bits r4g4b4a4
+  GFX_PAL_DATA = 0x1807,        // (Byte) gfx palette color bits r4g4b4a4
 
 //  Paged Graphics Mode Hardware Registers:
-  GFX_PG_BEGIN = 0x1809,        // start of paged gfxmode registers
-  GFX_EXT_ADDR = 0x1809,        // (Word) 20K extended graphics addresses $0000-$4fff
-  GFX_EXT_DATA = 0x180b,        // (Byte) 20K extended graphics RAM data
-    GFX_PG_END = 0x180b,        // end of paged gfxmode registers
+  GFX_PG_BEGIN = 0x1808,        // start of paged gfxmode registers
+  GFX_EXT_ADDR = 0x1808,        // (Word) 64K extended graphics addresses
+  GFX_EXT_DATA = 0x180a,        // (Byte) 64K extended graphics RAM data
+    GFX_PG_END = 0x180a,        // end of paged gfxmode registers
 
 //  Mouse Cursor Hardware Registers:
-      CSR_XPOS = 0x180c,        // (Word) horizontal mouse cursor coordinate
-      CSR_YPOS = 0x180e,        // (Word) vertical mouse cursor coordinate
-      CSR_XOFS = 0x1810,        // (Byte) horizontal mouse cursor offset
-      CSR_YOFS = 0x1811,        // (Byte) vertical mouse cursor offset
-      CSR_SIZE = 0x1812,        // (Byte) cursor size (0-15) 0:off
-    CSR_SCROLL = 0x1813,        // (Signed) MouseWheel Scroll: -1, 0, 1
-     CSR_FLAGS = 0x1814,        // (Byte) mouse button flags:
+      CSR_XPOS = 0x180b,        // (Word) horizontal mouse cursor coordinate
+      CSR_YPOS = 0x180d,        // (Word) vertical mouse cursor coordinate
+      CSR_XOFS = 0x180f,        // (Byte) horizontal mouse cursor offset
+      CSR_YOFS = 0x1810,        // (Byte) vertical mouse cursor offset
+      CSR_SIZE = 0x1811,        // (Byte) cursor size (0-15) 0:off
+    CSR_SCROLL = 0x1812,        // (Signed) MouseWheel Scroll: -1, 0, 1
+     CSR_FLAGS = 0x1813,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1815,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1816,        // (Word) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1818,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1819,        // (Byte) mouse cursor bitmap pixel color
+  CSR_PAL_INDX = 0x1814,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1815,        // (Byte) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1816,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1817,        // (Byte) mouse cursor bitmap pixel color
 
-       GFX_END = 0x1819,        // end of the GFX Hardware Registers
+       GFX_END = 0x1817,        // end of the GFX Hardware Registers
 
-  RESERVED_HDW = 0x181a,        // Reserved 2017 bytes ($181A - $1FFB)
+  RESERVED_HDW = 0x1818,        // Reserved 2019 bytes ($1818 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks

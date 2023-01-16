@@ -45,6 +45,8 @@ public:
 	void DrawButtons();
 	void HandleButtons();
 
+	void SetSingleStep(bool step) { bSingleStep = step; }
+
 	// button callbacks
 	void cbClearBreaks();
 	void cbReset();

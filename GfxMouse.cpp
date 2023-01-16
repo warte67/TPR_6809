@@ -9,10 +9,10 @@
 #include "GfxMouse.h"
 
 
-Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
+// Byte GfxMouse::s_size = 8;		// default mouse cursor size (0-15); 0=off
 
 
-Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GfxMouse::OnCallback()\n");
 
@@ -26,7 +26,7 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_YPOS + 1:	data = mouse_y & 0xff;					break;
 			case CSR_XOFS:		data = mouse_x_offset;					break;
 			case CSR_YOFS:		data = mouse_y_offset;					break;
-			case CSR_SIZE:		data = s_size;							break;
+			case CSR_SIZE:		data = m_size;							break;
 			case CSR_SCROLL:	data = mouse_wheel;	mouse_wheel = 0;	break;
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
@@ -55,11 +55,11 @@ Byte GfxMouse::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			case CSR_XOFS:	mouse_x_offset = data;	break;
 			case CSR_YOFS:	mouse_y_offset = data;	break;
 			case CSR_SIZE:	
-				s_size = data;	
-				if (s_size >= 0x20)		
-					s_size = 0x20;
-				bus->debug_write(CSR_SIZE, s_size); 
-				return s_size;
+				m_size = data;	
+				if (m_size >= 0x20)		
+					m_size = 0x20;
+				bus->debug_write(CSR_SIZE, m_size); 
+				return m_size;
 				break;
 			case CSR_SCROLL: mouse_wheel = data;	break;
 			case CSR_FLAGS:	return data;			break;		// read only
@@ -136,7 +136,7 @@ void GfxMouse::OnInitialize()
 	//printf("GfxMouse::OnInitialize() \n");
 
 	// prepare mems
-	bus->debug_write(CSR_SIZE, s_size);
+	bus->debug_write(CSR_SIZE, m_size);
 }
 
 void GfxMouse::OnActivate() 
@@ -312,7 +312,7 @@ void GfxMouse::OnUpdate(float fElapsedTime)
 	//if (!gfx->MouseEnabled())
 	//	return;
 
-	if (s_size && bIsDirty)
+	if (m_size && bIsDirty)
 	{
 		// update the mouse cursor colors
 		SDL_SetRenderTarget(gfx->Renderer(), mouse_texture);
@@ -344,7 +344,7 @@ void GfxMouse::OnRender()
 	SDL_SetRenderTarget(gfx->Renderer(), NULL);
 
 	// render the texture
-	SDL_Rect dst = { mouse_x_screen, mouse_y_screen, s_size * 8, s_size * 8 };
+	SDL_Rect dst = { mouse_x_screen, mouse_y_screen, m_size * 8, m_size * 8 };
 	if (gfx->Fullscreen())
 	{
 		SDL_Rect clip;

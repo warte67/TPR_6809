@@ -5,6 +5,7 @@
 // *		circuit for graphic display.
 // ************************************
 
+#include <array>
 #include "Bus.h"
 #include "Memory.h"
 #include "Device.h"
@@ -32,7 +33,7 @@ int  GFX::m_gmode_index			= DEFAULT_GRAPHICS_MODE;
 
 
 // these don't need to be static anymore
-bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
+// bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
 
 // Palette Index
@@ -53,26 +54,11 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		{	// READ FROM
 			if (ofs == GFX_FLAGS)
 			{	// READ:
-				//		bit 7: vsync
-				//      bit 6: backbuffer enable
-				//      bit 5: debug enable
-				//      bit 4: mouse cursor enable
-				//      bit 3: swap backbuffers (on write)
-				//      bit 0-2: graphics mode (0-7)
-				//          0) NONE (just random background noise)
-				//          1) Glyph Mode (512x320 or 64x48 text)
-				//          2) Tile 16x16x16 mode
-				//          3) 128x80 x 16-Color
-				//          4) 128x160 x 4-Color
-				//          5) 256x80 x 4-Color
-				//          6) 256x160 x 2-Color
-				//          7) 256x192 256-color  (EXTERNAL 64k BUFFER)
 				Byte ret = 0;
 				if (ptrGfx->m_VSYNC)				ret |= 0x80;
 				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
-				if (ptrGfx->m_enable_debug)			ret |= 0x20;
-				if (ptrGfx->m_enable_mouse)			ret |= 0x10;
-				if (ptrGfx->m_current_backbuffer)	ret |= 0x08;
+				if (ptrGfx->m_current_backbuffer)	ret |= 0x20;
+				if (ptrGfx->m_enable_debug)			ret |= 0x10;
 				ret |= (ptrGfx->m_gmode_index & 0x07);
 				ptrGfx->write(ofs, ret);	// pre-write
 				return ret;
@@ -113,30 +99,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 
 			if (ofs == GFX_FLAGS)
 			{	// WRITE:
-				//		bit 7: vsync
-				//      bit 6: backbuffer enable
-				//      bit 5: debug enable
-				//      bit 4: mouse cursor enable
-				//      bit 3: swap backbuffers (on write)
-				//      bit 0-2: graphics mode (0-7)
-				//          0) NONE (just random background noise)
-				//          1) Glyph Mode (512x320 or 64x48 text)
-				//          2) Tile 16x16x16 mode
-				//          3) 128x80 x 16-Color
-				//          4) 128x160 x 4-Color
-				//          5) 256x80 x 4-Color
-				//          6) 256x160 x 2-Color
-				//          7) 256x192 256-color (SLOW EXTERNAL I2C RAM)
 				bool old_VSYNC = ptrGfx->m_VSYNC;
 				static int old_gmode_index = 0;
 				ptrGfx->m_VSYNC					= ((data & 0x80) == 0x80);
 				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
-				ptrGfx->m_enable_debug			= ((data & 0x20) == 0x20);
-				ptrGfx->m_enable_mouse			= ((data & 0x10) == 0x10);
 				if (ptrGfx->m_enable_backbuffer)
-					ptrGfx->m_current_backbuffer	= ((data & 0x08) == 0x08);
-				else
-					ptrGfx->m_current_backbuffer = 0;
+					ptrGfx->m_current_backbuffer = ((data & 0x20) == 0x20);
+				ptrGfx->m_enable_debug = ((data & 0x10) == 0x10);
 
 				ptrGfx->m_gmode_index			= (data & 0x07);
 
@@ -184,13 +153,14 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->palette[m_palette_index].color = data;
 			}
 		}
+
 		// intercept for GfxMouse
 		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
-			return ptrGfx->gfx_mouse->OnCallback(memDev, ofs, data, bWasRead);
+			return ptrGfx->gfx_mouse->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
 
 		// intercept for banked GfxMode registers
 		if (ofs >= GFX_PG_BEGIN && ofs <= GFX_PG_END)
-			return ptrGfx->m_gmodes[m_gmode_index]->OnCallback(memDev, ofs, data, bWasRead);
+			return ptrGfx->m_gmodes[m_gmode_index]->OnCallback(ptrGfx->m_gmodes[m_gmode_index], ofs, data, bWasRead);
 	}
 	return data;
 }
@@ -259,20 +229,21 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
-	memmap->push({ offset, "", ">    bit 7: vsync" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 7: VSYNC" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
-	memmap->push({ offset, "", ">    bit 5: debug enable" }); offset += 0;
-	memmap->push({ offset, "", ">    bit 4: mouse cursor enable" }); offset += 0;
-	memmap->push({ offset, "", ">    bit 3: swap backbuffers (on write)" }); offset += 0;
-	memmap->push({ offset, "", ">    bit 0-2: graphics mode (0-7)" }); offset += 0;
-	memmap->push({ offset, "", ">        0) NONE (just random background noise)		 " }); offset += 0;
-	memmap->push({ offset, "", ">        1) Glyph Mode (512x320 or 64x40 text)		 " }); offset += 0;
-	memmap->push({ offset, "", ">        2) Tile 16x16x16 mode						 " }); offset += 0;
-	memmap->push({ offset, "", ">        3) 128x80 x 16-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        4) 128x160 x 4-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        5) 256x80 x 4-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        6) 256x160 x 2-Color						 " }); offset += 0;
-	memmap->push({ offset, "", ">        7) 256x192 256-color RGBI2222 (64k BUFFER) " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: swap backbuffers (on write)" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: debug enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bits 2-3 = 'Background' graphics mode (40KB buffer)" }); offset += 0;
+	memmap->push({ offset, "", ">        0) NONE (forced black background) " }); offset += 0;
+	memmap->push({ offset, "", ">        1) Tiled 16x16 mode               " }); offset += 0;
+	memmap->push({ offset, "", ">        2) 256x160 x 64-Colors            " }); offset += 0;
+	memmap->push({ offset, "", ">        3) 512x320 x 4-Color              " }); offset += 0;
+	memmap->push({ offset, "", ">    bits 0-1 = 'Foreground' graphics mode (5KB buffer)" }); offset += 0;
+	memmap->push({ offset, "", ">        0) 256x160 x 2-Color (with disable flag) " }); offset += 0;
+	memmap->push({ offset, "", ">        1) Glyph Mode (32x20 text)               " }); offset += 0;
+	memmap->push({ offset, "", ">        2) Glyph Mode (64x40 text)               " }); offset += 0;
+	memmap->push({ offset, "", ">        3) 128x80 x 16-Color                     " }); offset += 0;
+
 	memmap->push({ offset, "GFX_AUX", "(Byte) gfx auxillary/emulation flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bit 7: 1:fullscreen / 0:windowed" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: reserved" }); offset += 0;
@@ -289,8 +260,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "Paged Graphics Mode Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_PG_BEGIN", "start of paged gfxmode registers" }); offset += 0;
 
-	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses $0000-$4fff" }); offset += 2;
-	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 64K extended graphics addresses" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;
 	
 	memmap->push({ --offset, "GFX_PG_END", "end of paged gfxmode registers" }); offset += 1;
 
@@ -426,7 +397,9 @@ void GFX::OnEvent(SDL_Event *evnt)
 			if (evnt->key.keysym.sym == SDLK_d)
 			{
 				Byte data = bus->read(GFX_FLAGS);
-				data ^= 0x20;
+				data ^= 0x10;
+				if (data & 0x10)
+					gfx_debug->SetSingleStep(true);
 				bus->write(GFX_FLAGS, data);
 			}
 			// left 
@@ -457,23 +430,23 @@ void GFX::OnEvent(SDL_Event *evnt)
 				}
 			}
 			// up (graphics mode index)
-			if (evnt->key.keysym.sym == SDLK_UP)
-			{
-				m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
-				if (m_gmode_index<7) 
-					m_gmode_index++;
-				Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
-				bus->write(GFX_FLAGS, data);
-			}
+			//if (evnt->key.keysym.sym == SDLK_UP)
+			//{
+			//	m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
+			//	if (m_gmode_index<7) 
+			//		m_gmode_index++;
+			//	Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
+			//	bus->write(GFX_FLAGS, data);
+			//}
 			// down (graphics mode index)
-			if (evnt->key.keysym.sym == SDLK_DOWN)
-			{
-				m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
-				if (m_gmode_index > 0)
-					m_gmode_index--;
-				Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
-				bus->write(GFX_FLAGS, data);
-			}
+			//if (evnt->key.keysym.sym == SDLK_DOWN)
+			//{
+			//	m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
+			//	if (m_gmode_index > 0)
+			//		m_gmode_index--;
+			//	Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
+			//	bus->write(GFX_FLAGS, data);
+			//}
 
 			// [V] VSYNC toggle (GFX_FLAGS bit 6)
 			if (evnt->key.keysym.sym == SDLK_v)
@@ -484,10 +457,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 			}
 		}
 	}
+	// run the gmodes
 	m_gmodes[m_gmode_index]->OnEvent(evnt);
+	// run the debugger
 	if (DebugEnabled())
 		gfx_debug->OnEvent(evnt);
-	if (MouseEnabled())
+	// run the mouse cursor
+	if (gfx_mouse->Mouse_Size() > 0)
 		gfx_mouse->OnEvent(evnt);
 }
 
@@ -660,7 +636,7 @@ void GFX::OnUpdate(float fElapsedTime)
 	m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
 	if (DebugEnabled())
 		gfx_debug->OnUpdate(fElapsedTime);
-	if (MouseEnabled())
+	if (gfx_mouse->Mouse_Size() > 0)
 		gfx_mouse->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
@@ -714,7 +690,7 @@ void GFX::_onRender()
 	m_gmodes[m_gmode_index]->OnRender();
 	if (DebugEnabled())
 		gfx_debug->OnRender();
-	if (MouseEnabled())
+	if (gfx_mouse->Mouse_Size() > 0)
 		gfx_mouse->OnRender();
 
 	// finally present the GFX chain 

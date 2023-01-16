@@ -60,8 +60,8 @@ public:
     float Aspect() { return _aspect; }
     bool Fullscreen() { return m_fullscreen; }
     int DisplayNum() { return m_display_num; }
-    bool MouseEnabled() { return m_enable_mouse; }
-    void MouseEnabled(bool en) { m_enable_mouse = en; }
+    //bool MouseEnabled() { return m_enable_mouse; }
+    //void MouseEnabled(bool en) { m_enable_mouse = en; }
     bool DebugEnabled() { return m_enable_debug; }
     void DebugEnabled(bool en) { m_enable_debug = en; }
 
@@ -91,7 +91,7 @@ protected:
     static bool m_VSYNC;		        // 1:VSYNC, 0:not throttled
     static bool m_enable_backbuffer;    // 1:enabled, 0:disabled
     static bool m_enable_debug;         // 1:enabled, 0:disabled
-    static bool m_enable_mouse;         // 1:enabled, 0:disabled
+    // static bool m_enable_mouse;         // 1:enabled, 0:disabled
     static int  m_current_backbuffer;   // currently active backbuffer
     static int  m_gmode_index;          // (0-7)
     // statics (auxillary)
@@ -124,8 +124,6 @@ protected:
     std::vector<PALETTE> palette;
     static Uint8 m_palette_index;
 
-    Word ext_video_index = 0;
-
 public:
      Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
      Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
@@ -137,6 +135,8 @@ public:
      }
      Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
 
+
+
 };
 
 
@@ -147,43 +147,22 @@ public:
 
 /***********************************************
 
-    Screen Timing Notes:
-
-    Screen Resolution is based on a maximum 512x320 pixel timing.
-        - Text / Glyph Resolutions:
-            - 512x320 x 16-Color (only)
-                - Glyph Data Buffer size = 2.5kb
-                - Color Attribute Data Buffer size = 2.5kb
-                - (5120 bytes)
-        - Possible Pixel Graphics Resolutions include:
-            - 256x160 x 2-Color     (5120 bytes)
-            - 256x80 x 4-Color      (5120 bytes)
-            - 128x160 x 4-Color     (5120 bytes)
-            - 128x80 x 16-Color     (5120 bytes)
-
 	GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
-		bit 7: fullscreen
-		bit 6: vsync
-		bit 3-5: display monitor (0-7)
-		bit 0-2: graphics mode (0-7)
+		bit 7: VSYNC
+		bit 6: backbuffer enable
+        bit 5: swap backbuffers (on write)
+        bit 4: debug enable
+        bits 2-3 = "Background" graphics mode (40KB buffer)
+                0) GfxNull()        NONE (forced black background)
+                1) GfxTile()        Tile 16x16x16 mode
+                2) GfxRaw()         256x160 x 64-Colors
+                3) GfxHires()       512x320 x 4-Color
 
-			0) GfxNull:		NONE (just random background noise)
-			1) GfxGlyph32:	Glyph Mode (256x160 or 32x20 text)
-            2) GfxGlyph64:	Glyph Mode (512x320 or 64x40 text)
-            3) GfxTile:		Tile 16x16x16 mode
-			4) GfxBmp16:	128x80 x 16-Color
-			5) GfxBmp2:	    256x160 x 2-Color
-            6) GfxRaw:      128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
-            7) GfxHires:    512x320 x 2-Color (1 bpp 20KB) - Serial Buffer / FPGA
-
-            What if GfxBmp2 (256x160 Mode 7) had a special 64-color (RRGGBBXX) or 256-color (RRGGBBII)
-                    that uses an external 40k (256x160 = 40960) buffer?
-                - What to do with the stock 5120 (5KB) byte video buffer memory?
-                - What to do with the remaining 16KB of an external 64KB RAM chip?
-                - Is it likely implementation on a PICO would be a pain-in-the-arse? (probably so)
-			    - GfxBmpExt:	256x192 256-color (SLOW EXTERNAL I2C RAM)	
-                - Maybe leave this mode as an option for for later, but for now, DON'T DO IT!
-
+        bits 0-1 = "Foreground" graphics mode (5KB buffer)
+                0) GfxBmp2()        256x160 x 2-Color (with disable flag for fully transparent foreground)
+                1) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
+                2) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
+                3) GfxBmp16()       128x80 x 16-Color
 
     GFX_AUX: (emulator only)
         bits:
@@ -194,46 +173,17 @@ public:
         3)   reserved
         0-2  display index
 
-
-
-	STATIC MODES:
+    ************************************************************
+    
+    STATIC MODES:
 		+ DEBUG
         + LABELS ("labels" are text based sprites)
 		+ SPRITES (What about priority display layers?)
 		+ SYSTEM (Mouse Cursor)
 
-Revision Notes ///////////////////
 
-
-
-
-    GFX_FLAGS: (hardware)
-        bits:
-        7)   VSYNC
-        6)   backbuffer enable
-        5)   enable debug
-        4)   enable mouse cursor
-        3)   swap backbuffer (on write); current backbuffer (on read)
-        0-2) graphics mode index
-
-        NOTES:  
-            - Remove the rendundant "enable mouse cursor" flag. 
-            - When CSR_SIZE is reduced to zero, the mouse cursor is effectively off.
-            - move the "swap backbuffer" to bit 4/
-            - bits 2-3 = "Foreground" graphics mode
-            - bits 0-1 = "Background" graphics mode
-            - "Background" Modes:
-                0) GfxNull()        NONE (forced black background)
-                1) GfxTile()        Tile 16x16x16 mode
-                2) GfxRaw()         128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer 
-                3) GfxHires()       512x320 x 2-Color (1 bpp 20KB) - Serial Buffer
-            - "Foreground" Modes:
-                0) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
-                1) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
-                2) GfxBmp16()       128x80 x 16-Color
-                3) GfxBmp2()        256x160 x 2-Color
-
-
+    ************************************************************
+    
 
     Raspberry PI PICO has 26 Multifunction GPIO Pins:
         - 1 x LED (used internally, not available externally?)

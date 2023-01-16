@@ -34,8 +34,8 @@ var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00
 var_csr			fcb		$ff
-var_cycle		fdb		$0000
-var_mode		fcb		$01
+var_cycle		fcb		$00
+var_mode_index	fcb		$00
 
 			INCLUDE "mem_map.asm"
 
@@ -92,11 +92,9 @@ reset
 
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
-
-;			lda		GFX_FLAGS
-;			ora		#$10		; enable mouse cursor
-;			; anda	#$ef		; disable mouse cursor
-;			sta		GFX_FLAGS
+			
+			clr		var_cycle		; initially clear the cycle variable
+			clr		var_mode_index	; start with index 0
 
 ; ***********************
 ; *  Pre-Fill and Cycle 
@@ -121,74 +119,69 @@ reset
 			inc		var_at			; next attribute
 			clr		var_count		; clear the count
 			bra		1b				; resume the loop
-2	
-3
-			; BETWEEN FRAMES
-						
-				; COLOR CYCLE THE CURSOR
-
-				lda		#4
-				sta		CSR_PAL_INDX	; index the 4th color entry
-
-				lda		CSR_PAL_DATA
-				adda	#$10
-				sta		CSR_PAL_DATA
-
-;				ldd		CSR_PAL_DATA
-;				addd	#$10				; increment the color (but not the alpha)
-;				std		CSR_PAL_DATA
-
-
-;											inc		CSR_SIZE
-;											lda		CSR_SIZE
-;											cmpa	#$20
-;											bne		skip
-;											clr		CSR_SIZE
-;							skip
-
-
-			; CYCLE COUNT 
-			ldd		var_cycle
-			addd	#1
-			std		var_cycle
-			cmpd	#$40			; number of cycles before mode change
-			blt		st
-
-			ldd		#0
-			std		var_cycle
-			clr		var_cycle
-			lda		GFX_FLAGS
-			anda	#$f8
-			ora		var_mode
-			inc		var_mode
-			sta		GFX_FLAGS
-			lda		var_mode
-			anda	#$07
-			tsta
-			bne		5f
-			lda		#1
-5
-			sta		var_mode
-
-
-
-st
-			; TOGGLE THE BACKBUFFER
-			lda		GFX_FLAGS	; load current backbuffer
-			eora	#$08		; toggle it
-			sta		GFX_FLAGS	; save the backbuffer
 
 			; INCREMENT THE SCREEN BUFFER
+2
 			ldx		#VIDEO_START	; start beginning of video buffer
 4
 			cmpx	#VIDEO_END		; until the end of the video buffer
-			bge		3b				; restart when past the end
+			bge		3f				; restart when past the end
 			inc		,x+				; increment character
 			inc		,x+				; increment the attribute
-
 			bra		4b				; loop until done
-	
-; done		BRA 	done			; infinate loop
+3
+			; TOGGLE THE BACKBUFFER
+			lda		GFX_FLAGS	; load current backbuffer
+			eora	#$20		; toggle it
+			sta		GFX_FLAGS	; save the backbuffer
+
+			; INCREMENT THE CYCLE COUNTER
+			inc		var_cycle	; increment the cycle counter
+			lda		var_cycle
+			cmpa	#32			; 32 cycles yet?
+			bne		continue	; nope, continue with the main loop
+			clr		var_cycle	; reset the cycle count
+
+			; MODE CHANGES
+
+			ldb		var_mode_index
+			inc		var_mode_index
+			ldx		#mode_data
+			lda		b,x
+			cmpa	#$ff
+			beq		5f
+			lda		GFX_FLAGS
+			anda	#$f0
+			ora		b,x
+			sta		GFX_FLAGS
+			bra		continue
+5	
+			clr		var_mode_index
+continue
+
+			; COLOR CYCLE THE MOUSE CURSOR
+			lda		#4
+			sta		CSR_PAL_INDX
+			lda		CSR_PAL_DATA
+			adda	#$04
+			sta		CSR_PAL_DATA
+			
+
+			bra		2b
+
+
+mode_data	fcb		$01, $02, $03, $04, $05, $06, $07
+
+			fcb		$ff
+
+
+
+
+
+
+
+
+
 
 ; interrupt vectors
 				org  $fff0

@@ -13,7 +13,7 @@ public:
 	GfxMouse();
 	virtual ~GfxMouse();
 
-	virtual Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead) override;
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) override;
 
 	virtual void OnInitialize() override;				
 	virtual void OnQuit() override;						
@@ -29,7 +29,8 @@ public:
 	int Mouse_Ypos() { return mouse_y_screen; }
 	int Mouse_Xofs() { return mouse_x_offset; }
 	int Mouse_Yofs() { return mouse_y_offset; }
-
+	Byte Mouse_Size() { return m_size; }
+	void Mouse_Size(Byte size) { m_size = size; }
 
 private:
 
@@ -41,7 +42,7 @@ private:
 	char mouse_wheel = 0;
 	Uint8 mouse_x_offset = 0;		// mouse cursor offset x
 	Uint8 mouse_y_offset = 0;		// mouse cursor offset y
-	static Byte s_size;
+	Byte m_size = DEFAULT_MOUSE_SIZE;
 	Uint8 button_flags = 0;
 	SDL_Texture* mouse_texture = nullptr;	
 

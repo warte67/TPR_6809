@@ -1,6 +1,7 @@
 // * GfxRaw.cpp ***************************************
 // *
-// * 128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+// * 256x160 x 64-Colors
+// *		Requires a 40KB Buffer
 // ************************************
 
 
@@ -14,7 +15,7 @@ const int GfxRaw::pixel_width = 256;
 const int GfxRaw::pixel_height = 160;
 
 // Graphics Mode Unique Callback Function:
-Byte GfxRaw::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+Byte GfxRaw::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	

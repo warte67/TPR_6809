@@ -34,14 +34,13 @@
 0011  00              var_at                  fcb             $00
 0012  00              var_count               fcb             $00
 0013  FF              var_csr                 fcb             $ff
-0014  0000            var_cycle               fdb             $0000
-0016  01              var_mode                fcb             $01
+0014  00              var_cycle               fcb             $00
+0015  00              var_mode_index  fcb             $00
                       
-0017                                          INCLUDE "mem_map.asm"
+0016                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
-                      
                       
                       
                       ;  Zero-Page Kernal Variables:
@@ -59,20 +58,20 @@
                       
                       ;  Graphics Hardware Registers:
 1800                  GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
-                                                      ;      bit 7: vsync
+                                                      ;      bit 7: VSYNC
                                                       ;      bit 6: backbuffer enable
-                                                      ;      bit 5: debug enable
-                                                      ;      bit 4: mouse cursor enable
-                                                      ;      bit 3: swap backbuffers (on write)
-                                                      ;      bit 0-2: graphics mode (0-7)
-                                                      ;          0) NONE (just random background noise)
-                                                      ;          1) Glyph Mode (512x320 or 64x40 text)
-                                                      ;          2) Tile 16x16x16 mode
+                                                      ;      bit 5: swap backbuffers (on write)
+                                                      ;      bit 4: debug enable
+                                                      ;      bits 2-3 = 'Background' graphics mode (40KB buffer)
+                                                      ;          0) NONE (forced black background)
+                                                      ;          1) Tiled 16x16 mode
+                                                      ;          2) 256x160 x 64-Colors
+                                                      ;          3) 512x320 x 4-Color
+                                                      ;      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
+                                                      ;          0) 256x160 x 2-Color (with disable flag)
+                                                      ;          1) Glyph Mode (32x20 text)
+                                                      ;          2) Glyph Mode (64x40 text)
                                                       ;          3) 128x80 x 16-Color
-                                                      ;          4) 128x160 x 4-Color
-                                                      ;          5) 256x80 x 4-Color
-                                                      ;          6) 256x160 x 2-Color
-                                                      ;          7) 256x192 256-color RGBI2222 (64k BUFFER)
 1801                  GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
                                                       ;      bit 7: 1:fullscreen / 0:windowed
                                                       ;      bit 6: reserved
@@ -83,32 +82,32 @@
 1802                  TIMING_WIDTH    equ     $1802   ; (Word) timing width
 1804                  TIMING_HEIGHT   equ     $1804   ; (Word) timing height
 1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-1807                  GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits r4g4b4a4
+1807                  GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits r4g4b4a4
                       
                       ;  Paged Graphics Mode Hardware Registers:
-1809                  GFX_PG_BEGIN    equ     $1809   ; start of paged gfxmode registers
-1809                  GFX_EXT_ADDR    equ     $1809   ; (Word) 20K extended graphics addresses $0000-$4fff
-180B                  GFX_EXT_DATA    equ     $180b   ; (Byte) 20K extended graphics RAM data
-180B                  GFX_PG_END      equ     $180b   ; end of paged gfxmode registers
+1808                  GFX_PG_BEGIN    equ     $1808   ; start of paged gfxmode registers
+1808                  GFX_EXT_ADDR    equ     $1808   ; (Word) 64K extended graphics addresses
+180A                  GFX_EXT_DATA    equ     $180a   ; (Byte) 64K extended graphics RAM data
+180A                  GFX_PG_END      equ     $180a   ; end of paged gfxmode registers
                       
                       ;  Mouse Cursor Hardware Registers:
-180C                  CSR_XPOS        equ     $180c   ; (Word) horizontal mouse cursor coordinate
-180E                  CSR_YPOS        equ     $180e   ; (Word) vertical mouse cursor coordinate
-1810                  CSR_XOFS        equ     $1810   ; (Byte) horizontal mouse cursor offset
-1811                  CSR_YOFS        equ     $1811   ; (Byte) vertical mouse cursor offset
-1812                  CSR_SIZE        equ     $1812   ; (Byte) cursor size (0-15) 0:off
-1813                  CSR_SCROLL      equ     $1813   ; (Signed) MouseWheel Scroll: -1, 0, 1
-1814                  CSR_FLAGS       equ     $1814   ; (Byte) mouse button flags:
+180B                  CSR_XPOS        equ     $180b   ; (Word) horizontal mouse cursor coordinate
+180D                  CSR_YPOS        equ     $180d   ; (Word) vertical mouse cursor coordinate
+180F                  CSR_XOFS        equ     $180f   ; (Byte) horizontal mouse cursor offset
+1810                  CSR_YOFS        equ     $1810   ; (Byte) vertical mouse cursor offset
+1811                  CSR_SIZE        equ     $1811   ; (Byte) cursor size (0-15) 0:off
+1812                  CSR_SCROLL      equ     $1812   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1813                  CSR_FLAGS       equ     $1813   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1815                  CSR_PAL_INDX    equ     $1815   ; (Byte) mouse cursor color palette index (0-15)
-1816                  CSR_PAL_DATA    equ     $1816   ; (Word) mouse cursor color palette data RRGGBBAA
-1818                  CSR_BMP_INDX    equ     $1818   ; (Byte) mouse cursor bitmap pixel offset
-1819                  CSR_BMP_DATA    equ     $1819   ; (Byte) mouse cursor bitmap pixel color
+1814                  CSR_PAL_INDX    equ     $1814   ; (Byte) mouse cursor color palette index (0-15)
+1815                  CSR_PAL_DATA    equ     $1815   ; (Byte) mouse cursor color palette data RRGGBBAA
+1816                  CSR_BMP_INDX    equ     $1816   ; (Byte) mouse cursor bitmap pixel offset
+1817                  CSR_BMP_DATA    equ     $1817   ; (Byte) mouse cursor bitmap pixel color
                       
-1819                  GFX_END equ     $1819   ; end of the GFX Hardware Registers
+1817                  GFX_END equ     $1817   ; end of the GFX Hardware Registers
                       
-181A                  RESERVED_HDW    equ     $181a   ; Reserved 2017 bytes ($181A - $1FFB)
+1818                  RESERVED_HDW    equ     $1818   ; Reserved 2019 bytes ($1818 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -130,7 +129,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; ***************************************
                                             
                        
-0017                  SECTION.CODE
+0016                  SECTION.CODE
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
@@ -178,103 +177,96 @@ E024                  reset
                       
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
-                      
-                      ;                       lda             GFX_FLAGS
-                      ;                       ora             #$10            ; enable mouse cursor
-                      ;                       ; anda  #$ef            ; disable mouse cursor
-                      ;                       sta             GFX_FLAGS
+                                              
+E024  7F0014                                  clr             var_cycle               ; initially clear the cycle variable
+E027  7F0015                                  clr             var_mode_index  ; start with index 0
                       
                       ; ***********************
                       ; *  Pre-Fill and Cycle 
                       ; *  the Display Buffer
                       ; ***********************
                       
-E024  7F0010                                  clr             var_ch                  ; character = 0
-E027  7F0011                                  clr             var_at                  ; attribute = 0
-E02A  7F0012                                  clr             var_count               ; count = 0
-E02D  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-E030                  1
-E030  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-E033  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-E035  B60010                                  lda             var_ch                  ; load the current character
-E038  F60011                                  ldb             var_at                  ; load the current attribute
-E03B  ED81                                    std             ,x++                    ; store both character and attribute
-E03D  7C0010                                  inc             var_ch                  ; next character
-E040  7C0012                                  inc             var_count               ; increment count
-E043  B60012                                  lda             var_count               ; load the count
-E046  8111                                    cmpa    #17                             ; compare the count with this amount
-E048  2DE6                                    blt             1b                              ; loop if count lower than
-E04A  7C0011                                  inc             var_at                  ; next attribute
-E04D  7F0012                                  clr             var_count               ; clear the count
-E050  20DE                                    bra             1b                              ; resume the loop
-E052                  2       
-E052                  3
-                                              ; BETWEEN FRAMES
-                                                                      
-                                                      ; COLOR CYCLE THE CURSOR
-                      
-E052  8604                                            lda             #4
-E054  B71815                                          sta             CSR_PAL_INDX    ; index the 4th color entry
-                      
-E057  B61816                                          lda             CSR_PAL_DATA
-E05A  8B10                                            adda    #$10
-E05C  B71816                                          sta             CSR_PAL_DATA
-                      
-                      ;                               ldd             CSR_PAL_DATA
-                      ;                               addd    #$10                            ; increment the color (but not the alpha)
-                      ;                               std             CSR_PAL_DATA
-                      
-                      
-                      ;                                                                                       inc             CSR_SIZE
-                      ;                                                                                       lda             CSR_SIZE
-                      ;                                                                                       cmpa    #$20
-                      ;                                                                                       bne             skip
-                      ;                                                                                       clr             CSR_SIZE
-                      ;                                                       skip
-                      
-                      
-                                              ; CYCLE COUNT 
-E05F  FC0014                                  ldd             var_cycle
-E062  C30001                                  addd    #1
-E065  FD0014                                  std             var_cycle
-E068  10830040                                cmpd    #$40                    ; number of cycles before mode change
-E06C  2D24                                    blt             st
-                      
-E06E  CC0000                                  ldd             #0
-E071  FD0014                                  std             var_cycle
-E074  7F0014                                  clr             var_cycle
-E077  B61800                                  lda             GFX_FLAGS
-E07A  84F8                                    anda    #$f8
-E07C  BA0016                                  ora             var_mode
-E07F  7C0016                                  inc             var_mode
-E082  B71800                                  sta             GFX_FLAGS
-E085  B60016                                  lda             var_mode
-E088  8407                                    anda    #$07
-E08A  4D                                      tsta
-E08B  2602                                    bne             5f
-E08D  8601                                    lda             #1
-E08F                  5
-E08F  B70016                                  sta             var_mode
-                      
-                      
-                      
-E092                  st
-                                              ; TOGGLE THE BACKBUFFER
-E092  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E095  8808                                    eora    #$08            ; toggle it
-E097  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E02A  7F0010                                  clr             var_ch                  ; character = 0
+E02D  7F0011                                  clr             var_at                  ; attribute = 0
+E030  7F0012                                  clr             var_count               ; count = 0
+E033  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+E036                  1
+E036  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+E039  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+E03B  B60010                                  lda             var_ch                  ; load the current character
+E03E  F60011                                  ldb             var_at                  ; load the current attribute
+E041  ED81                                    std             ,x++                    ; store both character and attribute
+E043  7C0010                                  inc             var_ch                  ; next character
+E046  7C0012                                  inc             var_count               ; increment count
+E049  B60012                                  lda             var_count               ; load the count
+E04C  8111                                    cmpa    #17                             ; compare the count with this amount
+E04E  2DE6                                    blt             1b                              ; loop if count lower than
+E050  7C0011                                  inc             var_at                  ; next attribute
+E053  7F0012                                  clr             var_count               ; clear the count
+E056  20DE                                    bra             1b                              ; resume the loop
                       
                                               ; INCREMENT THE SCREEN BUFFER
-E09A  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E09D                  4
-E09D  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E0A0  2CB0                                    bge             3b                              ; restart when past the end
-E0A2  6C80                                    inc             ,x+                             ; increment character
-E0A4  6C80                                    inc             ,x+                             ; increment the attribute
+E058                  2
+E058  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E05B                  4
+E05B  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E05E  2C06                                    bge             3f                              ; restart when past the end
+E060  6C80                                    inc             ,x+                             ; increment character
+E062  6C80                                    inc             ,x+                             ; increment the attribute
+E064  20F5                                    bra             4b                              ; loop until done
+E066                  3
+                                              ; TOGGLE THE BACKBUFFER
+E066  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E069  8820                                    eora    #$20            ; toggle it
+E06B  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
-E0A6  20F5                                    bra             4b                              ; loop until done
-                              
-                      ; done          BRA     done                    ; infinate loop
+                                              ; INCREMENT THE CYCLE COUNTER
+E06E  7C0014                                  inc             var_cycle       ; increment the cycle counter
+E071  B60014                                  lda             var_cycle
+E074  8120                                    cmpa    #32                     ; 32 cycles yet?
+E076  2621                                    bne             continue        ; nope, continue with the main loop
+E078  7F0014                                  clr             var_cycle       ; reset the cycle count
+                      
+                                              ; MODE CHANGES
+                      
+E07B  F60015                                  ldb             var_mode_index
+E07E  7C0015                                  inc             var_mode_index
+E081  8EE0A8                                  ldx             #mode_data
+E084  A685                                    lda             b,x
+E086  81FF                                    cmpa    #$ff
+E088  270C                                    beq             5f
+E08A  B61800                                  lda             GFX_FLAGS
+E08D  84F0                                    anda    #$f0
+E08F  AA85                                    ora             b,x
+E091  B71800                                  sta             GFX_FLAGS
+E094  2003                                    bra             continue
+E096                  5       
+E096  7F0015                                  clr             var_mode_index
+E099                  continue
+                      
+                                              ; COLOR CYCLE THE MOUSE CURSOR
+E099  8604                                    lda             #4
+E09B  B71814                                  sta             CSR_PAL_INDX
+E09E  B61815                                  lda             CSR_PAL_DATA
+E0A1  8B04                                    adda    #$04
+E0A3  B71815                                  sta             CSR_PAL_DATA
+                                              
+                      
+E0A6  20B0                                    bra             2b
+                      
+                      
+E0A8  01020304050607  mode_data       fcb             $01, $02, $03, $04, $05, $06, $07
+                      
+E0AF  FF                                      fcb             $ff
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
                       
                       ; interrupt vectors
 FFF0                                                  org  $fff0

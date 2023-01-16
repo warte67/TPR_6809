@@ -13,11 +13,8 @@
 const int GfxHires::pixel_width = 512;	
 const int GfxHires::pixel_height = 320;			
 
-// NOTES:
-//		- a 40KB buffer allows room for a backbuffer in this mode
-
 // Graphics Mode Unique Callback Function:
-Byte GfxHires::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
+Byte GfxHires::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
@@ -112,17 +109,17 @@ void GfxHires::OnUpdate(float fElapsedTime)
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
-		static Byte data = 0;
-		//Word ofs = VIDEO_START;
+		// static Byte data = 0;
+		Word ofs = VIDEO_START;
 
 		for (int y = 0; y < pixel_height; y++)
 		{
 			for (int x = 0; x < pixel_width; x += 8)
 			{
 				// temporary solution
-				//Byte data = bus->debug_read(ofs++);
-				//if (ofs > VIDEO_END)
-				//	ofs = VIDEO_START;
+				Byte data = bus->debug_read(ofs++);
+				if (ofs > VIDEO_END)
+					ofs = VIDEO_START;
 
 				for (int b = 0; b < 8; b++)
 				{
@@ -131,9 +128,9 @@ void GfxHires::OnUpdate(float fElapsedTime)
 					SDL_RenderDrawPoint(gfx->Renderer(), x + b, y);
 				}
 			}
-			data++;
+			// vdata++;
 		}
-		data++;
+		// data++;
 	}
 }
 
