@@ -66,6 +66,9 @@
     <ClCompile Include="GfxTile32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GfxIndexed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bus.h">
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GfxTile32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GfxIndexed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

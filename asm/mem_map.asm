@@ -2,7 +2,6 @@
 ;  * Allocated 64k Memory Mapped System Symbols *
 ;  **********************************************
 
-
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
 
@@ -43,41 +42,41 @@ GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
 GFX_TIMING_W    equ     $1802   ; (Word) horizontal timing
 GFX_TIMING_H    equ     $1804   ; (Word) vertical timing
 GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-GFX_PAL_DATA    equ     $1807   ; (Byte) gfx palette color bits r4g4b4a4
+GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits RGBA4444
 
 ;  Paged Foreground Graphics Mode Hardware Registers:
-GFX_FG_BEGIN    equ     $1808   ; start of paged foreground gfxmode registers
-GFX_FG_WDTH     equ     $1808   ; (Byte) Foreground Unit Width-1
-GFX_FG_HGHT     equ     $1809   ; (Byte) Foreground Unit Height-1
-GFX_FG_END      equ     $1809   ; end of paged foreground gfxmode registers
+GFX_FG_BEGIN    equ     $1809   ; start of paged foreground gfxmode registers
+GFX_FG_WDTH     equ     $1809   ; (Byte) Foreground Unit Width-1
+GFX_FG_HGHT     equ     $180a   ; (Byte) Foreground Unit Height-1
+GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
 
 ;  Paged Background Graphics Mode Hardware Registers:
-GFX_BG_BEGIN    equ     $180a   ; start of paged background gfxmode registers
-GFX_EXT_ADDR    equ     $180a   ; (Word) 64K extended graphics addresses
-GFX_EXT_DATA    equ     $180c   ; (Byte) 64K extended graphics RAM data
-GFX_BG_END      equ     $180c   ; end of paged background gfxmode registers
+GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
+GFX_EXT_ADDR    equ     $180b   ; (Word) 64K extended graphics addresses
+GFX_EXT_DATA    equ     $180d   ; (Byte) 64K extended graphics RAM data
+GFX_BG_END      equ     $180d   ; end of paged background gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
-CSR_BEGIN       equ     $180d   ; start of mouse cursor hardware registers
-CSR_XPOS        equ     $180d   ; (Word) horizontal mouse cursor coordinate
-CSR_YPOS        equ     $180f   ; (Word) vertical mouse cursor coordinate
-CSR_XOFS        equ     $1811   ; (Byte) horizontal mouse cursor offset
-CSR_YOFS        equ     $1812   ; (Byte) vertical mouse cursor offset
-CSR_SIZE        equ     $1813   ; (Byte) cursor size (0-15) 0:off
-CSR_SCROLL      equ     $1814   ; (Signed) MouseWheel Scroll: -1, 0, 1
-CSR_FLAGS       equ     $1815   ; (Byte) mouse button flags:
+CSR_BEGIN       equ     $180e   ; start of mouse cursor hardware registers
+CSR_XPOS        equ     $180e   ; (Word) horizontal mouse cursor coordinate
+CSR_YPOS        equ     $1810   ; (Word) vertical mouse cursor coordinate
+CSR_XOFS        equ     $1812   ; (Byte) horizontal mouse cursor offset
+CSR_YOFS        equ     $1813   ; (Byte) vertical mouse cursor offset
+CSR_SIZE        equ     $1814   ; (Byte) cursor size (0-15) 0:off
+CSR_SCROLL      equ     $1815   ; (Signed) MouseWheel Scroll: -1, 0, 1
+CSR_FLAGS       equ     $1816   ; (Byte) mouse button flags:
                                 ;      bits 0-5: button states
                                 ;      bits 6-7: number of clicks
-CSR_PAL_INDX    equ     $1816   ; (Byte) mouse cursor color palette index (0-15)
-CSR_PAL_DATA    equ     $1817   ; (Byte) mouse cursor color palette data RRGGBBAA
-CSR_BMP_INDX    equ     $1818   ; (Byte) mouse cursor bitmap pixel offset
-CSR_BMP_DATA    equ     $1819   ; (Byte) mouse cursor bitmap pixel color
-CSR_END equ     $1819   ; end of mouse cursor hardware registers
+CSR_PAL_INDX    equ     $1817   ; (Byte) mouse cursor color palette index (0-15)
+CSR_PAL_DATA    equ     $1818   ; (Word) mouse cursor color palette data RGBA4444
+CSR_BMP_INDX    equ     $181a   ; (Byte) mouse cursor bitmap pixel offset
+CSR_BMP_DATA    equ     $181b   ; (Byte) mouse cursor bitmap pixel index color
+CSR_END equ     $181b   ; end of mouse cursor hardware registers
 
 ;  Debugger Hardware Registers:
-DBG_BEGIN       equ     $181a   ; Start of Debugger Hardware Registers
-DBG_BRK_ADDR    equ     $181a   ; (Word) Address of current breakpoint
-DBG_FLAGS       equ     $181c   ; (Byte) Debug Specific Hardware Flags
+DBG_BEGIN       equ     $181c   ; Start of Debugger Hardware Registers
+DBG_BRK_ADDR    equ     $181c   ; (Word) Address of current breakpoint
+DBG_FLAGS       equ     $181e   ; (Byte) Debug Specific Hardware Flags
                                 ;      bit 7: Debug Enable
                                 ;      bit 6: Single Step Enable
                                 ;      bit 5: clear all breakpoints
@@ -86,14 +85,14 @@ DBG_FLAGS       equ     $181c   ; (Byte) Debug Specific Hardware Flags
                                 ;      bit 2: IRQ   (on low to high edge)
                                 ;      bit 1: NMI   (on low to high edge)
                                 ;      bit 0: RESET (on low to high edge)
-DBG_END equ     $181c   ; End of the Debugger Hardware Registers
+DBG_END equ     $181e   ; End of the Debugger Hardware Registers
 
 
-GFX_END equ     $181f   ; end of the GFX Hardware Registers
+GFX_END equ     $1821   ; end of the GFX Hardware Registers
 
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1820   ; Reserved 2011 bytes ($1820 - $1FFB)
+RESERVED_HDW    equ     $1822   ; Reserved 2009 bytes ($1822 - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -109,4 +108,3 @@ RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
 
 ;  Bios Kernal ROM:
 BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
-

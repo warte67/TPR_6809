@@ -28,8 +28,8 @@ public:
 private:
 
 	SDL_Texture* bitmap_texture = nullptr;
-	static const int pixel_width;
-	static const int pixel_height;
+	const int pixel_width = 128;
+	const int pixel_height = 80;
 };
 
 #endif // __GFXRAW_H__

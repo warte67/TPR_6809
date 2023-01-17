@@ -27,6 +27,7 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxTile32;
     friend class GfxBmp16;
     friend class GfxBmp2;
+    friend class GfxIndexed;
     friend class GfxRaw;
 
 public:
@@ -121,22 +122,22 @@ protected:
 
     // Palette Stuff
     union PALETTE {
-        Byte color;
+        Word color;
         struct {
-            Uint8 a : 2;
-            Uint8 b : 2;
-            Uint8 g : 2;
-            Uint8 r : 2;
+            Uint8 a : 4;
+            Uint8 b : 4;
+            Uint8 g : 4;
+            Uint8 r : 4;
         };
     };
     std::vector<PALETTE> palette;
     static Uint8 m_palette_index;
 
 public:
-     Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
-     Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
-     Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 2) | (c << 4) | (c << 6); }
-     Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
+    Uint8 red(Uint8 index) { Uint8 c = palette[index].r;  return c | (c << 4) | (c << 8) | (c << 12); }
+    Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 4) | (c << 8) | (c << 12); }
+    Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
+    Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 4) | (c << 8) | (c << 12); }
 };
 
 
@@ -146,6 +147,14 @@ public:
 
 
 /***********************************************
+*   NOTES:
+************************************** 
+
+    TODO: 
+        - Once again, convert back to working with RGBA4444 format
+            - RGBA2222 format works but 64 color wastes 2 bits per pixel.
+            - 256-Color Indexed mode artwork is much easier to create and save.
+            - There should be plenty of pins on PICO #1.
 
 	GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
 		bit 7: VSYNC
@@ -156,7 +165,8 @@ public:
                 0) GfxNull()        NONE (forced black background)
                 1) GfxTile16()      Tile 16x16 mode             
                 2) GfxTile32()      Overscan Tile 16x16 mode    
-                3) GfxRaw()         256x160 x 64-Colors         
+                3) GfxIndexed()     128x80 x 256-Colors (10K buffer)
+
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
                 0) GfxBmp2()        256x160 x 2-Color
@@ -176,11 +186,14 @@ public:
     ************************************************************
     
     64KB External Ram Buffer:
-        GfxRaw():       40k: $0000-$9FFF        = GfxRaw() 256x160 x 64-color screen
-        TILES x 64:     16k: $A000-$DFFF        = 64 16x16 x 64-color Tiles
-        SPRITES x 32:    8k: $E000-$FFFF        = 32 16x16 x 64-color Sprites
+        GfxRaw():       20k: $0000-$4FFF        = GfxRaw() 128x80  x 256-color screen
+
+        $B000 remain
 
 
+
+        TILES x 64:     16k: $A000-$DFFF        = 64 16x16 x 256-color Tiles (512bytes each)
+        SPRITES x 32:    8k: $E000-$FFFF        = 32 16x16 x 256-color Sprites
     
     STATIC MODES:
 		+ DEBUG

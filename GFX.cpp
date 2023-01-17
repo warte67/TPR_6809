@@ -18,6 +18,7 @@
 #include "GfxMouse.h"
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
+#include "GfxIndexed.h"
 #include "GfxRaw.h"
 #include "GFX.h"
 
@@ -96,7 +97,9 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs == GFX_PAL_INDX)
 				return m_palette_index;
 			if (ofs == GFX_PAL_DATA)
-				return ptrGfx->palette[m_palette_index].color;
+				return ptrGfx->palette[m_palette_index].color >> 8;
+			if (ofs == GFX_PAL_DATA+1)
+				return ptrGfx->palette[m_palette_index].color & 0xFF;
 
 			// read non-paged FG graphics Hardware Registers ($0000-$9fff)
 			if (GfxMode::s_mem_64k_adr > 0x9fff) GfxMode::s_mem_64k_adr = 0x9fff;
@@ -174,7 +177,14 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs == GFX_PAL_DATA)
 			{
 				bus->debug_write(ofs, data);
-				ptrGfx->palette[m_palette_index].color = data;
+				ptrGfx->palette[m_palette_index].color = 
+					(ptrGfx->palette[m_palette_index].color & 0x00FF) | (data << 8);
+			}
+			if (ofs == GFX_PAL_DATA+1)
+			{
+				bus->debug_write(ofs, data);
+				ptrGfx->palette[m_palette_index].color =
+					(ptrGfx->palette[m_palette_index].color & 0xFF00) | (data << 0);
 			}
 		}
 
@@ -197,6 +207,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		if (ofs == GFX_EXT_DATA)
 		{
 			GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr] = data;
+			bus->debug_write_word(GFX_EXT_ADDR, GfxMode::s_mem_64k_adr);
 			ptrGfx->debug_write(ofs, data);
 		}
 
@@ -245,7 +256,7 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_bg_gmodes.push_back(new GfxNull());
 	m_bg_gmodes.push_back(new GfxTile16());
 	m_bg_gmodes.push_back(new GfxTile32());
-	m_bg_gmodes.push_back(new GfxRaw());
+	m_bg_gmodes.push_back(new GfxIndexed());	// 	m_bg_gmodes.push_back(new GfxRaw());
 	// foreground graphics modes
 	m_fg_gmodes.push_back(new GfxBmp2());
 	m_fg_gmodes.push_back(new GfxGlyph32());
@@ -319,7 +330,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_TIMING_W", "(Word) horizontal timing" }); offset += 2;
 	memmap->push({ offset, "GFX_TIMING_H", "(Word) vertical timing" }); offset += 2;
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "GFX_PAL_DATA", "(Byte) gfx palette color bits r4g4b4a4" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_DATA", "(Word) gfx palette color bits RGBA4444" }); offset += 2;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Paged Foreground Graphics Mode Hardware Registers:" }); offset += 0;
@@ -332,8 +343,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Paged Background Graphics Mode Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_BG_BEGIN", "start of paged background gfxmode registers" }); offset += 0;
-	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 64K extended graphics addresses" }); offset += 2;
-	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 40K extended graphics addresses" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 40K extended graphics RAM data" }); offset += 1;
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
 
@@ -356,27 +367,27 @@ void GFX::OnInitialize()
 		for (int t = 0; t < 16; t++)
 			palette.push_back({0x00});
 		std::vector<PALETTE> ref = {
-			{ 0x00 },	// 00 00.00 00		0
-			{ 0x07 },	// 00 00.01 11		1
-			{ 0x13 },	// 00 01.00 11		2
-			{ 0x17 },	// 00 01.01 11		3
-			{ 0x83 },	// 01 00.00 11		4
-			{ 0x87 },	// 01 00.01 11		5
-			{ 0x53 },	// 01 01.00 11		6
-			{ 0xCB },	// 10 10.10 11		7
-			{ 0x57 },	// 01 01.01 11		8
-			{ 0x0F },	// 00 00.11 11		9
-			{ 0x33 },	// 00 11.00 11		a
-			{ 0x3F },	// 00 11.11 11		b
-			{ 0xC3 },	// 11 00.00 11		c
-			{ 0xC7 },	// 11 00.11 11		d
-			{ 0xF3 },	// 11 11.00 11		e
-			{ 0xFF },	// 11 11.11 11		f
+			{ 0x0000 },	// 0000 0000.0000 1111		0
+			{ 0x005F },	// 0000 0000.0101 1111		1
+			{ 0x050F },	// 0000 0101.0000 1111		2
+			{ 0x055F },	// 0000 0101.0101 1111		3
+			{ 0x500F },	// 0101 0000.0000 1111		4
+			{ 0x505F },	// 0101 0000.0101 1111		5
+			{ 0x550F },	// 0101 0101.0000 1111		6
+			{ 0xAAAF },	// 1010 1010.1010 1111		7
+			{ 0x555F },	// 0101 0101.0101 1111		8
+			{ 0x00FF },	// 0000 0000.1111 1111		9
+			{ 0x0F0F },	// 0000 1111.0000 1111		a
+			{ 0x0FFF },	// 0000 1111.1111 1111		b
+			{ 0xF00F },	// 1111 0000.0000 1111		c
+			{ 0xF0FF },	// 1111 0000.1111 1111		d
+			{ 0xFF0F },	// 1111 1111.0000 1111		e
+			{ 0xFFFF },	// 1111 1111.1111 1111		f
 		};
 		for (int t=0; t<16; t++)
 		{
 			bus->write(GFX_PAL_INDX, t);
-			bus->write(GFX_PAL_DATA, ref[t].color);
+			bus->write_word(GFX_PAL_DATA, ref[t].color);
 		}
 	}
 
@@ -430,6 +441,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 		//		//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
 		//	}
 		//}
+		if (evnt->key.keysym.sym == SDLK_SPACE)
+		{
+			Byte data = bus->read(DBG_FLAGS);
+			data |= 0x80;
+			bus->write(DBG_FLAGS, data);
+			gfx_debug->SetSingleStep(true);
+		}
 
 		// toggle fullscreen/windowed
 		if (evnt->key.keysym.sym == SDLK_RETURN)

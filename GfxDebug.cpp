@@ -171,7 +171,7 @@ void GfxDebug::OnEvent(SDL_Event* evnt)
 
 		// SPACE advances single step
 		if (evnt->key.keysym.sym == SDLK_SPACE)
-		{
+		{			
 			bIsStepPaused = false;
 			nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
 		}

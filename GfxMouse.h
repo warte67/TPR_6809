@@ -77,10 +77,10 @@ private:
 
 public:
 
-	Uint8 _red(Uint8 index) { Uint8 c = default_palette[index].r;  return c | (c << 2) | (c << 4) | (c << 6); }
-	Uint8 _grn(Uint8 index) { Uint8 c = default_palette[index].g;  return c | (c << 2) | (c << 4) | (c << 6); }
-	Uint8 _blu(Uint8 index) { Uint8 c = default_palette[index].b;  return c | (c << 2) | (c << 4) | (c << 6); }
-	Uint8 _alf(Uint8 index) { Uint8 c = default_palette[index].a;  return c | (c << 2) | (c << 4) | (c << 6); }
+	Uint8 _red(Uint8 index) { Uint8 c = default_palette[index].r;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 _grn(Uint8 index) { Uint8 c = default_palette[index].g;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 _blu(Uint8 index) { Uint8 c = default_palette[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 _alf(Uint8 index) { Uint8 c = default_palette[index].a;  return c | (c << 4) | (c << 8) | (c << 12); }
 };
 
 

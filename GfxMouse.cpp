@@ -31,7 +31,8 @@ Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 			case CSR_FLAGS:		data = button_flags;					break;
 			case CSR_PAL_INDX:	data = m_palette_index;					break;
 
-			case CSR_PAL_DATA:		data = default_palette[m_palette_index].color;		break;
+			case CSR_PAL_DATA:	data = (default_palette[m_palette_index].color) >> 8;		break;
+			case CSR_PAL_DATA+1:data = default_palette[m_palette_index].color & 0xFF;		break;
 
 			case CSR_BMP_INDX:	data = bmp_offset;						break;
 			case CSR_BMP_DATA:
@@ -66,10 +67,19 @@ Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 				m_palette_index = data;		
 				bus->debug_write(CSR_PAL_DATA, default_palette[m_palette_index].color);
 				break;
+
 			case CSR_PAL_DATA:
-				default_palette[m_palette_index].color = data;
+				default_palette[m_palette_index].color = 
+					(default_palette[m_palette_index].color & 0x00FF) | (data << 8);
 				bIsDirty = true;
 				break;
+
+			case CSR_PAL_DATA+1:
+				default_palette[m_palette_index].color =
+					(default_palette[m_palette_index].color & 0xFF00) | (data << 0);
+				bIsDirty = true;
+				break;
+
 			case CSR_BMP_INDX:
 				bmp_offset = data;	
 				bus->debug_write_word(CSR_BMP_DATA, cursor_buffer[bmp_offset / 16][bmp_offset % 16]);
@@ -104,9 +114,9 @@ Word GfxMouse::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
 	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
 	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Word) mouse cursor color palette data RGBA4444" }); offset += 2;
 	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
-	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
+	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel index color" }); offset += 1;
 	memmap->push({ --offset, "CSR_END", "end of mouse cursor hardware registers" }); offset += 1;
 
 	return offset - st_offset;
@@ -126,23 +136,41 @@ GfxMouse::GfxMouse()
 		//for (int t = 0; t < 16; t++)
 		//	default_palette.push_back({ 0x00 });
 		std::vector<GFX::PALETTE> ref = {
-			{ 0x00 },		// 00 00.00 00	0
-			{ 0x01 },		// 00 00.00 01	1
-			{ 0x02 },		// 00 00.00 10	2
-			{ 0x03 },		// 00 00.00 11	3
-			{ 0x33 },		// 11 11.11 11	4
-			{ 0x2b },		// 10 10.10 11	5
-			{ 0x56 },		// 01 01.01 11	6
-			{ 0x0b },		// 00 00.10 11	7
-			{ 0x23 },		// 00 10.00 11	8
-			{ 0x83 },		// 10 00.00 11	9
-			{ 0x0f },		// 00 00.11 11	a
-			{ 0x33 },		// 00 11.00 11	b
-			{ 0x3f },		// 00 11.11 11	c
-			{ 0xcf },		// 11 00.11 11	d
-			{ 0xc3 },		// 11 11.00 11	e
-			{ 0xff },		// 11 11.11 11	f
+			{ 0x0000 },		// 0000 0000.0000 0000	0
+			{ 0x0005 },		// 0000 0000.0000 0101	1
+			{ 0x000A },		// 0000 0000.0000 1010	2
+			{ 0x000F },		// 0000 0000.0000 1111	3
+			{ 0xFFFF },		// 1111 1111.1111 1111	4
+			{ 0xCCCF },		// 1010 1010.1010 1111	5
+			{ 0x555F },		// 0101 0101.0101 1111	6
+			{ 0x00CF },		// 0000 0000.1010 1111	7
+			{ 0x0C0F },		// 0000 1010.0000 1111	8
+			{ 0xC00F },		// 1010 0000.0000 1111	9
+			{ 0x00FF },		// 0000 0000.1111 1111	a
+			{ 0x0F0F },		// 0000 1111.0000 1111	b
+			{ 0x0FFF },		// 0000 1111.1111 1111	c
+			{ 0xF0FF },		// 1111 0000.1111 1111	d
+			{ 0xFF0F },		// 1111 1111.0000 1111	e
+			{ 0xFFFF },		// 1111 1111.1111 1111	f
 		};
+		//std::vector<GFX::PALETTE> ref = {
+		//	{ 0x00 },		// 00 00.00 00	0
+		//	{ 0x01 },		// 00 00.00 01	1
+		//	{ 0x02 },		// 00 00.00 10	2
+		//	{ 0x03 },		// 00 00.00 11	3
+		//	{ 0x33 },		// 11 11.11 11	4
+		//	{ 0x2b },		// 10 10.10 11	5
+		//	{ 0x56 },		// 01 01.01 11	6
+		//	{ 0x0b },		// 00 00.10 11	7
+		//	{ 0x23 },		// 00 10.00 11	8
+		//	{ 0x83 },		// 10 00.00 11	9
+		//	{ 0x0f },		// 00 00.11 11	a
+		//	{ 0x33 },		// 00 11.00 11	b
+		//	{ 0x3f },		// 00 11.11 11	c
+		//	{ 0xcf },		// 11 00.11 11	d
+		//	{ 0xc3 },		// 11 11.00 11	e
+		//	{ 0xff },		// 11 11.11 11	f
+		//};
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
 	}

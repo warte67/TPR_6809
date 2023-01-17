@@ -94,41 +94,41 @@ enum MEMMAP
   GFX_TIMING_W = 0x1802,        // (Word) horizontal timing
   GFX_TIMING_H = 0x1804,        // (Word) vertical timing
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
-  GFX_PAL_DATA = 0x1807,        // (Byte) gfx palette color bits r4g4b4a4
+  GFX_PAL_DATA = 0x1807,        // (Word) gfx palette color bits RGBA4444   
 
 //  Paged Foreground Graphics Mode Hardware Registers:
-  GFX_FG_BEGIN = 0x1808,        // start of paged foreground gfxmode registers
-   GFX_FG_WDTH = 0x1808,        // (Byte) Foreground Unit Width-1
-   GFX_FG_HGHT = 0x1809,        // (Byte) Foreground Unit Height-1
-    GFX_FG_END = 0x1809,        // end of paged foreground gfxmode registers
+  GFX_FG_BEGIN = 0x1809,        // start of paged foreground gfxmode registers
+   GFX_FG_WDTH = 0x1809,        // (Byte) Foreground Unit Width-1
+   GFX_FG_HGHT = 0x180a,        // (Byte) Foreground Unit Height-1
+    GFX_FG_END = 0x180a,        // end of paged foreground gfxmode registers
 
 //  Paged Background Graphics Mode Hardware Registers:
-  GFX_BG_BEGIN = 0x180a,        // start of paged background gfxmode registers
-  GFX_EXT_ADDR = 0x180a,        // (Word) 64K extended graphics addresses
-  GFX_EXT_DATA = 0x180c,        // (Byte) 64K extended graphics RAM data
-    GFX_BG_END = 0x180c,        // end of paged background gfxmode registers
+  GFX_BG_BEGIN = 0x180b,        // start of paged background gfxmode registers
+  GFX_EXT_ADDR = 0x180b,        // (Word) 40K extended graphics addresses
+  GFX_EXT_DATA = 0x180d,        // (Byte) 40K extended graphics RAM data
+    GFX_BG_END = 0x180d,        // end of paged background gfxmode registers
 
 //  Mouse Cursor Hardware Registers:
-     CSR_BEGIN = 0x180d,        // start of mouse cursor hardware registers
-      CSR_XPOS = 0x180d,        // (Word) horizontal mouse cursor coordinate
-      CSR_YPOS = 0x180f,        // (Word) vertical mouse cursor coordinate
-      CSR_XOFS = 0x1811,        // (Byte) horizontal mouse cursor offset
-      CSR_YOFS = 0x1812,        // (Byte) vertical mouse cursor offset
-      CSR_SIZE = 0x1813,        // (Byte) cursor size (0-15) 0:off
-    CSR_SCROLL = 0x1814,        // (Signed) MouseWheel Scroll: -1, 0, 1
-     CSR_FLAGS = 0x1815,        // (Byte) mouse button flags:
+     CSR_BEGIN = 0x180e,        // start of mouse cursor hardware registers
+      CSR_XPOS = 0x180e,        // (Word) horizontal mouse cursor coordinate
+      CSR_YPOS = 0x1810,        // (Word) vertical mouse cursor coordinate
+      CSR_XOFS = 0x1812,        // (Byte) horizontal mouse cursor offset
+      CSR_YOFS = 0x1813,        // (Byte) vertical mouse cursor offset
+      CSR_SIZE = 0x1814,        // (Byte) cursor size (0-15) 0:off
+    CSR_SCROLL = 0x1815,        // (Signed) MouseWheel Scroll: -1, 0, 1
+     CSR_FLAGS = 0x1816,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1816,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1817,        // (Byte) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1818,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1819,        // (Byte) mouse cursor bitmap pixel color
-       CSR_END = 0x1819,        // end of mouse cursor hardware registers
+  CSR_PAL_INDX = 0x1817,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1818,        // (Word) mouse cursor color palette data RGBA4444
+  CSR_BMP_INDX = 0x181a,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x181b,        // (Byte) mouse cursor bitmap pixel index color
+       CSR_END = 0x181b,        // end of mouse cursor hardware registers
 
 //  Debugger Hardware Registers:
-     DBG_BEGIN = 0x181a,        // Start of Debugger Hardware Registers
-  DBG_BRK_ADDR = 0x181a,        // (Word) Address of current breakpoint
-     DBG_FLAGS = 0x181c,        // (Byte) Debug Specific Hardware Flags
+     DBG_BEGIN = 0x181c,        // Start of Debugger Hardware Registers
+  DBG_BRK_ADDR = 0x181c,        // (Word) Address of current breakpoint
+     DBG_FLAGS = 0x181e,        // (Byte) Debug Specific Hardware Flags
                                 //      bit 7: Debug Enable
                                 //      bit 6: Single Step Enable
                                 //      bit 5: clear all breakpoints
@@ -137,14 +137,14 @@ enum MEMMAP
                                 //      bit 2: IRQ   (on low to high edge)
                                 //      bit 1: NMI   (on low to high edge)
                                 //      bit 0: RESET (on low to high edge)
-       DBG_END = 0x181c,        // End of the Debugger Hardware Registers
+       DBG_END = 0x181e,        // End of the Debugger Hardware Registers
 
 
-       GFX_END = 0x181f,        // end of the GFX Hardware Registers
+       GFX_END = 0x1821,        // end of the GFX Hardware Registers
 
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1820,        // Reserved 2011 bytes ($1820 - $1FFB)
+  RESERVED_HDW = 0x1822,        // Reserved 2009 bytes ($1822 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks

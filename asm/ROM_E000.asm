@@ -110,6 +110,24 @@ reset
 			ora		,x
 			sta		GFX_FLAGS
 
+			
+
+
+			; fill the background buffer with incrementing values
+			ldx		#0
+1
+			stx		GFX_EXT_ADDR
+			sta		GFX_EXT_DATA
+			inca
+			cmpa	#$ff
+			bne		2f
+			clra
+2
+			leax	1,x
+			cmpx	#$2800
+			bne		1b
+
+
 
 ; ***********************
 ; *  Pre-Fill and Cycle 
@@ -145,6 +163,20 @@ reset
 			inc		,x+				; increment the attribute
 			bra		4b				; loop until done
 3
+
+
+;			; INCREMENT THE EXTENDED SCREEN BUFFER
+;			ldx		#0
+;8			
+;			stx		GFX_EXT_ADDR
+;			inc		GFX_EXT_DATA
+;			leax	1,x
+;			cmpx	#$2800
+;			bne		8b
+
+
+
+
 			; TOGGLE THE BACKBUFFER
 			lda		GFX_FLAGS	; load current backbuffer
 			eora	#$20		; toggle it
@@ -153,9 +185,9 @@ reset
 			; COLOR CYCLE THE MOUSE CURSOR
 			lda		#4
 			sta		CSR_PAL_INDX
-			lda		CSR_PAL_DATA
-			adda	#$04
-			sta		CSR_PAL_DATA		
+			ldd		CSR_PAL_DATA
+			addd	#$00a0
+			std		CSR_PAL_DATA		
 
 			; INCREMENT THE CYCLE COUNTER
 			inc		var_cycle	; increment the cycle counter
@@ -188,6 +220,8 @@ continue
 
 ; ***********************************************************
 
+;mode_data	fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
+;			fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
 
 mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
 			fcb		$08, $09, $0a, $0b, $0c, $0d, $0e, $0f

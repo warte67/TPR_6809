@@ -56,14 +56,14 @@ void GfxBmp2::OnInitialize()
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
-			{ 0x00 },	// 00 00.00 00		0
-			{ 0xFF },	// 11 11.11 11		1
+			{ 0x0000 },	// 0000 0000.0000 0000		0
+			{ 0xFFFF },	// 1111 1111.1111 1111		1
 		};
 		for (int t = 0; t < 2; t++)
 		{
 			default_palette.push_back(ref[t]);
 			bus->write(GFX_PAL_INDX, t);
-			bus->write(GFX_PAL_DATA, default_palette[t].color);
+			bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 		}
 	}
 }
@@ -75,7 +75,7 @@ void GfxBmp2::OnActivate()
 	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, default_palette[t].color);
+		bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 	}	
 }
 void GfxBmp2::OnDeactivate()
@@ -84,7 +84,7 @@ void GfxBmp2::OnDeactivate()
 	for (int t = 0; t < 2; t++)
 	{
 		bus->write(GFX_PAL_INDX, t);
-		bus->write(GFX_PAL_DATA, gfx->palette[t].color);
+		bus->write_word(GFX_PAL_DATA, gfx->palette[t].color);
 	}	
 }
 
@@ -110,9 +110,7 @@ void GfxBmp2::OnDestroy()
 
 void GfxBmp2::OnUpdate(float fElapsedTime)
 {
-	// update RAM
-	//bus->read(GFX_FG_WDTH);
-	//bus->read(GFX_FG_HGHT);
+	// return;
 
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.015f;
