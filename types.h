@@ -43,7 +43,7 @@ const bool DEFAULT_FULLSCREEN = true;
 const int  DEFAULT_MONITOR = 1;
 const Byte DEFAULT_MOUSE_SIZE = 8;
 
-const int  DEFAULT_GRAPHICS_MODE = 1; // TODO: Replace with DEFAULT_FG_GMODE and DEFAULT_BG_GMODE
+//const int  DEFAULT_GRAPHICS_MODE = 1; // TODO: Replace with DEFAULT_FG_GMODE and DEFAULT_BG_GMODE
 
 const int DEFAULT_FG_GMODE = 1;
 const int DEFAULT_BG_GMODE = 0;

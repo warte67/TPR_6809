@@ -31,6 +31,14 @@ private:
 	std::vector<GFX::PALETTE> default_palette;
 	int pixel_width;
 	int pixel_height;
+
+	std::vector<GFX::PALETTE> palette256;
+	static Uint8 m_palette_index;
+	Uint8 red(Uint8 index) { Uint8 c = palette256[index].r;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 grn(Uint8 index) { Uint8 c = palette256[index].g;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 blu(Uint8 index) { Uint8 c = palette256[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
+	Uint8 alf(Uint8 index) { Uint8 c = palette256[index].a;  return c | (c << 4) | (c << 8) | (c << 12); }
+
 };
 
 #endif // __GFXTILE_H__

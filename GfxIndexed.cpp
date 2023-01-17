@@ -61,9 +61,96 @@ void GfxIndexed::OnInitialize()
 		};
 		for (int t = 0; t < 16; t++)
 			palette256.push_back(ref[t]);
+
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.g = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = t;
+			ent.b = 15 - t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = 15 - t;
+			ent.b = 15 - t;
+			palette256.push_back(ent);
+		}
+
 		// fill out the remaining entries with random junk for now
 		Word color = 0x0010;
-		for (int t = 16; t < 256; t++)
+		while (palette256.size() < 256)
 		{
 			GFX::PALETTE ent;
 			color += 0x2340;	// rand() % 0x10000;

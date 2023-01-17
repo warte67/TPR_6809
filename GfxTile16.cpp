@@ -38,6 +38,124 @@ GfxTile16::GfxTile16()
 
 void GfxTile16::OnInitialize()
 {
+	if (palette256.size() == 0)
+	{
+		std::vector<GFX::PALETTE> ref = {
+			{ 0x0000 },	// 0000 0000.0000 1111		0
+			{ 0x005F },	// 0000 0000.0101 1111		1
+			{ 0x050F },	// 0000 0101.0000 1111		2
+			{ 0x055F },	// 0000 0101.0101 1111		3
+			{ 0x500F },	// 0101 0000.0000 1111		4
+			{ 0x505F },	// 0101 0000.0101 1111		5
+			{ 0x550F },	// 0101 0101.0000 1111		6
+			{ 0xAAAF },	// 1010 1010.1010 1111		7
+			{ 0x555F },	// 0101 0101.0101 1111		8
+			{ 0x00FF },	// 0000 0000.1111 1111		9
+			{ 0x0F0F },	// 0000 1111.0000 1111		a
+			{ 0x0FFF },	// 0000 1111.1111 1111		b
+			{ 0xF00F },	// 1111 0000.0000 1111		c
+			{ 0xF0FF },	// 1111 0000.1111 1111		d
+			{ 0xFF0F },	// 1111 1111.0000 1111		e
+			{ 0xFFFF },	// 1111 1111.1111 1111		f
+		};
+		for (int t = 0; t < 16; t++)
+			palette256.push_back(ref[t]);
+
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.g = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}		
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = 15 - t;
+			ent.b = t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = 15 - t;
+			ent.g = t;
+			ent.b = 15 - t;
+			palette256.push_back(ent);
+		}
+		for (int t = 0; t < 16; t++)
+		{
+			GFX::PALETTE ent = { 0x000f };
+			ent.r = t;
+			ent.g = 15 - t;
+			ent.b = 15 - t;
+			palette256.push_back(ent);
+		}
+		// fill out the remaining entries with random junk for now
+		Word color = 0x0010;
+		while (palette256.size() < 256)
+		{
+			GFX::PALETTE ent;
+			color += 0x2340;	// rand() % 0x10000;
+			ent.color = color;
+			palette256.push_back(ent);
+		}
+	}
 }
 
 void GfxTile16::OnActivate()
@@ -97,22 +215,18 @@ void GfxTile16::OnUpdate(float fElapsedTime)
 	{
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), _tile_texture);
-
-		// TEMPORARY: For now just display static
-		Word ofs = VIDEO_START;
+		Word addr = 0;
 		for (int y = 0; y < pixel_height; y+=16)
 		{
 			for (int x = 0; x < pixel_width; x+=16)
 			{
-				Word data = bus->debug_read_word(ofs++);
-				if (ofs > VIDEO_END)
-					ofs = VIDEO_START;
-				
-				Uint8 r = (data & 0xF000) >> 12;	r |= r << 4;
-				Uint8 g = (data & 0x0F00) >> 8;		g |= g << 4;
-				Uint8 b = (data & 0x00F0) >> 4;		b |= b << 4;
-				Uint8 a = (data & 0x000F) >> 0;		a |= a << 4;
-
+				//bus->write_word(GFX_EXT_ADDR, addr++);
+				//Byte data = bus->read(GFX_EXT_DATA);
+				Byte data = GfxMode::s_mem_64k[addr++];
+				Byte r = red(data);
+				Byte g = grn(data);
+				Byte b = blu(data);
+				Byte a = SDL_ALPHA_OPAQUE;	// alf(data);
 				SDL_Rect dst = { x, y, 16, 16 };
 				SDL_SetRenderDrawColor(gfx->Renderer(), 255, 255, 255, SDL_ALPHA_OPAQUE);
 				SDL_RenderDrawRect(gfx->Renderer(), &dst);
@@ -128,8 +242,6 @@ void GfxTile16::OnUpdate(float fElapsedTime)
 				dst.h = 14;
 				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, SDL_ALPHA_OPAQUE);
 				SDL_RenderFillRect(gfx->Renderer(), &dst);
-
-				//SDL_RenderDrawPoint(gfx->Renderer(), x, y);
 			}
 		}
 	}

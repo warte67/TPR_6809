@@ -101,8 +101,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			if (ofs == GFX_PAL_DATA+1)
 				return ptrGfx->palette[m_palette_index].color & 0xFF;
 
-			// read non-paged FG graphics Hardware Registers ($0000-$9fff)
-			if (GfxMode::s_mem_64k_adr > 0x9fff) GfxMode::s_mem_64k_adr = 0x9fff;
+			// read non-paged FG graphics Hardware Registers ($0000-$4fff)
+			if (GfxMode::s_mem_64k_adr > 0x9fff) GfxMode::s_mem_64k_adr = 0x4fff;
 			if (ofs == GFX_EXT_ADDR)		data = GfxMode::s_mem_64k_adr >> 8;
 			if (ofs == GFX_EXT_ADDR + 1)	data = GfxMode::s_mem_64k_adr & 0xFF;
 			if (ofs == GFX_EXT_DATA)		data = GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr];
@@ -193,14 +193,14 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		if (ofs == GFX_EXT_ADDR)		
 		{
 			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0x00ff) | data << 8;
-			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x9fff;
+			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x4fff;
 			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
 			ptrGfx->debug_write(ofs, data);
 		}
 		if (ofs == GFX_EXT_ADDR + 1)	
 		{
 			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0xff00) | data;
-			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x9fff;
+			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x4fff;
 			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
 			ptrGfx->debug_write(ofs, data);
 		}
@@ -309,12 +309,12 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 5: swap backbuffers (on write)" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 4: reserved" }); offset += 0;
-	memmap->push({ offset, "", ">    bits 2-3 = 'Background' graphics mode (40KB buffer)" }); offset += 0;
-	memmap->push({ offset, "", ">        0) NONE (forced black background) " }); offset += 0;
-	memmap->push({ offset, "", ">        1) Tiled 16x16 mode               " }); offset += 0;
-	memmap->push({ offset, "", ">        2) Overscan Tile 16x16 mode       " }); offset += 0;
-	memmap->push({ offset, "", ">        3) 256x160 x 64-Colors (40k)      " }); offset += 0;
-	memmap->push({ offset, "", ">    bits 0-1 = 'Foreground' graphics mode (5KB buffer)" }); offset += 0;
+	memmap->push({ offset, "", ">    bits 2-3 = 'Background' graphics modes (20KB buffer)" }); offset += 0;
+	memmap->push({ offset, "", ">        0) NONE (forced black background)    " }); offset += 0;
+	memmap->push({ offset, "", ">        1) Tiled 16x16 mode                  " }); offset += 0;
+	memmap->push({ offset, "", ">        2) Overscan Tile 16x16 mode          " }); offset += 0;
+	memmap->push({ offset, "", ">        3) 128x80 x 256-Colors               " }); offset += 0;
+	memmap->push({ offset, "", ">    bits 0-1 = 'Foreground' graphics modes (5KB buffer)" }); offset += 0;
 	memmap->push({ offset, "", ">        0) 256x160 x 2-Color (with disable flag) " }); offset += 0;
 	memmap->push({ offset, "", ">        1) Glyph Mode (32x20 text)               " }); offset += 0;
 	memmap->push({ offset, "", ">        2) Glyph Mode (64x40 text)               " }); offset += 0;
@@ -343,8 +343,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Paged Background Graphics Mode Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_BG_BEGIN", "start of paged background gfxmode registers" }); offset += 0;
-	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 40K extended graphics addresses" }); offset += 2;
-	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 40K extended graphics RAM data" }); offset += 1;
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
 

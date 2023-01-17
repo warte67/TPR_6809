@@ -161,12 +161,11 @@ public:
 		bit 6: backbuffer enable
         bit 5: swap backbuffers (on write)
         bit 4: debug enable
-        bits 2-3 = "Background" graphics mode (40KB buffer)
+        bits 2-3 = "Background" graphics mode (20KB buffer)
                 0) GfxNull()        NONE (forced black background)
                 1) GfxTile16()      Tile 16x16 mode             
                 2) GfxTile32()      Overscan Tile 16x16 mode    
-                3) GfxIndexed()     128x80 x 256-Colors (10K buffer)
-
+                3) GfxIndexed()     128x80 x 256-Colors (2 x 10K buffers)
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
                 0) GfxBmp2()        256x160 x 2-Color
@@ -184,44 +183,52 @@ public:
         0-2  display index
 
     ************************************************************
-    
+
+    Maths:
+
     64KB External Ram Buffer:
-        GfxRaw():       20k: $0000-$4FFF        = GfxRaw() 128x80  x 256-color screen
+        GfxIndexed # 1 - 10k: $0000-$27ff        = 128x80  x 256-color screen (10 kb each)
+        GfxIndexed # 2 - 10k: $2800-$4fff        = 128x80  x 256-color screen (10 kb each)
+        TILES x 112    - 28k: $5000-$BFFF        = 16x16 x 256-color Tiles    (256 bytes each)
+        SPRITES x 64   - 16k: $C000-$FFFF        = 16x16 x 256-color Sprites  (256 bytes each)
 
-        $B000 remain
-
-
-
-        TILES x 64:     16k: $A000-$DFFF        = 64 16x16 x 256-color Tiles (512bytes each)
-        SPRITES x 32:    8k: $E000-$FFFF        = 32 16x16 x 256-color Sprites
-    
     STATIC MODES:
-		+ DEBUG
-        + LABELS ("labels" are text based sprites)
-		+ SPRITES (What about priority display layers?)   (12k: $D000-$FFFF)
+		+ DEBUG 
+		+ SPRITES (What about priority display layers?)
 		+ SYSTEM (Mouse Cursor)     
 
 
     ************************************************************
-    
-    Notes:
-        GfxHires() is entirely TOO SLOW. I propose Renaming GfxTile() to GfxTile16() and
-        add a new GfxTile32() which is simply a double scan version. 
-
-
 
 
     Raspberry PI PICO has 26 Multifunction GPIO Pins:
         - 1 x LED (used internally, not available externally?)
         - 3 x Analogue Inputs
         - 2 x UART controllers
-        - 2 x SPI controllers
+        - 2 x SPI controllers (1 used for communicatoin with the other PICO)
         - 2 x I2C controllers, 
+        - 16 x PWM channels 
+
+    Raspberry PI PICO #1 GPIO Pins in consideration:
+        - 1 SPI controller to communicate I/O events with the other PICO
+        - 3 x Analogue Inputs
+            - FIRQ
+            - IRQ
+            - NMI
         - 16 x PWM channels
-
-
-
+            - 12 used for color data
+            - 1 VSYNC
+            - 1 HSYNC
+            - 1 system clock
+            - 1 system reset
         
+    Raspberry PI PICO #2 GPIO Pins in consideration:
+        - 1 SPI controller to communicate I/O events with the other PICO
+        - 2 Stereo Audio outs
+        - 6 QSPI I/O with SDRAM flash card
+        - 1 UART USB Keyboard, Mouse, Gamepad #1, Gamepad #2
+        - 1 UART Serial Terminal I/O (and serial debugging)
+
 
 
 ************************************************/

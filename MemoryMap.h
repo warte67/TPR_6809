@@ -74,12 +74,12 @@ enum MEMMAP
                                 //      bit 6: backbuffer enable
                                 //      bit 5: swap backbuffers (on write)
                                 //      bit 4: reserved
-                                //      bits 2-3 = 'Background' graphics mode (40KB buffer)
+                                //      bits 2-3 = 'Background' graphics modes (20KB buffer)
                                 //          0) NONE (forced black background)
                                 //          1) Tiled 16x16 mode
                                 //          2) Overscan Tile 16x16 mode
-                                //          3) 256x160 x 64-Colors (40k)
-                                //      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
+                                //          3) 128x80 x 256-Colors 
+                                //      bits 0-1 = 'Foreground' graphics modes (5KB buffer)
                                 //          0) 256x160 x 2-Color (with disable flag)
                                 //          1) Glyph Mode (32x20 text)
                                 //          2) Glyph Mode (64x40 text)
@@ -104,8 +104,8 @@ enum MEMMAP
 
 //  Paged Background Graphics Mode Hardware Registers:
   GFX_BG_BEGIN = 0x180b,        // start of paged background gfxmode registers
-  GFX_EXT_ADDR = 0x180b,        // (Word) 40K extended graphics addresses
-  GFX_EXT_DATA = 0x180d,        // (Byte) 40K extended graphics RAM data
+  GFX_EXT_ADDR = 0x180b,        // (Word) 20K extended graphics addresses
+  GFX_EXT_DATA = 0x180d,        // (Byte) 20K extended graphics RAM data
     GFX_BG_END = 0x180d,        // end of paged background gfxmode registers
 
 //  Mouse Cursor Hardware Registers:

@@ -33,7 +33,7 @@
 0011  00              var_at                  fcb             $00
 0012  00              var_count               fcb             $00
 0013  FF              var_csr                 fcb             $ff
-0040                  num_cycles              equ             $40
+0020                  num_cycles              equ             $20
 0014  00              var_cycle               fcb             $00
 0015  00              var_mode_index  fcb             $00
                       
@@ -204,7 +204,7 @@ E024                  reset
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
                                               
-E024  8640                                    lda             #num_cycles             ; initially clear the cycle variable
+E024  8620                                    lda             #num_cycles             ; initially clear the cycle variable
 E026  B70014                                  sta             var_cycle
                       
                       ;                       ; enable backbuffer mode
@@ -214,7 +214,7 @@ E026  B70014                                  sta             var_cycle
                       
                                               ; set up the initial graphics mode 
 E029  7F0015                                  clr             var_mode_index  ; start with index 0
-E02C  8EE0D0                                  ldx             #mode_data
+E02C  8EE0E0                                  ldx             #mode_data
 E02F  B61800                                  lda             GFX_FLAGS
 E032  84F0                                    anda    #$f0
 E034  AA84                                    ora             ,x
@@ -275,68 +275,68 @@ E089  20F5                                    bra             4b                
 E08B                  3
                       
                       
-                      ;                       ; INCREMENT THE EXTENDED SCREEN BUFFER
-                      ;                       ldx             #0
-                      ;8                      
-                      ;                       stx             GFX_EXT_ADDR
-                      ;                       inc             GFX_EXT_DATA
-                      ;                       leax    1,x
-                      ;                       cmpx    #$2800
-                      ;                       bne             8b
+                                              ; INCREMENT THE EXTENDED SCREEN BUFFER
+E08B  8E0000                                  ldx             #0
+E08E                  8                       
+E08E  BF180B                                  stx             GFX_EXT_ADDR
+E091  7C180D                                  inc             GFX_EXT_DATA
+E094  3001                                    leax    1,x
+E096  8C0280                                  cmpx    #640            ;#$0800
+E099  26F3                                    bne             8b
                       
                       
                       
                       
                                               ; TOGGLE THE BACKBUFFER
-E08B  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E08E  8820                                    eora    #$20            ; toggle it
-E090  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E09B  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E09E  8820                                    eora    #$20            ; toggle it
+E0A0  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
-E093  8604                                    lda             #4
-E095  B71817                                  sta             CSR_PAL_INDX
-E098  FC1818                                  ldd             CSR_PAL_DATA
-E09B  C300A0                                  addd    #$00a0
-E09E  FD1818                                  std             CSR_PAL_DATA            
+E0A3  8604                                    lda             #4
+E0A5  B71817                                  sta             CSR_PAL_INDX
+E0A8  FC1818                                  ldd             CSR_PAL_DATA
+E0AB  C300A0                                  addd    #$00a0
+E0AE  FD1818                                  std             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
-E0A1  7C0014                                  inc             var_cycle       ; increment the cycle counter
-E0A4  B60014                                  lda             var_cycle
-E0A7  8140                                    cmpa    #num_cycles             ; max cycles yet?
-E0A9  2323                                    bls             continue        ; nope, continue with the main loop
-E0AB  7F0014                                  clr             var_cycle       ; reset the cycle count
+E0B1  7C0014                                  inc             var_cycle       ; increment the cycle counter
+E0B4  B60014                                  lda             var_cycle
+E0B7  8120                                    cmpa    #num_cycles             ; max cycles yet?
+E0B9  2323                                    bls             continue        ; nope, continue with the main loop
+E0BB  7F0014                                  clr             var_cycle       ; reset the cycle count
                       
                                               ; MODE CHANGES
-E0AE                  6
-E0AE  F60015                                  ldb             var_mode_index
-E0B1  7C0015                                  inc             var_mode_index
-E0B4  8EE0D0                                  ldx             #mode_data
-E0B7  A685                                    lda             b,x
-E0B9  81FF                                    cmpa    #$ff
-E0BB  270C                                    beq             5f
-E0BD  B61800                                  lda             GFX_FLAGS
-E0C0  84F0                                    anda    #$f0
-E0C2  AA85                                    ora             b,x
-E0C4  B71800                                  sta             GFX_FLAGS
-E0C7  2005                                    bra             continue
-E0C9                  5       
-E0C9  7F0015                                  clr             var_mode_index
-E0CC  20E0                                    bra             6b
-E0CE                  continue
+E0BE                  6
+E0BE  F60015                                  ldb             var_mode_index
+E0C1  7C0015                                  inc             var_mode_index
+E0C4  8EE0E0                                  ldx             #mode_data
+E0C7  A685                                    lda             b,x
+E0C9  81FF                                    cmpa    #$ff
+E0CB  270C                                    beq             5f
+E0CD  B61800                                  lda             GFX_FLAGS
+E0D0  84F0                                    anda    #$f0
+E0D2  AA85                                    ora             b,x
+E0D4  B71800                                  sta             GFX_FLAGS
+E0D7  2005                                    bra             continue
+E0D9                  5       
+E0D9  7F0015                                  clr             var_mode_index
+E0DC  20E0                                    bra             6b
+E0DE                  continue
                       
                               
                       
-E0CE  20AD                                    bra             2b
+E0DE  209D                                    bra             2b
                       
                       ; ***********************************************************
                       
-                      ;mode_data      fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
-                      ;                       fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
+                      ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
+                      ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       
-E0D0  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-E0D8  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+E0E0  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+E0E8  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-E0E0  FF                                      fcb             $ff
+E0F0  FF                                      fcb             $ff
                       
                       ; interrupt vectors
 FFF0                                                  org  $fff0

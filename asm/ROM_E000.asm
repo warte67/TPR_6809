@@ -33,7 +33,7 @@ var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00
 var_csr			fcb		$ff
-num_cycles		equ		$40
+num_cycles		equ		$20
 var_cycle		fcb		$00
 var_mode_index	fcb		$00
 
@@ -165,14 +165,14 @@ reset
 3
 
 
-;			; INCREMENT THE EXTENDED SCREEN BUFFER
-;			ldx		#0
-;8			
-;			stx		GFX_EXT_ADDR
-;			inc		GFX_EXT_DATA
-;			leax	1,x
-;			cmpx	#$2800
-;			bne		8b
+			; INCREMENT THE EXTENDED SCREEN BUFFER
+			ldx		#0
+8			
+			stx		GFX_EXT_ADDR
+			inc		GFX_EXT_DATA
+			leax	1,x
+			cmpx	#640		;#$0800
+			bne		8b
 
 
 
@@ -220,8 +220,8 @@ continue
 
 ; ***********************************************************
 
-;mode_data	fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
-;			fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
+;mode_data	fcb		$08, $08, $08, $08, $08, $08, $08, $08
+;			fcb		$08, $08, $08, $08, $08, $08, $08, $08
 
 mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
 			fcb		$08, $09, $0a, $0b, $0c, $0d, $0e, $0f
