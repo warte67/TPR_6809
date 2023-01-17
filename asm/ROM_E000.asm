@@ -29,7 +29,6 @@ SOFT_SWI2       fdb 	do_SWI2      	; Software SWI2 Vector
 SOFT_SWI3       fdb 	do_SWI3      	; Software SWI3 Vector
 SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 
-
 var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00
@@ -90,6 +89,7 @@ just_rti
 			rti 
 
 reset		
+
 
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display
@@ -193,15 +193,6 @@ mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
 			fcb		$08, $09, $0a, $0b, $0c, $0d, $0e, $0f
 
 			fcb		$ff
-
-
-
-
-
-
-
-
-
 
 ; interrupt vectors
 				org  $fff0

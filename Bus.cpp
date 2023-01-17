@@ -11,6 +11,7 @@
 #include "Memory.h"
 #include "C6809.h"
 #include "Bus.h"
+#include "GfxMouse.h"
 #include "GfxDebug.h"
 
 // initialize staatics
@@ -45,20 +46,31 @@ Bus::Bus()
     m_memory->bus = this;
     _devices.push_back(m_memory);
 
+
     // create the cpu (clocked via external thread)    
+    // CPU is not attached to _devices vector
     bCpuEnabled = false;
     m_cpu = new C6809(this);    
-    // CPU not attached to _devices vector
+
+
 
     //// Memory-Mapped Devices:
     // 
     // map low RAM $0000-$17ff (VIDEO_END)
-    m_memory->AssignRAM("Low RAM", 0x1800);    
-    mem_offset = 0x1800;
+    int gfx_start = 0x1800;
+    m_memory->AssignRAM("Low RAM", gfx_start);
+    mem_offset = gfx_start;
 
-    // create the graphics device:
+    // create the graphics devices:
     GFX* temp = new GFX();
     int size = temp->MapDevice(memmap, mem_offset);   
+    // add the GfxMode memory maps
+    mem_offset += size;
+    mem_offset += temp->gfx_mouse->MapDevice(memmap, mem_offset);
+    mem_offset += temp->gfx_debug->MapDevice(memmap, mem_offset);
+    mem_offset+=2;
+    size = mem_offset - gfx_start;
+    // attach the graphics device
     m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
     REG* reg = m_memory->FindRegByName("GFX_DEVICE"); 
     m_gfx = new GFX(mem_offset, size);
@@ -68,13 +80,15 @@ Bus::Bus()
     _devices.push_back(m_gfx);
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
     delete temp;
-    mem_offset += size;
+    // close the graphics memory map
+    memmap->push({ (Word)mem_offset, "", "" }); 
+    memmap->push({ (Word)++mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
+    memmap->push({ (Word)mem_offset++, "", "" });
+    
 
-
-
-
-    // add more devices here:
+    // add more hardware devices here:
     // ...
+
 
 
     // Reserve RAM to fill in vacancy where the hardware registers lack
@@ -84,7 +98,7 @@ Bus::Bus()
     // available to be mapped by register devices.
     int reserved = mem_offset;
     int gfx_size = 0x2000 - mem_offset;
-    mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size);
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size + 2);
 
     // close memory mapping
     mem_offset += memmap->end(reserved);    // mem_offset);
@@ -102,21 +116,20 @@ Bus::Bus()
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, rom_path.c_str());
 
 
-    // Memory Device Allocation ERROR???
-    if (mem_offset != 0x10000) {
-        printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
-            " $%04X bytes remain.\n", 0x10000 - mem_offset);
-        std::string err = "$" + hex(0x10000 - mem_offset, 4) + " bytes remain.";
-
-        Bus::Err("Memory::AssignMemory() failed to fill map to 0xFFFF!");        
-        // Bus::getInstance()->IsRunning(false);
-        for (auto& a : m_memory->m_memBlocks) {
-            printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
-        }
-        return;
-    }
+    //// Memory Device Allocation ERROR???
+    //if (mem_offset != 0x10000) {
+    //    printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
+    //        " $%04X bytes remain.\n", 0x10000 - mem_offset);
+    //    std::string err = "$" + hex(0x10000 - mem_offset, 4) + " bytes remain.";
+    //    Bus::Err("Memory::AssignMemory() failed to fill map to 0xFFFF!");        
+    //    // Bus::getInstance()->IsRunning(false);
+    //    for (auto& a : m_memory->m_memBlocks) {
+    //        printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+    //    }
+    //    return;
+    //}
     for (auto& a : m_memory->m_memBlocks) {
-        printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+        printf("[%12s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
     }
     printf("\n");
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);

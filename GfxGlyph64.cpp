@@ -13,16 +13,31 @@
 //#include "font8x8_system.h"
 extern Byte font8x8_system[256][8];
 
+
 // Graphics Mode Unique Callback Function:
 Byte GfxGlyph64::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
-		printf("GfxGlyph64::OnCallback() -- READ\n");
+		if (bWasRead)
+		{	// READ	
+			// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
+			if (ofs >= GFX_FG_WDTH && ofs <= GFX_FG_HGHT + 1)
+			{
+				Word fg_Width = 63;
+				Word fg_Height = 39;
+				if (ofs == GFX_FG_WDTH)		data = fg_Width;
+				if (ofs == GFX_FG_HGHT)		data = fg_Height;
+				bus->debug_write(ofs, data);
+			}
+		}
+		// read character font data from the buffer
+		// ...
 	}
 	else
 	{	// WRITE
-		printf("GfxGlyph64::OnCallback() -- WRITE\n");
+		// write character font data to buffer and to texture
+		// ...
 	}
 	return data;
 }
@@ -151,7 +166,9 @@ void GfxGlyph64::OnDestroy()
 
 void GfxGlyph64::OnUpdate(float fElapsedTime)
 {
-	// printf("GfxGlyph::OnUpdate()\n");
+	// update RAM
+	//bus->read(GFX_FG_WDTH);
+	//bus->read(GFX_FG_HGHT);
 
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
@@ -177,7 +194,7 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 			Byte red = gfx->red(bg);
 			Byte grn = gfx->grn(bg);
 			Byte blu = gfx->blu(bg);
-			Byte alf = gfx->alf(bg) * 0.75f;
+			Byte alf = gfx->alf(bg);
 			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 			SDL_Rect dst = { x, y, 8, 8 };
 			SDL_RenderFillRect(gfx->Renderer(), &dst);
@@ -187,7 +204,7 @@ void GfxGlyph64::OnUpdate(float fElapsedTime)
 			red = gfx->red(fg);
 			grn = gfx->grn(fg);
 			blu = gfx->blu(fg);
-			alf = gfx->alf(fg) / 2;
+			alf = gfx->alf(fg);
 			int row = x / 8;
 			int col = y / 8;
 

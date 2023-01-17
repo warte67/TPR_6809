@@ -85,6 +85,33 @@ Byte GfxMouse::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 	return data;
 }
 
+Word GfxMouse::MapDevice(MemoryMap* memmap, Word offset)
+{
+	std::string reg_name = "Debug System";
+	DWord st_offset = offset;
+
+	// map fundamental mouse cursor hardware registers:
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "CSR_BEGIN", "start of mouse cursor hardware registers" }); offset += 0;
+	memmap->push({ offset, "CSR_XPOS", "(Word) horizontal mouse cursor coordinate" }); offset += 2;
+	memmap->push({ offset, "CSR_YPOS", "(Word) vertical mouse cursor coordinate" }); offset += 2;
+	memmap->push({ offset, "CSR_XOFS", "(Byte) horizontal mouse cursor offset" }); offset += 1;
+	memmap->push({ offset, "CSR_YOFS", "(Byte) vertical mouse cursor offset" }); offset += 1;
+	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
+	memmap->push({ offset, "CSR_SCROLL", "(Signed) MouseWheel Scroll: -1, 0, 1" }); offset += 1;
+	memmap->push({ offset, "CSR_FLAGS", "(Byte) mouse button flags:" }); offset += 1;
+	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
+	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
+	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
+	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
+	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
+	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
+	memmap->push({ --offset, "CSR_END", "end of mouse cursor hardware registers" }); offset += 1;
+
+	return offset - st_offset;
+}
+
 
 GfxMouse::GfxMouse()
 {

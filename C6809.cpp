@@ -155,7 +155,7 @@ bool C6809::do_interrupts() {
 }
 
 void C6809::reset() {
-	PC = read_word(0xfffe);
+	PC = bus->read_word(0xfffe);
 	cycles = 0;
 	DP = 0x00;
 	D = 0x0000;

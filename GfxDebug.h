@@ -19,7 +19,8 @@ public:
 	GfxDebug();
 	virtual ~GfxDebug();
 
-	Byte OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead);
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) override;
+	static Word MapDevice(MemoryMap* memmap, Word offset) ;
 
 	virtual void OnInitialize() override;
 	virtual void OnQuit() override;
@@ -46,6 +47,8 @@ public:
 	void HandleButtons();
 
 	void SetSingleStep(bool step) { bSingleStep = step; }
+
+	bool IsMemDumping() { return bDebugMemDump; }
 
 	// button callbacks
 	void cbClearBreaks();
@@ -127,7 +130,31 @@ private:
 	bool bSingleStep = DEBUG_SINGLE_STEP;	// false;
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
+
+	bool bDebugMemDump = false;
 };
 
 
 #endif //__GFXDEBUG_H__
+
+
+/*****
+
+Notes:
+
+	DEBUG_FLAGS: (Byte)	Debug Specific Hardware Flags
+
+		bit 7)	Debug Enable
+		bit 6)  Advance Single Step (on low to high edge)
+		bit 5)	Single Step Enable
+		bit 4)  Toggle Breakpoint at DEBUG_BRK_ADDRESS
+
+		bit 3)  FIRQ  (on low to high edge)
+		bit 2)  IRQ   (on low to high edge)
+		bit 1)  NMI   (on low to high edge)
+		bit 0)  RESET (on low to high edge)
+
+	DEBUG_BRK_ADDR: (Word) Address of current breakpoint
+
+
+***/

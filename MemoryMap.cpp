@@ -48,8 +48,9 @@ Word MemoryMap::start()
 	// 5K video buffer ($0400 - $1800) 
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Video Buffer Memory (target = $0400):" });
-	v_mem.push_back({ offset, "VIDEO_START", "Start of Video Buffer Memory" }); offset += 0x1400 - 1;
-	v_mem.push_back({ offset, "VIDEO_END", "Last Byte of Video Buffer Memory" }); offset += 1;
+	v_mem.push_back({ offset, "VIDEO_START", "Start of 5KB Video Buffer Memory" }); offset += 0x1400 - 1;
+	v_mem.push_back({ offset, "VIDEO_END", "Last Byte of 5KB Video Buffer Memory" }); offset += 1;
+
 
 	return offset;
 }
@@ -75,6 +76,9 @@ Word MemoryMap::end(Word offset)
 	int bytes = _n - offset;
 	std::string _future_expansion = "Reserved " + std::to_string(bytes) + " bytes ";
 	_future_expansion += "($" + Bus::hex(offset, 4) + " - $" + Bus::hex(_n, 4) + ")";
+
+	v_mem.push_back({ offset, "", "" });
+	v_mem.push_back({ offset, "", "Reserved Hardware:" });
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
 	offset = 0x2000 - 4;
 

@@ -19,11 +19,11 @@ Byte GfxRaw::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
-		printf("GfxRaw::OnCallback() -- READ\n");
+		//printf("GfxRaw::OnCallback() -- READ\n");
 	}
 	else
 	{	// WRITE
-		printf("GfxRaw::OnCallback() -- WRITE\n");
+		//printf("GfxRaw::OnCallback() -- WRITE\n");
 	}
 	return data;
 }

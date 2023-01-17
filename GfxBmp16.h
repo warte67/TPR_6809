@@ -14,6 +14,8 @@ public:
 	GfxBmp16();
 	virtual ~GfxBmp16();
 
+	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+
 	virtual void OnInitialize() override;
 	virtual void OnActivate() override;
 	virtual void OnDeactivate() override;
@@ -25,8 +27,8 @@ private:
 
 	SDL_Texture* bitmap_texture = nullptr;
 	std::vector<GFX::PALETTE> default_palette;
-	static const int pixel_width;
-	static const int pixel_height;
+	const int pixel_width = 128;
+	const int pixel_height = 80;
 };
 
 

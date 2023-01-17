@@ -8,9 +8,31 @@
 #include "GFX.h"
 #include "GfxBmp16.h"
 
-// statics:
-const int GfxBmp16::pixel_width = 128;
-const int GfxBmp16::pixel_height = 80;
+
+// Graphics Mode Unique Callback Function:
+Byte GfxBmp16::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+{
+	if (bWasRead)
+	{	// READ	
+		if (bWasRead)
+		{	// READ	
+			// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
+			if (ofs >= GFX_FG_WDTH && ofs <= GFX_FG_HGHT + 1)
+			{
+				Word fg_Width = pixel_width-1;
+				Word fg_Height = pixel_height-1;
+				if (ofs == GFX_FG_WDTH)		data = fg_Width;
+				if (ofs == GFX_FG_HGHT)		data = fg_Height;
+				bus->debug_write(ofs, data);
+			}
+		}
+	}
+	else
+	{	// WRITE
+	}
+	return data;
+}
+
 
 // constructor
 GfxBmp16::GfxBmp16() : GfxMode()
@@ -96,6 +118,10 @@ void GfxBmp16::OnDestroy()
 
 void GfxBmp16::OnUpdate(float fElapsedTime) 
 {
+	// update paged ram
+	//bus->read(GFX_FG_WDTH);
+	//bus->read(GFX_FG_HGHT);
+
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
 	static float delayAcc = fElapsedTime;
@@ -117,17 +143,17 @@ void GfxBmp16::OnUpdate(float fElapsedTime)
 				Byte c1 = data >> 4;
 				Byte c2 = data & 0x0f;
 			
-				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1));
-				//SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2));
-				//SDL_RenderDrawPoint(gfx->Renderer(), x+1, y);
-
-				Byte a1 = int((float)gfx->alf(c1) * 0.75f);
-				Byte a2 = int((float)gfx->alf(c2) * 0.75f);
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), a1);
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1));
 				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
-				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), a2);
-				SDL_RenderDrawPoint(gfx->Renderer(), x + 1, y);
+				SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), gfx->alf(c2));
+				SDL_RenderDrawPoint(gfx->Renderer(), x+1, y);
+
+				//Byte a1 = int((float)gfx->alf(c1) * 0.75f);
+				//Byte a2 = int((float)gfx->alf(c2) * 0.75f);
+				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), a1);
+				//SDL_RenderDrawPoint(gfx->Renderer(), x, y);
+				//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c2), gfx->grn(c2), gfx->blu(c2), a2);
+				//SDL_RenderDrawPoint(gfx->Renderer(), x + 1, y);
 			}
 		}
 	}

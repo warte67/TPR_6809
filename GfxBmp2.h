@@ -27,8 +27,8 @@ private:
 
 	SDL_Texture* bitmap_texture = nullptr;
 	std::vector<GFX::PALETTE> default_palette;
-	static const int pixel_width;
-	static const int pixel_height;
+	const int pixel_width = 256;
+	const int pixel_height = 160;
 };
 
 #endif // __GFXBMP2_H__

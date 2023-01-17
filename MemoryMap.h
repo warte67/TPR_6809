@@ -64,15 +64,16 @@ enum MEMMAP
      S_STK_TOP = 0x0400,        // System Stack initial address
 
 //  Video Buffer Memory (target = $0400):
-   VIDEO_START = 0x0400,        // Start of Video Buffer Memory
-     VIDEO_END = 0x17ff,        // Last Byte of Video Buffer Memory
+   VIDEO_START = 0x0400,        // Start of 5KB Video Buffer Memory
+     VIDEO_END = 0x17ff,        // Last Byte of 5KB Video Buffer Memory
 
 //  Graphics Hardware Registers:
+     GFX_BEGIN = 0x1800,        // start of graphics hardware registers
      GFX_FLAGS = 0x1800,        // (Byte) gfx system flags:
                                 //      bit 7: VSYNC
                                 //      bit 6: backbuffer enable
                                 //      bit 5: swap backbuffers (on write)
-                                //      bit 4: debug enable
+                                //      bit 4: reserved
                                 //      bits 2-3 = 'Background' graphics mode (40KB buffer)
                                 //          0) NONE (forced black background)
                                 //          1) Tiled 16x16 mode
@@ -90,40 +91,60 @@ enum MEMMAP
                                 //      bit 4: reserved
                                 //      bit 3: reserved
                                 //      bit 0-2: monitor display index (0-7)
-  TIMING_WIDTH = 0x1802,        // (Word) timing width
-  TIMING_HEIGHT = 0x1804,       // (Word) timing height
+  GFX_TIMING_W = 0x1802,        // (Word) horizontal timing
+  GFX_TIMING_H = 0x1804,        // (Word) vertical timing
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
   GFX_PAL_DATA = 0x1807,        // (Byte) gfx palette color bits r4g4b4a4
 
 //  Paged Foreground Graphics Mode Hardware Registers:
   GFX_FG_BEGIN = 0x1808,        // start of paged foreground gfxmode registers
-  GFX_EXT_ADDR = 0x1808,        // (Word) 64K extended graphics addresses
-  GFX_EXT_DATA = 0x180a,        // (Byte) 64K extended graphics RAM data
-    GFX_FG_END = 0x180a,        // end of paged foreground gfxmode registers
+   GFX_FG_WDTH = 0x1808,        // (Byte) Foreground Unit Width-1
+   GFX_FG_HGHT = 0x1809,        // (Byte) Foreground Unit Height-1
+    GFX_FG_END = 0x1809,        // end of paged foreground gfxmode registers
 
 //  Paged Background Graphics Mode Hardware Registers:
-  GFX_BG_BEGIN = 0x180b,        // start of paged background gfxmode registers
-  GFX_BGND_TEMP = 0x180b,       // (Byte) 64K extended graphics addresses
-    GFX_BG_END = 0x180b,        // end of paged background gfxmode registers
+  GFX_BG_BEGIN = 0x180a,        // start of paged background gfxmode registers
+  GFX_EXT_ADDR = 0x180a,        // (Word) 64K extended graphics addresses
+  GFX_EXT_DATA = 0x180c,        // (Byte) 64K extended graphics RAM data
+    GFX_BG_END = 0x180c,        // end of paged background gfxmode registers
 
 //  Mouse Cursor Hardware Registers:
-      CSR_XPOS = 0x180c,        // (Word) horizontal mouse cursor coordinate
-      CSR_YPOS = 0x180e,        // (Word) vertical mouse cursor coordinate
-      CSR_XOFS = 0x1810,        // (Byte) horizontal mouse cursor offset
-      CSR_YOFS = 0x1811,        // (Byte) vertical mouse cursor offset
-      CSR_SIZE = 0x1812,        // (Byte) cursor size (0-15) 0:off
-    CSR_SCROLL = 0x1813,        // (Signed) MouseWheel Scroll: -1, 0, 1
-     CSR_FLAGS = 0x1814,        // (Byte) mouse button flags:
+     CSR_BEGIN = 0x180d,        // start of mouse cursor hardware registers
+      CSR_XPOS = 0x180d,        // (Word) horizontal mouse cursor coordinate
+      CSR_YPOS = 0x180f,        // (Word) vertical mouse cursor coordinate
+      CSR_XOFS = 0x1811,        // (Byte) horizontal mouse cursor offset
+      CSR_YOFS = 0x1812,        // (Byte) vertical mouse cursor offset
+      CSR_SIZE = 0x1813,        // (Byte) cursor size (0-15) 0:off
+    CSR_SCROLL = 0x1814,        // (Signed) MouseWheel Scroll: -1, 0, 1
+     CSR_FLAGS = 0x1815,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1815,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1816,        // (Byte) mouse cursor color palette data RRGGBBAA
-  CSR_BMP_INDX = 0x1817,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1818,        // (Byte) mouse cursor bitmap pixel color
+  CSR_PAL_INDX = 0x1816,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1817,        // (Byte) mouse cursor color palette data RRGGBBAA
+  CSR_BMP_INDX = 0x1818,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1819,        // (Byte) mouse cursor bitmap pixel color
+       CSR_END = 0x1819,        // end of mouse cursor hardware registers
 
-       GFX_END = 0x1818,        // end of the GFX Hardware Registers
+//  Debugger Hardware Registers:
+     DBG_BEGIN = 0x181a,        // Start of Debugger Hardware Registers
+  DBG_BRK_ADDR = 0x181a,        // (Word) Address of current breakpoint
+     DBG_FLAGS = 0x181c,        // (Byte) Debug Specific Hardware Flags
+                                //      bit 7: Debug Enable
+                                //      bit 6: Single Step Enable
+                                //      bit 5: clear all breakpoints
+                                //      bit 4: Toggle Breakpoint at DEBUG_BRK_ADDRESS
+                                //      bit 3: FIRQ  (on low to high edge)
+                                //      bit 2: IRQ   (on low to high edge)
+                                //      bit 1: NMI   (on low to high edge)
+                                //      bit 0: RESET (on low to high edge)
+       DBG_END = 0x181c,        // End of the Debugger Hardware Registers
 
-  RESERVED_HDW = 0x1819,        // Reserved 2018 bytes ($1819 - $1FFB)
+
+       GFX_END = 0x181f,        // end of the GFX Hardware Registers
+
+
+//  Reserved Hardware:
+  RESERVED_HDW = 0x1820,        // Reserved 2011 bytes ($1820 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -150,10 +171,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
-
-
-
 
 
 #endif // __MEMORY_MAP__

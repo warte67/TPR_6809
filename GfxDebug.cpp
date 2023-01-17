@@ -12,6 +12,102 @@
 
 #include "font8x8_system.h"
 
+Byte GfxDebug::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+{
+	Bus* bus = Bus::getInstance();
+
+	static Word _breakpoint = 0;
+	
+	if (bWasRead)
+	{ // READ
+		// printf("GfxDebug::OnCallback() =-->  READ\n");
+
+		if (ofs == DBG_BRK_ADDR)	
+		{
+			data = (_breakpoint >> 8) & 0x00FF;
+			bus->debug_write(ofs, data);
+		}
+		if (ofs == DBG_BRK_ADDR+1)	
+		{
+			data = _breakpoint & 0x00FF;
+			bus->debug_write(ofs, data);
+		}
+
+		if (ofs == DBG_FLAGS)
+		{
+			data = 0;
+			//      bit 7: Debug Visible
+			if (gfx->DebugEnabled())	data |= 0x80;
+
+			//      bit 6: Single Step Enable
+			if (bSingleStep)			data |= 0x40;
+
+			//		bit 5: clear all breakpoints (Write only)
+
+			//		bit 4: Toggle Breakpoint at DEBUG_BRK_ADDRESS
+			(mapBreakpoints[_breakpoint]) ? data |= 0x10 : data &= ~0x10;
+
+			bus->debug_write(ofs, data);
+		}
+
+	}
+	else
+	{ // WRITE
+		//printf("GfxDebug::OnCallback() =-->  WRITE\n");
+		
+		if (ofs == DBG_BRK_ADDR)
+		{
+			_breakpoint = (_breakpoint & 0x00ff) | (data << 8);
+			bus->debug_write(ofs, data);
+		}
+		if (ofs == DBG_BRK_ADDR+1)
+		{
+			_breakpoint = (_breakpoint & 0xffff) | data;
+			bus->debug_write(ofs, data);
+		}
+		if (ofs == DBG_FLAGS)
+		{
+			gfx->DebugEnabled( ((data & 0x80) == 0x80) );
+			(data & 0x40) ? bSingleStep = true : bSingleStep = false;
+			if (data & 0x20)	cbClearBreaks();
+			if (data & 0x10)	mapBreakpoints[_breakpoint] = !mapBreakpoints[_breakpoint];
+			if (data & 0x08)	this->cbFIRQ();
+			if (data & 0x04)	this->cbIRQ();	
+			if (data & 0x02)	this->cbNMI();	
+			if (data & 0x01)	this->cbReset();	
+		}
+	}
+	return data;
+}
+
+Word GfxDebug::MapDevice(MemoryMap* memmap, Word offset)
+{
+	std::string reg_name = "Debug System";
+	DWord st_offset = offset;
+
+	// map fundamental Debugger hardware registers:
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Debugger Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "DBG_BEGIN", "Start of Debugger Hardware Registers" }); offset += 0;
+
+	memmap->push({ offset, "DBG_BRK_ADDR", "(Word) Address of current breakpoint" }); offset += 2;
+	memmap->push({ offset, "DBG_FLAGS", "(Byte) Debug Specific Hardware Flags" }); offset += 1;
+	memmap->push({ offset, "", ">    bit 7: Debug Enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6: Single Step Enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: clear all breakpoints " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: Toggle Breakpoint at DEBUG_BRK_ADDRESS" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: FIRQ  (on low to high edge)" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2: IRQ   (on low to high edge)" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 1: NMI   (on low to high edge)" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0: RESET (on low to high edge)" }); offset += 0;
+
+	memmap->push({ --offset, "DBG_END", "End of the Debugger Hardware Registers" }); 
+	memmap->push({ offset, "", "" });
+
+	return offset - st_offset;
+}
+
+
 GfxDebug::GfxDebug()
 {
 	//printf("GfxDebug::GfxDebug()\n");
@@ -26,20 +122,6 @@ GfxDebug::GfxDebug()
 GfxDebug::~GfxDebug()
 {
 	//printf("GfxDebug::~GfxDebug()\n");
-}
-
-
-Byte GfxDebug::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
-{
-	//printf("GfxDebug::OnCallback()\n");
-
-	if (bWasRead)
-	{
-	}
-	else
-	{
-	}
-	return data;
 }
 
 
@@ -248,13 +330,19 @@ std::string GfxDebug::hex(Uint32 n, Uint8 d)
 
 void GfxDebug::DumpMemory(int col, int row, Word addr)
 {
+	bDebugMemDump = true;
+	const bool use_debug_read = false;
 	int line = 0;
 	for (int ofs = addr; ofs < addr + 0x48; ofs += 8)
 	{
 		int c = col;
 		std::string out = hex(ofs, 4) + " ";
-		for (int b = 0; b < 8; b++)
-			out += hex(bus->debug_read(ofs + b), 2) + " ";
+		if (use_debug_read)
+			for (int b = 0; b < 8; b++)
+				out += hex(bus->debug_read(ofs + b), 2) + " ";
+		else
+			for (int b = 0; b < 8; b++)
+				out += hex(bus->read(ofs + b), 2) + " ";
 
 		c += OutText(col, row + line, out.c_str(), 224, 224, 255);
 
@@ -263,12 +351,17 @@ void GfxDebug::DumpMemory(int col, int row, Word addr)
 		{
 			for (int b = 0; b < 8; b++)
 			{
-				Byte data = bus->debug_read(ofs + b);
+				Byte data;
+				if (use_debug_read)
+					data = bus->debug_read(ofs + b);
+				else
+					data = bus->read(ofs + b);
 				OutGlyph(c++, row + line, data, 160, 160, 255);
 			}
 		}
 		line++;
 	}
+	bDebugMemDump = false;
 }
 
 void GfxDebug::DrawCpu(int x, int y)
@@ -622,7 +715,7 @@ void GfxDebug::MouseStuff()
 			}
 			else
 				bIsCursorVisible = false;
-			printf("MX:%d  MY:%d\n", mx, my);
+			//printf("MX:%d  MY:%d\n", mx, my);
 		}
 		// condition code clicked?
 		if (my == 1)

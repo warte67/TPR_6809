@@ -6,6 +6,7 @@
 #ifndef __GFXMOUSE_H__
 #define __GFXMOUSE_H__
 
+#include "GfxMode.h"
 
 class GfxMouse : public GfxMode
 {
@@ -14,6 +15,8 @@ public:
 	virtual ~GfxMouse();
 
 	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) override;
+	static Word MapDevice(MemoryMap* memmap, Word offset);
+
 
 	virtual void OnInitialize() override;				
 	virtual void OnQuit() override;						

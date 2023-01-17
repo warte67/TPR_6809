@@ -29,8 +29,6 @@ bool GFX::m_enable_debug		= ENABLE_DEBUG;
 // default GFX_AUX:
 bool GFX::m_fullscreen			= DEFAULT_FULLSCREEN;
 int  GFX::m_display_num			= DEFAULT_MONITOR;
-//int  GFX::m_gmode_index			= DEFAULT_GRAPHICS_MODE;
-
 
 // these don't need to be static anymore
 // bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
@@ -40,10 +38,14 @@ int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
 Uint8 GFX::m_palette_index = 0;
 
 
+
+
+
+
+
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
-
 
 	Bus* bus = Bus::getInstance();
 
@@ -58,7 +60,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				if (ptrGfx->m_VSYNC)				ret |= 0x80;
 				if (ptrGfx->m_enable_backbuffer)	ret |= 0x40;
 				if (ptrGfx->m_current_backbuffer)	ret |= 0x20;
-				if (ptrGfx->m_enable_debug)			ret |= 0x10;
 
 				ret |= ptrGfx->m_fg_mode_index & 0x03;
 				ret |= (ptrGfx->m_bg_mode_index << 2) & 0x0C;
@@ -82,13 +83,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			}
 			// All we care about here is the resolution width/height. This represents the
 			//     screen timing resolution the PICO will have to display.
-			if (ofs == TIMING_WIDTH)
+			if (ofs == GFX_TIMING_W)
 				return (ptrGfx->_pix_width >> 8) & 0x00ff;
-			if (ofs == TIMING_WIDTH + 1)
+			if (ofs == GFX_TIMING_W + 1)
 				return ptrGfx->_pix_width & 0x00ff;
-			if (ofs == TIMING_HEIGHT)
+			if (ofs == GFX_TIMING_H)
 				return (ptrGfx->_pix_height >> 8) & 0x00ff;
-			if (ofs == TIMING_HEIGHT + 1)
+			if (ofs == GFX_TIMING_H + 1)
 				return ptrGfx->_pix_height & 0x00ff;
 
 			// read PALETTE stuff
@@ -96,6 +97,12 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				return m_palette_index;
 			if (ofs == GFX_PAL_DATA)
 				return ptrGfx->palette[m_palette_index].color;
+
+			// read non-paged FG graphics Hardware Registers ($0000-$9fff)
+			if (GfxMode::s_mem_64k_adr > 0x9fff) GfxMode::s_mem_64k_adr = 0x9fff;
+			if (ofs == GFX_EXT_ADDR)		data = GfxMode::s_mem_64k_adr >> 8;
+			if (ofs == GFX_EXT_ADDR + 1)	data = GfxMode::s_mem_64k_adr & 0xFF;
+			if (ofs == GFX_EXT_DATA)		data = GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr];
 		}
 		else
 		{	// WRITTEN TO
@@ -108,7 +115,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->m_enable_backbuffer		= ((data & 0x40) == 0x40);
 				if (ptrGfx->m_enable_backbuffer)
 					ptrGfx->m_current_backbuffer = ((data & 0x20) == 0x20);
-				ptrGfx->m_enable_debug = ((data & 0x10) == 0x10);
 
 				ptrGfx->m_fg_mode_index = data & 0x03;
 				ptrGfx->m_bg_mode_index = (data >> 2) & 0x03;
@@ -172,8 +178,34 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			}
 		}
 
+
+		// write non-paged BG graphics Hardware Registers
+		if (ofs == GFX_EXT_ADDR)		
+		{
+			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0x00ff) | data << 8;
+			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x9fff;
+			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
+			ptrGfx->debug_write(ofs, data);
+		}
+		if (ofs == GFX_EXT_ADDR + 1)	
+		{
+			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0xff00) | data;
+			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x9fff;
+			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
+			ptrGfx->debug_write(ofs, data);
+		}
+		if (ofs == GFX_EXT_DATA)
+		{
+			GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr] = data;
+			ptrGfx->debug_write(ofs, data);
+		}
+
+
 		// intercept for GfxMouse
-		if (ofs >= CSR_XPOS && ofs <= CSR_BMP_DATA)
+		if (ofs >= DBG_BEGIN && ofs <= DBG_END)
+			return ptrGfx->gfx_debug->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
+		// intercept for GfxDebug
+		if (ofs >= CSR_BEGIN && ofs <= CSR_END)
 			return ptrGfx->gfx_mouse->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
 
 		// intercept for banked foreground GfxMode registers
@@ -208,16 +240,6 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	bus = Bus::getInstance();
 	bus->m_gfx = this;
 	memory = bus->getMemoryPtr();
-
-	//// pre-build the graphics modes
-	//m_gmodes.push_back(new GfxNull());
-	//m_gmodes.push_back(new GfxGlyph32());
-	//m_gmodes.push_back(new GfxGlyph64());
-	//m_gmodes.push_back(new GfxTile());			// GfxMode
-	//m_gmodes.push_back(new GfxBmp16());
-	//m_gmodes.push_back(new GfxBmp2());
-	//m_gmodes.push_back(new GfxRaw());			//GfxBmp4());
-	//m_gmodes.push_back(new GfxHires());			//GfxBmp4W());
 
 	// background graphics modes
 	m_bg_gmodes.push_back(new GfxNull());
@@ -270,11 +292,12 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	// map fundamental GFX hardware registers:
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "GFX_BEGIN", "start of graphics hardware registers" }); offset += 0;
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bit 7: VSYNC" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 5: swap backbuffers (on write)" }); offset += 0;
-	memmap->push({ offset, "", ">    bit 4: debug enable" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: reserved" }); offset += 0;
 	memmap->push({ offset, "", ">    bits 2-3 = 'Background' graphics mode (40KB buffer)" }); offset += 0;
 	memmap->push({ offset, "", ">        0) NONE (forced black background) " }); offset += 0;
 	memmap->push({ offset, "", ">        1) Tiled 16x16 mode               " }); offset += 0;
@@ -293,44 +316,32 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 4: reserved" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 3: reserved" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 0-2: monitor display index (0-7)" }); offset += 0;
-	memmap->push({ offset, "TIMING_WIDTH", "(Word) timing width" }); offset += 2;
-	memmap->push({ offset, "TIMING_HEIGHT", "(Word) timing height" }); offset += 2;
+	memmap->push({ offset, "GFX_TIMING_W", "(Word) horizontal timing" }); offset += 2;
+	memmap->push({ offset, "GFX_TIMING_H", "(Word) vertical timing" }); offset += 2;
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
 	memmap->push({ offset, "GFX_PAL_DATA", "(Byte) gfx palette color bits r4g4b4a4" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Paged Foreground Graphics Mode Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_FG_BEGIN", "start of paged foreground gfxmode registers" }); offset += 0;
-	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 64K extended graphics addresses" }); offset += 2;
-	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;	
+	memmap->push({ offset, "GFX_FG_WDTH", "(Byte) Foreground Unit Width-1" }); offset += 1;
+	memmap->push({ offset, "GFX_FG_HGHT", "(Byte) Foreground Unit Height-1" }); offset += 1;
+
 	memmap->push({ --offset, "GFX_FG_END", "end of paged foreground gfxmode registers" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Paged Background Graphics Mode Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_BG_BEGIN", "start of paged background gfxmode registers" }); offset += 0;
-	memmap->push({ offset, "GFX_BGND_TEMP", "(Byte) 64K extended graphics addresses" }); offset += 1;
+	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 64K extended graphics addresses" }); offset += 2;
+	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 64K extended graphics RAM data" }); offset += 1;
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
-	memmap->push({ offset, "", "" }); offset += 0;
-	memmap->push({ offset, "", "Mouse Cursor Hardware Registers:" }); offset += 0;
-	memmap->push({ offset, "CSR_XPOS", "(Word) horizontal mouse cursor coordinate" }); offset += 2;
-	memmap->push({ offset, "CSR_YPOS", "(Word) vertical mouse cursor coordinate" }); offset += 2;
-	memmap->push({ offset, "CSR_XOFS", "(Byte) horizontal mouse cursor offset" }); offset += 1;
-	memmap->push({ offset, "CSR_YOFS", "(Byte) vertical mouse cursor offset" }); offset += 1;
-	memmap->push({ offset, "CSR_SIZE", "(Byte) cursor size (0-15) 0:off" }); offset += 1;
-	memmap->push({ offset, "CSR_SCROLL", "(Signed) MouseWheel Scroll: -1, 0, 1" }); offset += 1;
-	memmap->push({ offset, "CSR_FLAGS", "(Byte) mouse button flags:" }); offset += 1;
-	memmap->push({ offset, "", ">    bits 0-5: button states" }); offset += 0;
-	memmap->push({ offset, "", ">    bits 6-7: number of clicks" }); offset += 0;
-	memmap->push({ offset, "CSR_PAL_INDX", "(Byte) mouse cursor color palette index (0-15)" }); offset += 1;
-	memmap->push({ offset, "CSR_PAL_DATA", "(Byte) mouse cursor color palette data RRGGBBAA" }); offset += 1;
-	memmap->push({ offset, "CSR_BMP_INDX", "(Byte) mouse cursor bitmap pixel offset" }); offset += 1;
-	memmap->push({ offset, "CSR_BMP_DATA", "(Byte) mouse cursor bitmap pixel color" }); offset += 1;
 
 
-	memmap->push({ offset, "", "" }); offset -= 1;
-	memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;
-	memmap->push({ offset, "", "" }); offset += 0;
+
+	//memmap->push({ offset, "", "" }); offset -= 1;
+	//memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;
+	//memmap->push({ offset, "", "" }); offset += 0;
 
 	return offset - st_offset;
 }
@@ -372,8 +383,8 @@ void GFX::OnInitialize()
 	OnCreate();
 
 	// pre-initialize memories
-	bus->debug_write_word(TIMING_WIDTH, _pix_width);
-	bus->debug_write_word(TIMING_HEIGHT, _pix_height);
+	bus->debug_write_word(GFX_TIMING_W, _pix_width);
+	bus->debug_write_word(GFX_TIMING_H, _pix_height);
 	
 	// OnInitialize() all of the graphics mode layers
 	for (int t = 0; t < m_bg_gmodes.size(); t++)
@@ -447,11 +458,11 @@ void GFX::OnEvent(SDL_Event *evnt)
 			// toggle debug enable
 			if (evnt->key.keysym.sym == SDLK_d)
 			{
-				Byte data = bus->read(GFX_FLAGS);
-				data ^= 0x10;
-				//if (data & 0x10)
+				Byte data = bus->read(DBG_FLAGS);
+				data ^= 0x80;
+				//if (data & 0x80)
 				//	gfx_debug->SetSingleStep(true);
-				bus->write(GFX_FLAGS, data);
+				bus->write(DBG_FLAGS, data);
 			}
 
 			// left 
@@ -623,13 +634,13 @@ void GFX::OnCreate()
 	gfx_mouse->OnCreate();
 
 	// output debug info to console
-	const bool OUTPUT_ONCREATE = true;
+	const bool OUTPUT_ONCREATE = false;
 	if (OUTPUT_ONCREATE)
 	{
 		std::string szMon[] = { "Middle", "Left", "Right" };
 		printf("\n\n\n\n");
 		printf("GFX::OnCreate(): \n");
-		printf("         Timing: %d X %d\n", bus->read_word(TIMING_WIDTH), bus->read_word(TIMING_HEIGHT));
+		printf("         Timing: %d X %d\n", bus->read_word(GFX_TIMING_W), bus->read_word(GFX_TIMING_H));
 		printf("          VSYNC: %s\n", (bus->read(GFX_FLAGS) & 0x40) ? "true" : "false");
 		printf(" Gfx Mode Index: %d\n", (bus->read(GFX_FLAGS) & 0x07) );
 		printf("         Aspect: %f\n", _aspect);

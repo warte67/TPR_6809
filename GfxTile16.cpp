@@ -16,11 +16,11 @@ Byte GfxTile16::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
-		printf("GfxTile16::OnCallback() -- READ\n");
+		//printf("GfxTile16::OnCallback() -- READ\n");
 	}
 	else
 	{	// WRITE
-		printf("GfxTile16::OnCallback() -- WRITE\n");
+		//printf("GfxTile16::OnCallback() -- WRITE\n");
 	}
 	return data;
 }

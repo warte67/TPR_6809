@@ -20,11 +20,11 @@ Byte GfxTile32::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
-		printf("GfxTile32::OnCallback() -- READ\n");
+		//printf("GfxTile32::OnCallback() -- READ\n");
 	}
 	else
 	{	// WRITE
-		printf("GfxTile32::OnCallback() -- WRITE\n");
+		//printf("GfxTile32::OnCallback() -- WRITE\n");
 	}
 	return data;
 }

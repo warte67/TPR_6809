@@ -210,7 +210,8 @@ DWord Memory::AssignREG(std::string cDesc, Word size, Byte(*cb)(REG* module, Wor
 	reg->_deviceName = cDesc;
 	reg->base = nextAddress;
 	nextAddress += size;
-	if (nextAddress <= 0xFFFF) {
+	//if (nextAddress <= 0xFFFF) {
+	if (nextAddress < 0x10000) {
 		reg->callback = cb;
 		m_memBlocks.push_back(reg);
 	}

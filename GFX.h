@@ -154,16 +154,15 @@ public:
         bit 4: debug enable
         bits 2-3 = "Background" graphics mode (40KB buffer)
                 0) GfxNull()        NONE (forced black background)
-                1) GfxTile16()      Tile 16x16 mode
-                2) GfxTile32()      Overscan Tile 16x16 mode
-                3) GfxRaw()         256x160 x 64-Colors (40k)   MAYBE: 160x80 x 64-Colors (10k)
+                1) GfxTile16()      Tile 16x16 mode             
+                2) GfxTile32()      Overscan Tile 16x16 mode    
+                3) GfxRaw()         256x160 x 64-Colors         
 
         bits 0-1 = "Foreground" graphics mode (5KB buffer)
                 0) GfxBmp2()        256x160 x 2-Color
                 1) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
                 2) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
                 3) GfxBmp16()       128x80 x 16-Color
-
 
     GFX_AUX: (emulator only)
         bits:
@@ -176,11 +175,18 @@ public:
 
     ************************************************************
     
+    64KB External Ram Buffer:
+        GfxRaw():       40k: $0000-$9FFF        = GfxRaw() 256x160 x 64-color screen
+        TILES x 64:     16k: $A000-$DFFF        = 64 16x16 x 64-color Tiles
+        SPRITES x 32:    8k: $E000-$FFFF        = 32 16x16 x 64-color Sprites
+
+
+    
     STATIC MODES:
 		+ DEBUG
         + LABELS ("labels" are text based sprites)
-		+ SPRITES (What about priority display layers?)
-		+ SYSTEM (Mouse Cursor)
+		+ SPRITES (What about priority display layers?)   (12k: $D000-$FFFF)
+		+ SYSTEM (Mouse Cursor)     
 
 
     ************************************************************
@@ -191,9 +197,6 @@ public:
 
 
 
-
-
-    
 
     Raspberry PI PICO has 26 Multifunction GPIO Pins:
         - 1 x LED (used internally, not available externally?)

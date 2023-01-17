@@ -6,24 +6,33 @@
 #include "types.h"
 #include "bus.h"
 #include "GFX.h"
+#include "GfxDebug.h"
 #include "GfxBmp2.h"
-
-// statics:
-const int GfxBmp2::pixel_width = 256;
-const int GfxBmp2::pixel_height = 160;
 
 
 
 // Graphics Mode Unique Callback Function:
 Byte GfxBmp2::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
+	//if (gfx->gfx_debug->IsMemDumping())
+	//	printf("DEBUG MEM DUMPING\n");
+
 	if (bWasRead)
 	{	// READ	
-		printf("GfxBmp2::OnCallback() -- READ\n");
+		// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
+		if (ofs >= GFX_FG_WDTH && ofs <= GFX_FG_HGHT+1)
+		{
+			Word fg_Width = pixel_width-1;
+			Word fg_Height = pixel_height-1;
+			if (ofs == GFX_FG_WDTH)		data = fg_Width;
+			if (ofs == GFX_FG_HGHT)		data = fg_Height;
+			bus->debug_write(ofs, data);
+		}
+
 	}
 	else
 	{	// WRITE
-		printf("GfxBmp2::OnCallback() -- WRITE\n");
+
 	}
 	return data;
 }
@@ -48,7 +57,7 @@ void GfxBmp2::OnInitialize()
 	{
 		std::vector<GFX::PALETTE> ref = {
 			{ 0x00 },	// 00 00.00 00		0
-			{ 0xFE },	// 11 11.11 10		1
+			{ 0xFF },	// 11 11.11 11		1
 		};
 		for (int t = 0; t < 2; t++)
 		{
@@ -101,6 +110,10 @@ void GfxBmp2::OnDestroy()
 
 void GfxBmp2::OnUpdate(float fElapsedTime)
 {
+	// update RAM
+	//bus->read(GFX_FG_WDTH);
+	//bus->read(GFX_FG_HGHT);
+
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.015f;
 	static float delayAcc = fElapsedTime;
@@ -126,7 +139,6 @@ void GfxBmp2::OnUpdate(float fElapsedTime)
 					Byte grn = gfx->grn(c1);
 					Byte blu = gfx->blu(c1);
 					Byte alf = gfx->alf(c1);
-					//SDL_SetRenderDrawColor(gfx->Renderer(), gfx->red(c1), gfx->grn(c1), gfx->blu(c1), gfx->alf(c1));
 					SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
 					SDL_RenderDrawPoint(gfx->Renderer(), x + b, y);
 				}

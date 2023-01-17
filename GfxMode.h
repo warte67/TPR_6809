@@ -6,6 +6,7 @@
 #ifndef __GFXMODE_H__
 #define __GFXMODE_H__
 
+#include <array>
 #include "types.h"
 
 class GFX;
@@ -18,6 +19,7 @@ public:
 	virtual ~GfxMode();
 
 	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) { return 0xCC; }
+	virtual Word MapDevice(MemoryMap* memmap, Word offset) { return offset; };
 
 	virtual void OnInitialize() {}					// runs once after all devices are created
 	virtual void OnQuit() {}						// fires on exit -- reverses OnInitialize()
@@ -31,8 +33,12 @@ public:
 
 	GFX* gfx = nullptr;
 	Bus* bus = nullptr;
+
+	static std::array<Byte, 65536> s_mem_64k;
+	static Word s_mem_64k_adr;
+
 private:
-	
+		
 };
 
 class GfxNull : public GfxMode
@@ -41,8 +47,6 @@ public:
 	GfxNull();
 
 	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead) override;
-
-
 	virtual void OnUpdate(float fElapsedTime) override;	// fires each frame, for updates
 
 private:
