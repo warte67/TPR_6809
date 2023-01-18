@@ -22,12 +22,12 @@ GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
                                 ;      bit 6: backbuffer enable
                                 ;      bit 5: swap backbuffers (on write)
                                 ;      bit 4: reserved
-                                ;      bits 2-3 = 'Background' graphics mode (40KB buffer)
+                                ;      bits 2-3 = 'Background' graphics modes (20KB buffer)
                                 ;          0) NONE (forced black background)
                                 ;          1) Tiled 16x16 mode
                                 ;          2) Overscan Tile 16x16 mode
-                                ;          3) 256x160 x 64-Colors (40k)
-                                ;      bits 0-1 = 'Foreground' graphics mode (5KB buffer)
+                                ;          3) 128x80 x 256-Colors
+                                ;      bits 0-1 = 'Foreground' graphics modes (5KB buffer)
                                 ;          0) 256x160 x 2-Color (with disable flag)
                                 ;          1) Glyph Mode (32x20 text)
                                 ;          2) Glyph Mode (64x40 text)
@@ -52,8 +52,8 @@ GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
 
 ;  Paged Background Graphics Mode Hardware Registers:
 GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
-GFX_EXT_ADDR    equ     $180b   ; (Word) 64K extended graphics addresses
-GFX_EXT_DATA    equ     $180d   ; (Byte) 64K extended graphics RAM data
+GFX_EXT_ADDR    equ     $180b   ; (Word) 20K extended graphics addresses
+GFX_EXT_DATA    equ     $180d   ; (Byte) 20K extended graphics RAM data
 GFX_BG_END      equ     $180d   ; end of paged background gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
@@ -88,11 +88,15 @@ DBG_FLAGS       equ     $181e   ; (Byte) Debug Specific Hardware Flags
 DBG_END equ     $181e   ; End of the Debugger Hardware Registers
 
 
-GFX_END equ     $1821   ; end of the GFX Hardware Registers
+GFX_END equ     $181e   ; end of the GFX Hardware Registers
 
+;  File I/O Hardware Registers:
+FIO_BEGIN       equ     $181e   ; start of file i/o hardware registers
+FIO_FLAGS       equ     $181e   ; (Byte) file i/o system flags:
+FIO_END equ     $181f   ; end of the file i/o Hardware Registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1822   ; Reserved 2009 bytes ($1822 - $1FFB)
+RESERVED_HDW    equ     $181f   ; Reserved 2012 bytes ($181F - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

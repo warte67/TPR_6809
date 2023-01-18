@@ -35,6 +35,7 @@
 class Device;
 class GFX;
 class Memory;
+class FileIO;
 class C6809;
 
 class Bus
@@ -92,7 +93,8 @@ public:
     Memory* m_memory = nullptr;
     GFX *m_gfx = nullptr;
     C6809* m_cpu = nullptr;
-    GfxDebug* gfxdebug = nullptr;
+    GfxDebug* gfxdebug = nullptr;    
+    FileIO* m_file = nullptr;
 };
 
 #endif // __BUS_H__

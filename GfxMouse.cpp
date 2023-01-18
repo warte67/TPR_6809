@@ -212,8 +212,7 @@ void GfxMouse::OnDeactivate()
 
 void GfxMouse::OnQuit()
 {
-	printf("GfxMouse::OnQuit() \n");
-
+	//printf("GfxMouse::OnQuit() \n");
 }
 
 void GfxMouse::OnEvent(SDL_Event* evnt)

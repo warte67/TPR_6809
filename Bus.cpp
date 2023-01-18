@@ -9,6 +9,7 @@
 #include "GFX.h"
 #include "MemoryMap.h"      // move this to the Memory.h when available
 #include "Memory.h"
+#include "FileIO.h"
 #include "C6809.h"
 #include "Bus.h"
 #include "GfxMouse.h"
@@ -46,13 +47,10 @@ Bus::Bus()
     m_memory->bus = this;
     _devices.push_back(m_memory);
 
-
     // create the cpu (clocked via external thread)    
     // CPU is not attached to _devices vector
     bCpuEnabled = false;
     m_cpu = new C6809(this);    
-
-
 
     //// Memory-Mapped Devices:
     // 
@@ -68,7 +66,7 @@ Bus::Bus()
     mem_offset += size;
     mem_offset += temp->gfx_mouse->MapDevice(memmap, mem_offset);
     mem_offset += temp->gfx_debug->MapDevice(memmap, mem_offset);
-    mem_offset+=2;
+    //mem_offset+=2;
     size = mem_offset - gfx_start;
     // attach the graphics device
     m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
@@ -82,9 +80,19 @@ Bus::Bus()
     delete temp;
     // close the graphics memory map
     memmap->push({ (Word)mem_offset, "", "" }); 
-    memmap->push({ (Word)++mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
-    memmap->push({ (Word)mem_offset++, "", "" });
+    memmap->push({ (Word)mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
+    memmap->push({ (Word)mem_offset, "", "" });
     
+
+
+    // attach a FileIO device:
+    int fSize = FileIO::MapDevice(memmap, mem_offset);
+    m_file = new FileIO(mem_offset, fSize);
+    m_file->bus = this;
+    m_file->memory = m_memory;
+    _devices.push_back(m_file);
+    m_memory->ReassignReg(mem_offset, m_file, "FILEIO_HDW", fSize, FileIO::OnCallback);
+    mem_offset += fSize;
 
     // add more hardware devices here:
     // ...
@@ -97,8 +105,8 @@ Bus::Bus()
     // the hardware register devices. There should be around 2k memory
     // available to be mapped by register devices.
     int reserved = mem_offset;
-    int gfx_size = 0x2000 - mem_offset;
-    mem_offset += m_memory->AssignRAM("HDW_RESERVE", gfx_size + 2);
+    int hdw_size = 0x2000 - mem_offset;
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", hdw_size+1);
 
     // close memory mapping
     mem_offset += memmap->end(reserved);    // mem_offset);

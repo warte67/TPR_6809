@@ -30,7 +30,7 @@ typedef Uint16 Word;
 
 #ifndef __DEFINED_DWORD__ 
 #define __DEFINED_DWORD__
-typedef uint32_t	DWord;
+typedef uint32_t DWord;
 #endif
 
 

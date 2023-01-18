@@ -78,7 +78,7 @@ enum MEMMAP
                                 //          0) NONE (forced black background)
                                 //          1) Tiled 16x16 mode
                                 //          2) Overscan Tile 16x16 mode
-                                //          3) 128x80 x 256-Colors 
+                                //          3) 128x80 x 256-Colors
                                 //      bits 0-1 = 'Foreground' graphics modes (5KB buffer)
                                 //          0) 256x160 x 2-Color (with disable flag)
                                 //          1) Glyph Mode (32x20 text)
@@ -94,7 +94,7 @@ enum MEMMAP
   GFX_TIMING_W = 0x1802,        // (Word) horizontal timing
   GFX_TIMING_H = 0x1804,        // (Word) vertical timing
   GFX_PAL_INDX = 0x1806,        // (Byte) gfx palette index (0-15)
-  GFX_PAL_DATA = 0x1807,        // (Word) gfx palette color bits RGBA4444   
+  GFX_PAL_DATA = 0x1807,        // (Word) gfx palette color bits RGBA4444
 
 //  Paged Foreground Graphics Mode Hardware Registers:
   GFX_FG_BEGIN = 0x1809,        // start of paged foreground gfxmode registers
@@ -140,11 +140,15 @@ enum MEMMAP
        DBG_END = 0x181e,        // End of the Debugger Hardware Registers
 
 
-       GFX_END = 0x1821,        // end of the GFX Hardware Registers
+       GFX_END = 0x181e,        // end of the GFX Hardware Registers
 
+//  File I/O Hardware Registers:
+     FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
+     FIO_FLAGS = 0x181e,        // (Byte) file i/o system flags:
+       FIO_END = 0x181f,        // end of the file i/o Hardware Registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1822,        // Reserved 2009 bytes ($1822 - $1FFB)
+  RESERVED_HDW = 0x181f,        // Reserved 2012 bytes ($181F - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -171,7 +175,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
 
 #endif // __MEMORY_MAP__
 
