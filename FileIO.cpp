@@ -20,16 +20,32 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 	{
 		if (bWasRead)
 		{	// READ FROM
-			printf("FileIO::OnCallback() =-->  READ\n");
+			//printf("FileIO::OnCallback() =-->  READ\n");
 		}
 		else
 		{	// WRITE TO
-			printf("FileIO::OnCallback() =-->  WRITE\n");
+			//printf("FileIO::OnCallback() =-->  WRITE\n");
 
 			bus->debug_write(ofs, data);
 		}
 	}
 	return data; 
+}
+
+FileIO* FileIO::Assign_FileIO(MemoryMap* memmap, DWord& offset)
+{
+	Bus* bus = Bus::getInstance();
+	FileIO* ret = nullptr;
+	// attach a FileIO device:
+	int fSize = FileIO::MapDevice(memmap, offset);
+	ret = new FileIO(offset, fSize);
+	ret->bus = bus;
+	ret->memory = bus->m_memory;	
+	bus->AttachDevice(ret);		// bus->_devices.push_back(ret);
+	bus->m_memory->ReassignReg(offset, ret, "FILEIO_HDW", fSize, FileIO::OnCallback);
+	offset += fSize;
+
+	return ret;
 }
 
 Word FileIO::MapDevice(MemoryMap* memmap, Word offset) 
@@ -41,6 +57,14 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "FIO_BEGIN", "start of file i/o hardware registers" }); offset += 0;
 
 	memmap->push({ offset, "FIO_FLAGS", "(Byte) file i/o system flags:" }); offset += 1;
+	memmap->push({ offset, "", ">    bit 7: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 1: not yet assigned" }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0: not yet assigned" }); offset += 0;
 
 	memmap->push({ offset, "FIO_END", "end of the file i/o Hardware Registers" });
 	memmap->push({ offset, "", "" });
@@ -72,11 +96,28 @@ FileIO::~FileIO()
 void FileIO::OnInitialize() 
 {
 	//printf("FileIO::OnInitialize()\n");
+
+	Byte d = bus->read(FIO_FLAGS);
+	d++;
+	bus->write(FIO_FLAGS, d);
+	printf("Read(FIO_FLAGS): %d\n", bus->read(FIO_FLAGS));	
+	d++;
+	bus->write(FIO_FLAGS, d);
+	printf("Read(FIO_FLAGS): %d\n", bus->read(FIO_FLAGS));	
+	d++;
+	bus->write(FIO_FLAGS, d);
+	printf("Read(FIO_FLAGS): %d\n", bus->read(FIO_FLAGS));	
+	d++;
+	bus->write(FIO_FLAGS, d);
+	printf("Read(FIO_FLAGS): %d\n", bus->read(FIO_FLAGS));
 }
+
 void FileIO::OnEvent(SDL_Event* evnt) {}
 void FileIO::OnCreate() {}
 void FileIO::OnDestroy() {}
-void FileIO::OnUpdate(float fElapsedTime) 
-{
-}
+void FileIO::OnUpdate(float fElapsedTime) {}
 void FileIO::OnQuit() {}
+
+
+
+

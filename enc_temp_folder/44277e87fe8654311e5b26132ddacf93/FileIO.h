@@ -49,39 +49,19 @@ private:
 
 /*******
 
-Hardware Registers:
 
-	FIO_FLAGS: (AKA Error Flags)
-		bit 7:	file not found
-		bit 6:  end of file
-		bit 5:	buffer overrun
-		bit 4:  
-		bit 3:	
-		bit 2:	
-		bit 1:	
-		bit 0:	
-
-	FIO_COMMAND		=	(Byte) OnWrite - command to execute
-	FIO_INDEX		=	(Byte) file page index (Page ZERO = Base COMMAND)
-	; paged arguments registers
-		FIO_HANDLE		=	(Byte) file handle or ZERO if inactive
-		FIO_FILE_BFR	=	(Char Array 80)  path/filename
-		FIO_BUFFER		=	(Word) address of the current read/write buffer
-		FIO_BFR_SIZE	=	(Word) size of the read/write buffer
-
-
-
-Base File Operating System Commands:
+Basic File Operating System:
 	- List Directory
 	- Make Directory
-	- Change Directories (presumes CURRENT DIRECTORY pointer)
+	- Change Directories
 	- Rename Directory
 	- Remove Directory
-	- Delete File		
+	- Create file
+	- Delete File
 	- Rename file
-	- Read File			; open for reading or error if not found
-	- Write File		; append if pre-existing or create for write if not
-	- Close File		; be sure to close files to avoid corruption
+	- Read File
+	- Write File
+	- Append File
 	- Copy File
 	- LoadBin			; load a binary file to a specified memory buffer (size)
 	- LoadHex			; load an IntelHex format file (with/without EXEC vector)
@@ -89,7 +69,7 @@ Base File Operating System Commands:
 
 Basic FILE I/O:
 
-	- FP = (Word)file_pointer - internal to FileIO (no bin files larger than 64k)
+	- FP = (Sint32)file_pointer - internal to FileIO
 	- FH = (Byte) file_handle
 	- FH = fopen(string::filename, string::mode)	// mode = read, write, or append
 	- data = fread(FH)

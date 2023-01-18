@@ -74,6 +74,8 @@ public:
     bool IsRunning() { return s_bIsRunning; }
     void IsRunning(bool isrunning) { s_bIsRunning = isrunning; }
 
+    void AttachDevice(REG* reg) { _devices.push_back(reg); }
+
     static int getFPS();
     void run(); // main game loop
     static void CpuThread();

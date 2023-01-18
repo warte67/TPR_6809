@@ -59,6 +59,9 @@ Bus::Bus()
     m_memory->AssignRAM("Low RAM", gfx_start);
     mem_offset = gfx_start;
 
+    // GRAPHICS DEVICE
+    // ToDO: Condense this into an Assign_Gfx() like the Assign_FileIO() below
+    // ...
     // create the graphics devices:
     GFX* temp = new GFX();
     int size = temp->MapDevice(memmap, mem_offset);   
@@ -82,17 +85,14 @@ Bus::Bus()
     memmap->push({ (Word)mem_offset, "", "" }); 
     memmap->push({ (Word)mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
     memmap->push({ (Word)mem_offset, "", "" });
-    
+    // END OF GRAPHICS DEVICE
+
+
 
 
     // attach a FileIO device:
-    int fSize = FileIO::MapDevice(memmap, mem_offset);
-    m_file = new FileIO(mem_offset, fSize);
-    m_file->bus = this;
-    m_file->memory = m_memory;
-    _devices.push_back(m_file);
-    m_memory->ReassignReg(mem_offset, m_file, "FILEIO_HDW", fSize, FileIO::OnCallback);
-    mem_offset += fSize;
+    m_file = FileIO::Assign_FileIO(memmap, mem_offset);
+
 
     // add more hardware devices here:
     // ...
@@ -106,7 +106,7 @@ Bus::Bus()
     // available to be mapped by register devices.
     int reserved = mem_offset;
     int hdw_size = 0x2000 - mem_offset;
-    mem_offset += m_memory->AssignRAM("HDW_RESERVE", hdw_size+1);
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", hdw_size+1);   // THE +1 HERE IS ODD BEHAVIOR
 
     // close memory mapping
     mem_offset += memmap->end(reserved);    // mem_offset);
