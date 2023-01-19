@@ -42,6 +42,7 @@ public:
 
 	// virtual accessors
 
+	void NextAddress(Word ofs) { nextAddress = ofs; }
 	DWord AssignRAM(std::string cDesc, DWord size);
 	DWord AssignROM(std::string cDesc, Word size, const char* file);
 	DWord AssignREG(std::string cDesc, Word size, Byte(*callback)(REG*, Word, Byte, bool));

@@ -152,6 +152,12 @@ FileIO* FileIO::Assign_FileIO(MemoryMap* memmap, DWord& offset)
 	ret->memory = bus->m_memory;	
 	bus->AttachDevice(ret);		// bus->_devices.push_back(ret);
 	bus->m_memory->ReassignReg(offset, ret, "FILEIO_HDW", fSize, FileIO::OnCallback);
+
+	ret->Base(offset);
+	ret->Size(fSize);
+
+	bus->m_memory->NextAddress(offset + fSize);
+
 	offset += fSize;
 
 	return ret;

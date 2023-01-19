@@ -101,7 +101,7 @@ Word GfxDebug::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 1: NMI   (on low to high edge)" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 0: RESET (on low to high edge)" }); offset += 0;
 
-	memmap->push({ --offset, "DBG_END", "End of the Debugger Hardware Registers" }); 
+	memmap->push({ --offset, "DBG_END", "End of the Debugger Hardware Registers" }); offset += 1;
 	memmap->push({ offset, "", "" });
 
 	return offset - st_offset;

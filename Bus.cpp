@@ -106,7 +106,7 @@ Bus::Bus()
     // available to be mapped by register devices.
     int reserved = mem_offset;
     int hdw_size = 0x2000 - mem_offset;
-    mem_offset += m_memory->AssignRAM("HDW_RESERVE", hdw_size+1);   // THE +1 HERE IS ODD BEHAVIOR
+    mem_offset += m_memory->AssignRAM("HDW_RESERVE", hdw_size);   // THE +1 HERE IS ODD BEHAVIOR
 
     // close memory mapping
     mem_offset += memmap->end(reserved);    // mem_offset);
