@@ -29,7 +29,7 @@
 000C  E01A            SOFT_SWI3       fdb     do_SWI3         ; Software SWI3 Vector
 000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
                       
-0010  E086            EXEC_VECTOR             fdb             reset
+0010  E078            EXEC_VECTOR             fdb             reset
                       
                       
 0012                                          INCLUDE "mem_map.asm"
@@ -192,8 +192,8 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
-E000  CE0201                                  LDU             #U_STK_TOP+1            ; top of user stack     
-E003  10CE0401                                LDS     #S_STK_TOP+1            ; top of stack space            
+E000  CE0200                                  LDU             #U_STK_TOP              ; top of user stack     
+E003  10CE0400                                LDS     #S_STK_TOP              ; top of stack space            
 E007  6E9F0000                    JMP     [SOFT_RESET]      
                       
                                   
@@ -216,10 +216,10 @@ E017  7EE023          do_SWI2     JMP just_rti
 E01A  7EE023          do_SWI3     JMP just_rti
                       
                                   ;* Reserved Vector Handler
-E01D  7EE086          do_RSRV     JMP reset
+E01D  7EE078          do_RSRV     JMP reset
                       
                                   ;* Reset Vector Handler         
-E020  7EE086          do_RESET    JMP reset
+E020  7EE078          do_RESET    JMP reset
                                   
                       ;********************
                       ;* RESET
@@ -235,55 +235,88 @@ E023  3B                                      rti
 E024  2E2F61736D2F746573742E68657800 test_file       fcn             "./asm/test.hex"
                       
 E033  54776F2D504920526574726F203638303900 prompt_msg1     fcn             "Two-PI Retro 6809"
-E045  4469736B204F7065726174696E672053797374656D2056657273696F6E20302E303100 prompt_msg2     fcn             "Disk Operating System Version 0.01"
-E068  436F70797269676874203230323320204279204A61792046617269657300 prompt_msg3 fcn         "Copyright 2023  By Jay Faries"
+E045  42494F53204B45524E454C20762E302E303100 prompt_msg2     fcn             "BIOS KERNEL v.0.01"
+E058  436F707972696768742032303233206279204A61792046617269657300 prompt_msg3 fcn         "Copyright 2023 by Jay Faries"
+E075  4F4B00          prompt_ready fcn        "OK"
                       
-E086                  reset           
+E078                  reset           
+E078  BDE0DA                                  jsr             test_load_hex
+                      
                       
                               ; load the default graphics mode
-E086  8602                                    lda             #$02
-E088  B71800                                  sta             GFX_FLAGS
+E07B  8602                                    lda             #$02
+E07D  B71800                                  sta             GFX_FLAGS
+                      
                               ; clear screen
-E08B  8620                                    lda             #' '
-E08D  C6A2                                    ldb             #$a2
-E08F  BDE0A3                                  jsr             sub_cls
+E080  8E0400                                  ldx             #VIDEO_START
+E083  8620                                    lda             #' '
+E085  C6A2                                    ldb             #$a2
+E087                  1               
+E087  ED81                                    std             ,x++
+E089  8C17FF                                  cmpx    #VIDEO_END
+E08C  23F9                                    bls             1b      
                       
                               ; first prompt line
-E092  108EE033                                ldy             #prompt_msg1
-E096  8E0400                                  ldx             #VIDEO_START
-E099  BDE0B2                                  jsr             sub_print_line
+E08E  108EE033                                ldy             #prompt_msg1
+E092  8E0400                                  ldx             #VIDEO_START
+E095  BDE0D1                                  jsr             prt_line
                       
-E09C                  2
-E09C  20FE                                    bra             2b
+E098  108EE045                                ldy             #prompt_msg2
+E09C  8E0480                                  ldx             #VIDEO_START + 128
+E09F  BDE0D1                                  jsr             prt_line
                       
-E09E  BDE0BB                                  jsr             test_load_hex
+E0A2  108EE058                                ldy             #prompt_msg3
+E0A6  8E0500                                  ldx             #VIDEO_START + 256
+E0A9  BDE0D1                                  jsr             prt_line
                       
-E0A1  20FE            done            bra             done
+E0AC  108EE075                                ldy             #prompt_ready
+E0B0  8E0600                                  ldx             #VIDEO_START + 512
+E0B3  BDE0D1                                  jsr             prt_line
+                      
+                              ; simply flash a cursor
+E0B6  8E0680                                  ldx             #VIDEO_START + 640
+E0B9  8620                                    lda             #' '    ;$8f
+E0BB                  1
+                                              ; update the cursor
+E0BB  A784                                    sta             0,x
+                      
+                                              ; increment bg cursor color with black fg
+E0BD  E601                                    ldb             1,x
+E0BF  CB01                                    addb    #$01            ;$10
+E0C1  C40F                                    andb    #$0F            ;$f0
+E0C3  E701                                    stb             1,x
+                      
+                                              ; delay
+E0C5  108E4000                                ldy             #$4000
+E0C9  313F            2                       leay    -1, y
+E0CB  26FC                                    bne             2b
+                      
+E0CD  20EC                                    bra             1b
+                      
+                      
+                      
+                      
+                      ;2
+                      ;                       lda             ,y+
+                      ;                       beq             3f
+                      ;                       sta             ,x++
+                      ;                       bra             2b
+                      ;3              
+                      
+E0CF  20FE            done            bra             done
                       
                       
                       ; ** Subroutines ****************************
-E0A3                  sub_cls
-E0A3  3410                                    pshs    x
-E0A5  8E0400                                  ldx             #VIDEO_START
-E0A8                  1               
-E0A8  ED81                                    std             ,x++
-E0AA  8C17FF                                  cmpx    #VIDEO_END
-E0AD  23F9                                    bls             1b      
-E0AF  3510                                    puls    x
-E0B1  39                                      rts
                       
-E0B2                  sub_print_line
-E0B2                  2
-E0B2  A6A0                                    lda             ,y+
-E0B4  2704                                    beq             3f
-E0B6  A781                                    sta             ,x++
-E0B8  20EE                                    bra             1b
-E0BA                  3
-E0BA  39                                      rts
-                                              
-                      
-                      
-                      
+E0D1                  prt_line        
+E0D1                  2
+E0D1  A6A0                                    lda             ,y+
+E0D3  2704                                    beq             3f
+E0D5  A781                                    sta             ,x++
+E0D7  20F8                                    bra             2b
+E0D9                  3               
+E0D9  39                                      rts
+                                      
                       
                       
                       ; **** SUBROUTINES ***************************************************
@@ -291,23 +324,23 @@ E0BA  39                                      rts
                       
                       ; FILE SYSTEM TESTS:
                       
-E0BB                  test_load_hex
+E0DA                  test_load_hex
                                               ; load "test.hex"
-E0BB  8EE024                                  ldx             #test_file              ; fetch the filename
-E0BE  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
-E0C2                  1
-E0C2  A680                                    lda             ,x+                             ; copy a character from the source filename
-E0C4  A7A0                                    sta             ,y+                             ; store it in the hardware register
-E0C6  26FA                                    bne             1b                              ; keep looping until null-termination
+E0DA  8EE024                                  ldx             #test_file              ; fetch the filename
+E0DD  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
+E0E1                  1
+E0E1  A680                                    lda             ,x+                             ; copy a character from the source filename
+E0E3  A7A0                                    sta             ,y+                             ; store it in the hardware register
+E0E5  26FA                                    bne             1b                              ; keep looping until null-termination
                       
-E0C8  8607                                    lda             #$07                    ; command: LoadHex
-E0CA  B71820                                  sta             FIO_COMMAND             ; executre the command
-E0CD  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
-E0D0  8180                                    cmpa    #$80                    ; test for bit: file not found?
-E0D2  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
-E0D4  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
-E0D8                  1
-E0D8  39                                      rts
+E0E7  8607                                    lda             #$07                    ; command: LoadHex
+E0E9  B71820                                  sta             FIO_COMMAND             ; executre the command
+E0EC  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E0EF  8180                                    cmpa    #$80                    ; test for bit: file not found?
+E0F1  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
+E0F3  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
+E0F7                  1
+E0F7  39                                      rts
                       
                       
                       

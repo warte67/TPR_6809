@@ -391,7 +391,7 @@ void FileIO::_cmd_write_byte()
 // $07 = Load Hex Format File
 void FileIO::_cmd_load_hex()
 {
-	printf("FileIO::_cmd_load_hex()\n");
+	printf("FileIO::_cmd_load_hex(\"%s\")\n", _filepath);
 
 	// EXEC_VECTOR = $0010
 	load_hex(_filepath);

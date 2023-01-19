@@ -43,8 +43,8 @@ SECTION.CODE
 			org     $E000  
             ;* Power On Initialization            
 ROM_ENTRY   
-			LDU		#U_STK_TOP+1		; top of user stack	
-			LDS     #S_STK_TOP+1		; top of stack space            
+			LDU		#U_STK_TOP		; top of user stack	
+			LDS     #S_STK_TOP		; top of stack space            
             JMP     [SOFT_RESET]      
 
             
@@ -86,55 +86,88 @@ just_rti
 test_file	fcn		"./asm/test.hex"
 
 prompt_msg1	fcn		"Two-PI Retro 6809"
-prompt_msg2	fcn		"Disk Operating System Version 0.01"
-prompt_msg3 fcn		"Copyright 2023  By Jay Faries"
+prompt_msg2	fcn		"BIOS KERNEL v.0.01"
+prompt_msg3 fcn		"Copyright 2023 by Jay Faries"
+prompt_ready fcn	"OK"
 
 reset		
+			jsr		test_load_hex
+
 
 	; load the default graphics mode
 			lda		#$02
 			sta		GFX_FLAGS
+
 	; clear screen
+			ldx		#VIDEO_START
 			lda		#' '
 			ldb		#$a2
-			jsr		sub_cls
+1		
+			std		,x++
+			cmpx	#VIDEO_END
+			bls		1b	
 
 	; first prompt line
 			ldy		#prompt_msg1
 			ldx		#VIDEO_START
-			jsr		sub_print_line
+			jsr		prt_line
 
-2
-			bra		2b
+			ldy		#prompt_msg2
+			ldx		#VIDEO_START + 128
+			jsr		prt_line
 
-			jsr		test_load_hex
+			ldy		#prompt_msg3
+			ldx		#VIDEO_START + 256
+			jsr		prt_line
+
+			ldy		#prompt_ready
+			ldx		#VIDEO_START + 512
+			jsr		prt_line
+
+	; simply flash a cursor
+			ldx		#VIDEO_START + 640
+			lda		#' '	;$8f
+1
+			; update the cursor
+			sta		0,x
+
+			; increment bg cursor color with black fg
+			ldb		1,x
+			addb	#$01		;$10
+			andb	#$0F		;$f0
+			stb		1,x
+
+			; delay
+			ldy		#$4000
+2			leay	-1, y
+			bne		2b
+
+			bra		1b
+
+
+
+
+;2
+;			lda		,y+
+;			beq		3f
+;			sta		,x++
+;			bra		2b
+;3		
 
 done		bra		done
 
 
 ; ** Subroutines ****************************
-sub_cls
-			pshs	x
-			ldx		#VIDEO_START
-1		
-			std		,x++
-			cmpx	#VIDEO_END
-			bls		1b	
-			puls	x
-			rts
 
-sub_print_line
+prt_line	
 2
 			lda		,y+
 			beq		3f
 			sta		,x++
 			bra		2b
-3
+3		
 			rts
-			
-
-
-
+		
 
 
 ; **** SUBROUTINES ***************************************************
