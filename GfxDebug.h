@@ -118,7 +118,7 @@ private:
 
 	SDL_Texture* debug_texture = nullptr;	// debug screen texture
 	std::vector<SDL_Texture*> glyph_textures;
-	std::vector <Word> mem_bank = { 0x0000, 0x0400, 0xe000 };
+	std::vector <Word> mem_bank = { 0x0000, 0x0400, 0x1800 };
 	std::vector <Word> sDisplayedAsm;
 	std::map<Word, bool> mapBreakpoints;
 

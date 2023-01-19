@@ -140,16 +140,16 @@ enum MEMMAP
        DBG_END = 0x181e,        // End of the Debugger Hardware Registers
 
 
-       GFX_END = 0x181e,        // end of the GFX Hardware Registers
+       GFX_END = 0x181f,        // end of the GFX Hardware Registers
 
 //  File I/O Hardware Registers:
-     FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
-  FIO_ERR_FLAGS = 0x181e,       // (Byte) file i/o system flags:
+     FIO_BEGIN = 0x181f,        // start of file i/o hardware registers
+  FIO_ERR_FLAGS = 0x181f,       // (Byte) file i/o system flags:
                                 //      bit 7:  file not found
                                 //      bit 6:  end of file
                                 //      bit 5:  buffer overrun
                                 //      bit 0-4: not yet assigned
-   FIO_COMMAND = 0x181f,        // (Byte) OnWrite - command to execute
+   FIO_COMMAND = 0x1820,        // (Byte) OnWrite - command to execute
                                 //      $00 = Reset/Null
                                 //      $01 = Open/Create Binary File for Reading
                                 //      $02 = Open/Create Binary File for Writing
@@ -173,15 +173,15 @@ enum MEMMAP
                                 //      $14 = Seek Start
                                 //      $15 = Seek Current
                                 //      $16 = Seek End
-    FIO_HANDLE = 0x1820,        // (Byte) file handle or ZERO
-    FIO_BFROFS = 0x1821,        // (Word) start of I/O buffer
-    FIO_BFRLEN = 0x1822,        // (Word) length of I/O buffer
-   FIO_SEEKOFS = 0x1823,        // (Word) seek offset
-  FIO_FILEPATH = 0x1824,        // (Char Array 256) file path and argument buffer
-       FIO_END = 0x1924,        // end of file i/o hardware registers
+    FIO_HANDLE = 0x1821,        // (Byte) file handle or ZERO
+    FIO_BFROFS = 0x1822,        // (Word) start of I/O buffer
+    FIO_BFRLEN = 0x1823,        // (Word) length of I/O buffer
+   FIO_SEEKOFS = 0x1825,        // (Word) seek offset
+  FIO_FILEPATH = 0x1827,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1927,        // end of file i/o hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1925,        // Reserved 1750 bytes ($1925 - $1FFB)
+  RESERVED_HDW = 0x1928,        // Reserved 1747 bytes ($1928 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks

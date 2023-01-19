@@ -88,16 +88,16 @@ DBG_FLAGS       equ     $181e   ; (Byte) Debug Specific Hardware Flags
 DBG_END equ     $181e   ; End of the Debugger Hardware Registers
 
 
-GFX_END equ     $181e   ; end of the GFX Hardware Registers
+GFX_END equ     $181f   ; end of the GFX Hardware Registers
 
 ;  File I/O Hardware Registers:
-FIO_BEGIN       equ     $181e   ; start of file i/o hardware registers
-FIO_ERR_FLAGS   equ     $181e   ; (Byte) file i/o system flags:
+FIO_BEGIN       equ     $181f   ; start of file i/o hardware registers
+FIO_ERR_FLAGS   equ     $181f   ; (Byte) file i/o system flags:
                                 ;      bit 7:   file not found
                                 ;      bit 6:  end of file
                                 ;      bit 5:   buffer overrun
                                 ;      bit 0-4: not yet assigned
-FIO_COMMAND     equ     $181f   ; (Byte) OnWrite - command to execute
+FIO_COMMAND     equ     $1820   ; (Byte) OnWrite - command to execute
                                 ;      $00 = Reset/Null
                                 ;      $01 = Open/Create Binary File for Reading
                                 ;      $02 = Open/Create Binary File for Writing
@@ -121,15 +121,15 @@ FIO_COMMAND     equ     $181f   ; (Byte) OnWrite - command to execute
                                 ;      $14 = Seek Start
                                 ;      $15 = Seek Current
                                 ;      $16 = Seek End
-FIO_HANDLE      equ     $1820   ; (Byte) file handle or ZERO
-FIO_BFROFS      equ     $1821   ; (Word) start of I/O buffer
-FIO_BFRLEN      equ     $1822   ; (Word) length of I/O buffer
-FIO_SEEKOFS     equ     $1823   ; (Word) seek offset
-FIO_FILEPATH    equ     $1824   ; (Char Array 256) file path and argument buffer
-FIO_END equ     $1924   ; end of file i/o hardware registers
+FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
+FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
+FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
+FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
+FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1927   ; end of file i/o hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1925   ; Reserved 1750 bytes ($1925 - $1FFB)
+RESERVED_HDW    equ     $1928   ; Reserved 1747 bytes ($1928 - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

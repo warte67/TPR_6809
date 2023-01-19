@@ -38,6 +38,10 @@ public:
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
 
 private:
+
+	void load_hex(const char* filename);
+
+private:
 	// file system commands
 	void _cmd_reset();				// $00 = Reset/Null
 	void _cmd_open_read();			// $01 = Open/Create Binary File for Reading

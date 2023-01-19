@@ -1,45 +1,13 @@
-                      ; ****************
-                      ; * ROM_E000.asm *
-                      ; ****************
-                              
+                      ; BUILD:        asm6809 -H -9 test.asm -o test.hex              
+                                      
+0010                                  org             $0010
+                      ; EXEC_VECTOR
+0010  2006            exe_vect        fdb             start
                       
-                      ; system call macro to support the Warte variant 
-                      ;               of the MC6809e, the 6809w. This replaces
-                      ;               the SWI3 instruction with the SYS #n OS9 
-                      ;               style system call instruction.
-                      SYS             macro
-                                      SWI3
-                                      fcb             \1              
-                                      endm
-                                              
                       
-                                              
                       
-                      ; **************
-                      ; * MEMORY MAP *
-                      ; **************
-0000                                                  org     $0000
-                                                      
-0000  E020            SOFT_RESET      fdb     do_RESET        ; Software RESET Vector
-0002  E00B            SOFT_NMI        fdb     do_NMI          ; Software NMI Vector
-0004  E00E            SOFT_SWI        fdb     do_SWI          ; Software SWI Vector
-0006  E011            SOFT_IRQ        fdb     do_IRQ          ; Software IRQ Vector
-0008  E014            SOFT_FIRQ       fdb     do_FIRQ         ; Software FIRQ Vector
-000A  E017            SOFT_SWI2       fdb     do_SWI2         ; Software SWI2 Vector
-000C  E01A            SOFT_SWI3       fdb     do_SWI3         ; Software SWI3 Vector
-000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
                       
-0010  E033            EXEC_VECTOR             fdb             reset
-                      
-0012  00              var_ch                  fcb             $00
-0013  00              var_at                  fcb             $00
-0014  00              var_count               fcb             $00
-0015  FF              var_csr                 fcb             $ff
-0020                  num_cycles              equ             $20
-0016  00              var_cycle               fcb             $00
-0017  00              var_mode_index  fcb             $00
-                      
-0018                                          INCLUDE "mem_map.asm"
+0012                                  INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
@@ -190,105 +158,150 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                       
                       
-                      ; ***************************************
-                      ; * Read Only Sytem KERNAL ROM          *
-                      ; ***************************************
-                                            
-                       
-0018                  SECTION.CODE
-E000                                          org     $E000  
-                                  ;* Power On Initialization            
-E000                  ROM_ENTRY   
-E000  CE0201                                  LDU             #U_STK_TOP+1            ; top of user stack     
-E003  10CE0401                                LDS     #S_STK_TOP+1            ; top of stack space            
-E007  6E9F0000                    JMP     [SOFT_RESET]      
+2000                                  ORG             $2000
                       
-                                  
-                                  ;* NMI Vector Handler                     
-E00B  7EE023          do_NMI      JMP just_rti
-                                  
-                                  ;* SWI Vector Handler (do_SWI)   
-E00E  7EE023          do_SWI          JMP just_rti
+2000  00              var_ch                  fcb             $00
+2001  00              var_at                  fcb             $00
+2002  00              var_count               fcb             $00
+2003  FF              var_csr                 fcb             $ff
+0020                  num_cycles              equ             $20
+2004  00              var_cycle               fcb             $00
+2005  00              var_mode_index  fcb             $00
                       
-                                  ;* IRQ Vector Handler         
-E011  7EE023          do_IRQ      JMP just_rti
+2006                  start
                       
-                                  ;* FIRQ Vector Handler         
-E014  7EE023          do_FIRQ     JMP just_rti
-                      
-                                  ;* SWI2 Vector Handler         
-E017  7EE023          do_SWI2     JMP just_rti
-                      
-                                  ;* SWI3 Vector Handler         
-E01A  7EE023          do_SWI3     JMP just_rti
-                      
-                                  ;* Reserved Vector Handler
-E01D  7EE033          do_RSRV     JMP reset
-                      
-                                  ;* Reset Vector Handler         
-E020  7EE033          do_RESET    JMP reset
-                                  
-                      ;********************
-                      ;* RESET
-                      ;**************************                     
+                                              ; TESTING: fill the first 256 bytes of screen ram 
+                                              ;               with ascending values to display
                                               
-                      ; NOTES:  
-                      ;
-                      ;                       SYNC still needs to be implemented along with NMI, IRQ, and FIRQ handlers
+2006  8620                                    lda             #num_cycles             ; initially clear the cycle variable
+2008  B72004                                  sta             var_cycle
                       
-E023                  just_rti        
-E023  3B                                      rti 
+                      ;                       ; enable backbuffer mode
+                      ;                       lda             GFX_FLAGS
+                      ;                       ora             #$40
+                      ;                       sta             GFX_FLAGS
                       
-E024  2E2F61736D2F746573742E68657800 test_file       fcn             "./asm/test.hex"
+                                              ; set up the initial graphics mode 
+200B  7F2005                                  clr             var_mode_index  ; start with index 0
+200E  8E20C3                                  ldx             #mode_data
+2011  B61800                                  lda             GFX_FLAGS
+2014  84F0                                    anda    #$f0
+2016  AA84                                    ora             ,x
+2018  B71800                                  sta             GFX_FLAGS
                       
-                      
-E033                  reset           
-                      
-                                              ; FILE SYSTEM TESTS:
-                      
-E033                  test_load_hex
-                                              ; copy the filename
-E033  8EE024                                  ldx             #test_file
-E036  108E1827                                ldy             #FIO_FILEPATH
-E03A                  1
-E03A  A680                                    lda             ,x+
-E03C  A7A0                                    sta             ,y+
-E03E  26FA                                    bne             1b
-                      
-E040  8607                                    lda             #$07                    ; command: LoadHex
-E042  B71820                                  sta             FIO_COMMAND
-E045  B6181F                                  lda             FIO_ERR_FLAGS
-E048  8180                                    cmpa    #$80                    ; file not found?
-E04A  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
-                      
-E04C  AD9F0010                                jsr             [$0010]
-                      
-E050                  1
-                      
-E050  20FE            done            bra             done
+                                              
                       
                       
-                      ; ***********************************************************
+                                              ; fill the background buffer with incrementing values
+201B  8E0000                                  ldx             #0
+201E                  1
+201E  BF180B                                  stx             GFX_EXT_ADDR
+2021  B7180D                                  sta             GFX_EXT_DATA
+2024  4C                                      inca
+2025  81FF                                    cmpa    #$ff
+2027  2601                                    bne             2f
+2029  4F                                      clra
+202A                  2
+202A  3001                                    leax    1,x
+202C  8C2800                                  cmpx    #$2800
+202F  26ED                                    bne             1b
+                      
+                      
+                      
+                      ; ***********************
+                      ; *  Pre-Fill and Cycle 
+                      ; *  the Display Buffer
+                      ; ***********************
+                      
+2031  7F2000                                  clr             var_ch                  ; character = 0
+2034  7F2001                                  clr             var_at                  ; attribute = 0
+2037  7F2002                                  clr             var_count               ; count = 0
+203A  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+203D                  1
+203D  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+2040  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+2042  B62000                                  lda             var_ch                  ; load the current character
+2045  F62001                                  ldb             var_at                  ; load the current attribute
+2048  ED81                                    std             ,x++                    ; store both character and attribute
+204A  7C2000                                  inc             var_ch                  ; next character
+204D  7C2002                                  inc             var_count               ; increment count
+2050  B62002                                  lda             var_count               ; load the count
+2053  8111                                    cmpa    #17                             ; compare the count with this amount
+2055  2DE6                                    blt             1b                              ; loop if count lower than
+2057  7C2001                                  inc             var_at                  ; next attribute
+205A  7F2002                                  clr             var_count               ; clear the count
+205D  20DE                                    bra             1b                              ; resume the loop
+                      
+                                              ; INCREMENT THE SCREEN BUFFER
+205F                  2
+205F  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+2062                  4
+2062  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+2065  2C06                                    bge             3f                              ; restart when past the end
+2067  6C80                                    inc             ,x+                             ; increment character
+2069  6C80                                    inc             ,x+                             ; increment the attribute
+206B  20F5                                    bra             4b                              ; loop until done
+206D                  3
+                      
+                      
+                                              ; INCREMENT THE EXTENDED SCREEN BUFFER
+206D  8E0000                                  ldx             #0
+2070                  8                       
+2070  BF180B                                  stx             GFX_EXT_ADDR
+2073  7C180D                                  inc             GFX_EXT_DATA
+2076  3001                                    leax    1,x
+2078  8C0280                                  cmpx    #640            ;#$0800
+207B  26F3                                    bne             8b
+                      
+                      
+                      
+                      
+                                              ; TOGGLE THE BACKBUFFER
+207D  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+2080  8820                                    eora    #$20            ; toggle it
+2082  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+                      
+                                              ; COLOR CYCLE THE MOUSE CURSOR
+2085  8604                                    lda             #4
+2087  B71817                                  sta             CSR_PAL_INDX
+208A  FC1818                                  ldd             CSR_PAL_DATA
+208D  C300A0                                  addd    #$00a0
+2090  FD1818                                  std             CSR_PAL_DATA            
+                      
+                                              ; INCREMENT THE CYCLE COUNTER
+2093  7C2004                                  inc             var_cycle       ; increment the cycle counter
+2096  B62004                                  lda             var_cycle
+2099  8120                                    cmpa    #num_cycles             ; max cycles yet?
+209B  2323                                    bls             continue        ; nope, continue with the main loop
+209D  7F2004                                  clr             var_cycle       ; reset the cycle count
+                      
+                                              ; MODE CHANGES
+20A0                  6
+20A0  F62005                                  ldb             var_mode_index
+20A3  7C2005                                  inc             var_mode_index
+20A6  8E20C3                                  ldx             #mode_data
+20A9  A685                                    lda             b,x
+20AB  81FF                                    cmpa    #$ff
+20AD  270C                                    beq             5f
+20AF  B61800                                  lda             GFX_FLAGS
+20B2  84F0                                    anda    #$f0
+20B4  AA85                                    ora             b,x
+20B6  B71800                                  sta             GFX_FLAGS
+20B9  2005                                    bra             continue
+20BB                  5       
+20BB  7F2005                                  clr             var_mode_index
+20BE  20E0                                    bra             6b
+20C0                  continue
+20C0  209D                                    bra             2b
+                      
+20C2  39                                      rts
+                                      
+                      ; ////////////////////////////////////////////////////
                       
                       ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       
-E052  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-E05A  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+20C3  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+20CB  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-E062  FF                                      fcb             $ff
-                      
-                      ;test_file      fcn             "./asm/test2.hex"
-                      
-                      ; interrupt vectors
-FFF0                                                  org  $fff0
-FFF0  E01D            HARD_RSRVD      fdb  do_RSRV    ; Motorola RESERVED Hardware Interrupt Vector
-FFF2  E01A            HARD_SWI3       fdb  do_SWI3    ; SWI3 Hardware Interrupt Vector
-FFF4  E017            HARD_SWI2       fdb  do_SWI2    ; SWI2 Hardware Interrupt Vector
-FFF6  E014            HARD_FIRQ       fdb  do_FIRQ    ; FIRQ Hardware Interrupt Vector
-FFF8  E011            HARD_IRQ        fdb  do_IRQ     ; IRQ Hardware Interrupt Vector
-FFFA  E00E            HARD_SWI        fdb  do_SWI     ; SWI/SYS Hardware Interrupt Vector
-FFFC  E00B            HARD_NMI        fdb  do_NMI     ; NMI Hardware Interrupt Vector
-FFFE  E000            HARD_RESET      fdb  ROM_ENTRY  ; RESET Hardware Interrupt Vector
-                      
-0000                                          END
+20D3  FF                                      fcb             $ff

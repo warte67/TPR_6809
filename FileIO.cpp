@@ -74,6 +74,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 				{
 					Byte i = (ofs - FIO_FILEPATH) % 256;
 					data = ptrFile->_filepath[i];
+					ptrFile->_filepath[255] = 0;	// enforce atleast one NULL terminator
 				}
 
 				bus->debug_write(ofs, data);	// update the memory for debug_reads
@@ -128,9 +129,10 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 				else if (ofs == FIO_SEEKOFS + 1)
 					ptrFile->_seek_offset = (ptrFile->_seek_offset & 0xFF00) | (data << 0);
 
-				else if (ofs >= FIO_FILEPATH && ofs < FIO_END)
+				else if (ofs >= FIO_FILEPATH && ofs <= FIO_END)
 				{
-					Byte i = (ofs - FIO_FILEPATH) % 256;
+					Word i = (ofs - FIO_FILEPATH);
+					if (i >= FIO_END)   i = FIO_END - 1;
 					ptrFile->_filepath[i] = data;
 				}
 
@@ -204,8 +206,8 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 
 	memmap->push({ offset, "FIO_HANDLE", "(Byte) file handle or ZERO          " }); offset += 1;
 	memmap->push({ offset, "FIO_BFROFS", "(Word) start of I/O buffer          " }); offset += 1;
-	memmap->push({ offset, "FIO_BFRLEN", "(Word) length of I/O buffer         " }); offset += 1;
-	memmap->push({ offset, "FIO_SEEKOFS","(Word) seek offset                  " }); offset += 1;
+	memmap->push({ offset, "FIO_BFRLEN", "(Word) length of I/O buffer         " }); offset += 2;
+	memmap->push({ offset, "FIO_SEEKOFS","(Word) seek offset                  " }); offset += 2;
 	memmap->push({ offset, "FIO_FILEPATH", "(Char Array 256) file path and argument buffer    " }); offset += 256;
 	memmap->push({ offset, "FIO_END", "end of file i/o hardware registers     " }); offset += 1;
 	memmap->push({ offset, "", "" });
@@ -242,19 +244,9 @@ void FileIO::OnInitialize()
 {
 	//printf("FileIO::OnInitialize()\n");
 
-	//Byte d = bus->read(FIO_FLAGS);
-	//d++;
-	//bus->write(FIO_FLAGS, d);
-	//printf("FileIO::OnInitialize() =--> Read(FIO_ERR_FLAGS): %d\n", bus->read(FIO_FLAGS));	
-	//d++;
-	//bus->write(FIO_FLAGS, d);
-	//printf("FileIO::OnInitialize() =--> Read(FIO_ERR_FLAGS): %d\n", bus->read(FIO_FLAGS));	
-	//d++;
-	//bus->write(FIO_FLAGS, d);
-	//printf("FileIO::OnInitialize() =--> Read(FIO_ERR_FLAGS): %d\n", bus->read(FIO_FLAGS));	
-	//d++;
-	//bus->write(FIO_FLAGS, d);
-	//printf("FileIO::OnInitialize() =--> Read(FIO_ERR_FLAGS): %d\n", bus->read(FIO_FLAGS));
+	// null out the _filepath[] array
+	for (auto& a : _filepath)
+		a = 0;
 }
 
 void FileIO::OnEvent(SDL_Event* evnt) {}
@@ -262,6 +254,93 @@ void FileIO::OnCreate() {}
 void FileIO::OnDestroy() {}
 void FileIO::OnUpdate(float fElapsedTime) {}
 void FileIO::OnQuit() {}
+
+
+////  Intel Hex Load //////////////////////////////
+static Byte fio_fread_hex_byte(FILE* fp)
+{
+	char str[3];
+	long l;
+
+	str[0] = fgetc(fp);
+	str[1] = fgetc(fp);
+	str[2] = '\0';
+
+	l = strtol(str, NULL, 16);
+	return (Byte)(l & 0xff);
+}
+static Word fio_fread_hex_word(FILE* fp)
+{
+	Word ret;
+
+	ret = fio_fread_hex_byte(fp);
+	ret <<= 8;
+	ret |= fio_fread_hex_byte(fp);
+
+	return ret;
+}
+void FileIO::load_hex(const char* filename)
+{
+	if (strlen(filename) == 0)
+		return;
+
+	FILE* fp;
+	int done = 0;
+	//setFilename(filename);
+
+#pragma warning(suppress : 4996)
+	fp = fopen(filename, "r");
+	if (!fp) {
+		Byte data = 0;
+		data |= 0x80;		// set the "File Not Found" bit
+		bus->write(FIO_ERR_FLAGS, data);
+
+		//perror("filename");
+		//std::string err = "ROM file \"";
+		//err += filename;
+		//err += "\" not found!";
+		////ErrorLogger::Log(err.c_str());
+		//Bus::Err(err.c_str());
+
+
+		return;		// exit(EXIT_FAILURE);
+	}
+
+	while (!done) {
+		Byte n, t;
+		Word addr;
+		Byte b;
+
+		(void)fgetc(fp);
+		n = fio_fread_hex_byte(fp);
+		addr = fio_fread_hex_word(fp);
+		t = fio_fread_hex_byte(fp);
+		if (t == 0x00) {
+			while (n--) {
+				b = fio_fread_hex_byte(fp);
+				bus->debug_write(addr, b);
+
+				//if ((addr >= base) && (addr < ((DWord)base + size))) {
+				//	//memory[(Word)(addr - base)] = b;
+				//	bus->debug_write(addr - base, b);
+				//}
+				//else
+				//{
+				//	if (bus == nullptr)
+				//		bus = Bus::getInstance();
+				//	bus->write(addr, b);
+				//}
+				++addr;
+			}
+		}
+		else if (t == 0x01) {
+			done = 1;
+		}
+		// Read and discard checksum byte
+		(void)fio_fread_hex_byte(fp);
+		if (fgetc(fp) == '\r') (void)fgetc(fp);
+	}
+}
 
 
 
@@ -313,6 +392,9 @@ void FileIO::_cmd_write_byte()
 void FileIO::_cmd_load_hex()
 {
 	printf("FileIO::_cmd_load_hex()\n");
+
+	// EXEC_VECTOR = $0010
+	load_hex(_filepath);
 }
 
 // $08 = Write Hex Format Line
@@ -403,4 +485,10 @@ void FileIO::_cmd_seek_end()
 {
 	printf("FileIO::_cmd_seek_end()\n");
 }
+
+
+
+
+
+
 
