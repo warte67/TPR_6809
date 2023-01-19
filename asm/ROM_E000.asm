@@ -85,38 +85,86 @@ just_rti
 
 test_file	fcn		"./asm/test.hex"
 
+prompt_msg1	fcn		"Two-PI Retro 6809"
+prompt_msg2	fcn		"Disk Operating System Version 0.01"
+prompt_msg3 fcn		"Copyright 2023  By Jay Faries"
 
 reset		
 
-			; FILE SYSTEM TESTS:
+	; load the default graphics mode
+			lda		#$02
+			sta		GFX_FLAGS
+	; clear screen
+			lda		#' '
+			ldb		#$a2
+			jsr		sub_cls
 
-test_load_hex
-			; copy the filename
-			ldx		#test_file
-			ldy		#FIO_FILEPATH
-1
-			lda		,x+
-			sta		,y+
-			bne		1b
+	; first prompt line
+			ldy		#prompt_msg1
+			ldx		#VIDEO_START
+			jsr		sub_print_line
 
-			lda		#$07			; command: LoadHex
-			sta		FIO_COMMAND
-			lda		FIO_ERR_FLAGS
-			cmpa	#$80			; file not found?
-			beq		1f				; dont call the sub if it wasnt loaded
+2
+			bra		2b
 
-			jsr		[$0010]
-
-1
+			jsr		test_load_hex
 
 done		bra		done
 
 
+; ** Subroutines ****************************
+sub_cls
+			pshs	x
+			ldx		#VIDEO_START
+1		
+			std		,x++
+			cmpx	#VIDEO_END
+			bls		1b	
+			puls	x
+			rts
+
+sub_print_line
+2
+			lda		,y+
+			beq		3f
+			sta		,x++
+			bra		2b
+3
+			rts
+			
+
+
+
+
+
+; **** SUBROUTINES ***************************************************
+
+
+; FILE SYSTEM TESTS:
+
+test_load_hex
+			; load "test.hex"
+			ldx		#test_file		; fetch the filename
+			ldy		#FIO_FILEPATH	; fetch the filename hardware register storage
+1
+			lda		,x+				; copy a character from the source filename
+			sta		,y+				; store it in the hardware register
+			bne		1b				; keep looping until null-termination
+
+			lda		#$07			; command: LoadHex
+			sta		FIO_COMMAND		; executre the command
+			lda		FIO_ERR_FLAGS	; load the errors flag
+			cmpa	#$80			; test for bit: file not found?
+			beq		1f				; dont call the sub if it wasnt loaded
+			jsr		[$0010]			; call the loaded subroutine
+1
+			rts
+
+
+
+
 ; ***********************************************************
 
-
-
-;test_file	fcn		"./asm/test2.hex"
 
 ; interrupt vectors
 				org  $fff0

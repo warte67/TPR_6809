@@ -29,17 +29,10 @@
 000C  E01A            SOFT_SWI3       fdb     do_SWI3         ; Software SWI3 Vector
 000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
                       
-0010  E033            EXEC_VECTOR             fdb             reset
+0010  E086            EXEC_VECTOR             fdb             reset
                       
-0012  00              var_ch                  fcb             $00
-0013  00              var_at                  fcb             $00
-0014  00              var_count               fcb             $00
-0015  FF              var_csr                 fcb             $ff
-0020                  num_cycles              equ             $20
-0016  00              var_cycle               fcb             $00
-0017  00              var_mode_index  fcb             $00
                       
-0018                                          INCLUDE "mem_map.asm"
+0012                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
@@ -195,7 +188,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; ***************************************
                                             
                        
-0018                  SECTION.CODE
+0012                  SECTION.CODE
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
@@ -223,10 +216,10 @@ E017  7EE023          do_SWI2     JMP just_rti
 E01A  7EE023          do_SWI3     JMP just_rti
                       
                                   ;* Reserved Vector Handler
-E01D  7EE033          do_RSRV     JMP reset
+E01D  7EE086          do_RSRV     JMP reset
                       
                                   ;* Reset Vector Handler         
-E020  7EE033          do_RESET    JMP reset
+E020  7EE086          do_RESET    JMP reset
                                   
                       ;********************
                       ;* RESET
@@ -241,44 +234,86 @@ E023  3B                                      rti
                       
 E024  2E2F61736D2F746573742E68657800 test_file       fcn             "./asm/test.hex"
                       
+E033  54776F2D504920526574726F203638303900 prompt_msg1     fcn             "Two-PI Retro 6809"
+E045  4469736B204F7065726174696E672053797374656D2056657273696F6E20302E303100 prompt_msg2     fcn             "Disk Operating System Version 0.01"
+E068  436F70797269676874203230323320204279204A61792046617269657300 prompt_msg3 fcn         "Copyright 2023  By Jay Faries"
                       
-E033                  reset           
+E086                  reset           
                       
-                                              ; FILE SYSTEM TESTS:
+                              ; load the default graphics mode
+E086  8602                                    lda             #$02
+E088  B71800                                  sta             GFX_FLAGS
+                              ; clear screen
+E08B  8620                                    lda             #' '
+E08D  C6A2                                    ldb             #$a2
+E08F  BDE0A3                                  jsr             sub_cls
                       
-E033                  test_load_hex
-                                              ; copy the filename
-E033  8EE024                                  ldx             #test_file
-E036  108E1827                                ldy             #FIO_FILEPATH
-E03A                  1
-E03A  A680                                    lda             ,x+
-E03C  A7A0                                    sta             ,y+
-E03E  26FA                                    bne             1b
+                              ; first prompt line
+E092  108EE033                                ldy             #prompt_msg1
+E096  8E0400                                  ldx             #VIDEO_START
+E099  BDE0B2                                  jsr             sub_print_line
                       
-E040  8607                                    lda             #$07                    ; command: LoadHex
-E042  B71820                                  sta             FIO_COMMAND
-E045  B6181F                                  lda             FIO_ERR_FLAGS
-E048  8180                                    cmpa    #$80                    ; file not found?
-E04A  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
+E09C                  2
+E09C  20FE                                    bra             2b
                       
-E04C  AD9F0010                                jsr             [$0010]
+E09E  BDE0BB                                  jsr             test_load_hex
                       
-E050                  1
+E0A1  20FE            done            bra             done
                       
-E050  20FE            done            bra             done
+                      
+                      ; ** Subroutines ****************************
+E0A3                  sub_cls
+E0A3  3410                                    pshs    x
+E0A5  8E0400                                  ldx             #VIDEO_START
+E0A8                  1               
+E0A8  ED81                                    std             ,x++
+E0AA  8C17FF                                  cmpx    #VIDEO_END
+E0AD  23F9                                    bls             1b      
+E0AF  3510                                    puls    x
+E0B1  39                                      rts
+                      
+E0B2                  sub_print_line
+E0B2                  2
+E0B2  A6A0                                    lda             ,y+
+E0B4  2704                                    beq             3f
+E0B6  A781                                    sta             ,x++
+E0B8  20EE                                    bra             1b
+E0BA                  3
+E0BA  39                                      rts
+                                              
+                      
+                      
+                      
+                      
+                      
+                      ; **** SUBROUTINES ***************************************************
+                      
+                      
+                      ; FILE SYSTEM TESTS:
+                      
+E0BB                  test_load_hex
+                                              ; load "test.hex"
+E0BB  8EE024                                  ldx             #test_file              ; fetch the filename
+E0BE  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
+E0C2                  1
+E0C2  A680                                    lda             ,x+                             ; copy a character from the source filename
+E0C4  A7A0                                    sta             ,y+                             ; store it in the hardware register
+E0C6  26FA                                    bne             1b                              ; keep looping until null-termination
+                      
+E0C8  8607                                    lda             #$07                    ; command: LoadHex
+E0CA  B71820                                  sta             FIO_COMMAND             ; executre the command
+E0CD  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E0D0  8180                                    cmpa    #$80                    ; test for bit: file not found?
+E0D2  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
+E0D4  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
+E0D8                  1
+E0D8  39                                      rts
+                      
+                      
                       
                       
                       ; ***********************************************************
                       
-                      ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
-                      ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
-                      
-E052  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-E05A  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
-                      
-E062  FF                                      fcb             $ff
-                      
-                      ;test_file      fcn             "./asm/test2.hex"
                       
                       ; interrupt vectors
 FFF0                                                  org  $fff0
