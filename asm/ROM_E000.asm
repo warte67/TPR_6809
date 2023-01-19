@@ -90,6 +90,14 @@ just_rti
 
 reset		
 
+			; FILE SYSTEM TESTS:
+			lda		#$00
+1
+			sta		FIO_COMMAND
+			inca
+			cmpa	#$17
+			blt		1b
+
 
 			; TESTING: fill the first 256 bytes of screen ram 
 			;		with ascending values to display

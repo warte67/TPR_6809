@@ -132,11 +132,44 @@
                       
                       ;  File I/O Hardware Registers:
 181E                  FIO_BEGIN       equ     $181e   ; start of file i/o hardware registers
-181E                  FIO_FLAGS       equ     $181e   ; (Byte) file i/o system flags:
-181F                  FIO_END equ     $181f   ; end of the file i/o Hardware Registers
+181E                  FIO_ERR_FLAGS   equ     $181e   ; (Byte) file i/o system flags:
+                                                      ;      bit 7:   file not found
+                                                      ;      bit 6:  end of file
+                                                      ;      bit 5:   buffer overrun
+                                                      ;      bit 0-4: not yet assigned
+181F                  FIO_COMMAND     equ     $181f   ; (Byte) OnWrite - command to execute
+                                                      ;      $00 = Reset/Null
+                                                      ;      $01 = Open/Create Binary File for Reading
+                                                      ;      $02 = Open/Create Binary File for Writing
+                                                      ;      $03 = Open/Create Binary File for Append
+                                                      ;      $04 = Close File
+                                                      ;      $05 = Read Byte
+                                                      ;      $06 = Write Byte
+                                                      ;      $07 = Load Hex Format File
+                                                      ;      $08 = Write Hex Format Line
+                                                      ;      $09 = Get File Length (FIO_BFRLEN = file length
+                                                      ;      $0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
+                                                      ;      $0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
+                                                      ;      $0C = (not yet designed) List Directory
+                                                      ;      $0D = Make Directory
+                                                      ;      $0E = Change Directory
+                                                      ;      $0F = Rename Directory
+                                                      ;      $10 = Remove Directory
+                                                      ;      $11 = Delete File
+                                                      ;      $12 = Rename file
+                                                      ;      $13 = Copy File
+                                                      ;      $14 = Seek Start
+                                                      ;      $15 = Seek Current
+                                                      ;      $16 = Seek End
+1820                  FIO_HANDLE      equ     $1820   ; (Byte) file handle or ZERO
+1821                  FIO_BFROFS      equ     $1821   ; (Word) start of I/O buffer
+1822                  FIO_BFRLEN      equ     $1822   ; (Word) length of I/O buffer
+1823                  FIO_SEEKOFS     equ     $1823   ; (Word) seek offset
+1824                  FIO_FILEPATH    equ     $1824   ; (Char Array 256) file path and argument buffer
+1924                  FIO_END equ     $1924   ; end of file i/o hardware registers
                       
                       ;  Reserved Hardware:
-181F                  RESERVED_HDW    equ     $181f   ; Reserved 2012 bytes ($181F - $1FFB)
+1925                  RESERVED_HDW    equ     $1925   ; Reserved 1750 bytes ($1925 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -152,6 +185,8 @@ C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       
                       ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+                      
+                      
                       
                       ; ***************************************
                       ; * Read Only Sytem KERNAL ROM          *
@@ -204,12 +239,20 @@ E023  3B                                      rti
                       
 E024                  reset           
                       
+                                              ; FILE SYSTEM TESTS:
+E024  8600                                    lda             #$00
+E026                  1
+E026  B7181F                                  sta             FIO_COMMAND
+E029  4C                                      inca
+E02A  8117                                    cmpa    #$17
+E02C  2DF8                                    blt             1b
+                      
                       
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
                                               
-E024  8620                                    lda             #num_cycles             ; initially clear the cycle variable
-E026  B70014                                  sta             var_cycle
+E02E  8620                                    lda             #num_cycles             ; initially clear the cycle variable
+E030  B70014                                  sta             var_cycle
                       
                       ;                       ; enable backbuffer mode
                       ;                       lda             GFX_FLAGS
@@ -217,29 +260,29 @@ E026  B70014                                  sta             var_cycle
                       ;                       sta             GFX_FLAGS
                       
                                               ; set up the initial graphics mode 
-E029  7F0015                                  clr             var_mode_index  ; start with index 0
-E02C  8EE0E0                                  ldx             #mode_data
-E02F  B61800                                  lda             GFX_FLAGS
-E032  84F0                                    anda    #$f0
-E034  AA84                                    ora             ,x
-E036  B71800                                  sta             GFX_FLAGS
+E033  7F0015                                  clr             var_mode_index  ; start with index 0
+E036  8EE0EA                                  ldx             #mode_data
+E039  B61800                                  lda             GFX_FLAGS
+E03C  84F0                                    anda    #$f0
+E03E  AA84                                    ora             ,x
+E040  B71800                                  sta             GFX_FLAGS
                       
                                               
                       
                       
                                               ; fill the background buffer with incrementing values
-E039  8E0000                                  ldx             #0
-E03C                  1
-E03C  BF180B                                  stx             GFX_EXT_ADDR
-E03F  B7180D                                  sta             GFX_EXT_DATA
-E042  4C                                      inca
-E043  81FF                                    cmpa    #$ff
-E045  2601                                    bne             2f
-E047  4F                                      clra
-E048                  2
-E048  3001                                    leax    1,x
-E04A  8C2800                                  cmpx    #$2800
-E04D  26ED                                    bne             1b
+E043  8E0000                                  ldx             #0
+E046                  1
+E046  BF180B                                  stx             GFX_EXT_ADDR
+E049  B7180D                                  sta             GFX_EXT_DATA
+E04C  4C                                      inca
+E04D  81FF                                    cmpa    #$ff
+E04F  2601                                    bne             2f
+E051  4F                                      clra
+E052                  2
+E052  3001                                    leax    1,x
+E054  8C2800                                  cmpx    #$2800
+E057  26ED                                    bne             1b
                       
                       
                       
@@ -248,99 +291,99 @@ E04D  26ED                                    bne             1b
                       ; *  the Display Buffer
                       ; ***********************
                       
-E04F  7F0010                                  clr             var_ch                  ; character = 0
-E052  7F0011                                  clr             var_at                  ; attribute = 0
-E055  7F0012                                  clr             var_count               ; count = 0
-E058  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-E05B                  1
-E05B  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-E05E  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-E060  B60010                                  lda             var_ch                  ; load the current character
-E063  F60011                                  ldb             var_at                  ; load the current attribute
-E066  ED81                                    std             ,x++                    ; store both character and attribute
-E068  7C0010                                  inc             var_ch                  ; next character
-E06B  7C0012                                  inc             var_count               ; increment count
-E06E  B60012                                  lda             var_count               ; load the count
-E071  8111                                    cmpa    #17                             ; compare the count with this amount
-E073  2DE6                                    blt             1b                              ; loop if count lower than
-E075  7C0011                                  inc             var_at                  ; next attribute
-E078  7F0012                                  clr             var_count               ; clear the count
-E07B  20DE                                    bra             1b                              ; resume the loop
+E059  7F0010                                  clr             var_ch                  ; character = 0
+E05C  7F0011                                  clr             var_at                  ; attribute = 0
+E05F  7F0012                                  clr             var_count               ; count = 0
+E062  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+E065                  1
+E065  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+E068  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+E06A  B60010                                  lda             var_ch                  ; load the current character
+E06D  F60011                                  ldb             var_at                  ; load the current attribute
+E070  ED81                                    std             ,x++                    ; store both character and attribute
+E072  7C0010                                  inc             var_ch                  ; next character
+E075  7C0012                                  inc             var_count               ; increment count
+E078  B60012                                  lda             var_count               ; load the count
+E07B  8111                                    cmpa    #17                             ; compare the count with this amount
+E07D  2DE6                                    blt             1b                              ; loop if count lower than
+E07F  7C0011                                  inc             var_at                  ; next attribute
+E082  7F0012                                  clr             var_count               ; clear the count
+E085  20DE                                    bra             1b                              ; resume the loop
                       
                                               ; INCREMENT THE SCREEN BUFFER
-E07D                  2
-E07D  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-E080                  4
-E080  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-E083  2C06                                    bge             3f                              ; restart when past the end
-E085  6C80                                    inc             ,x+                             ; increment character
-E087  6C80                                    inc             ,x+                             ; increment the attribute
-E089  20F5                                    bra             4b                              ; loop until done
-E08B                  3
+E087                  2
+E087  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+E08A                  4
+E08A  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+E08D  2C06                                    bge             3f                              ; restart when past the end
+E08F  6C80                                    inc             ,x+                             ; increment character
+E091  6C80                                    inc             ,x+                             ; increment the attribute
+E093  20F5                                    bra             4b                              ; loop until done
+E095                  3
                       
                       
                                               ; INCREMENT THE EXTENDED SCREEN BUFFER
-E08B  8E0000                                  ldx             #0
-E08E                  8                       
-E08E  BF180B                                  stx             GFX_EXT_ADDR
-E091  7C180D                                  inc             GFX_EXT_DATA
-E094  3001                                    leax    1,x
-E096  8C0280                                  cmpx    #640            ;#$0800
-E099  26F3                                    bne             8b
+E095  8E0000                                  ldx             #0
+E098                  8                       
+E098  BF180B                                  stx             GFX_EXT_ADDR
+E09B  7C180D                                  inc             GFX_EXT_DATA
+E09E  3001                                    leax    1,x
+E0A0  8C0280                                  cmpx    #640            ;#$0800
+E0A3  26F3                                    bne             8b
                       
                       
                       
                       
                                               ; TOGGLE THE BACKBUFFER
-E09B  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-E09E  8820                                    eora    #$20            ; toggle it
-E0A0  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+E0A5  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+E0A8  8820                                    eora    #$20            ; toggle it
+E0AA  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
-E0A3  8604                                    lda             #4
-E0A5  B71817                                  sta             CSR_PAL_INDX
-E0A8  FC1818                                  ldd             CSR_PAL_DATA
-E0AB  C300A0                                  addd    #$00a0
-E0AE  FD1818                                  std             CSR_PAL_DATA            
+E0AD  8604                                    lda             #4
+E0AF  B71817                                  sta             CSR_PAL_INDX
+E0B2  FC1818                                  ldd             CSR_PAL_DATA
+E0B5  C300A0                                  addd    #$00a0
+E0B8  FD1818                                  std             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
-E0B1  7C0014                                  inc             var_cycle       ; increment the cycle counter
-E0B4  B60014                                  lda             var_cycle
-E0B7  8120                                    cmpa    #num_cycles             ; max cycles yet?
-E0B9  2323                                    bls             continue        ; nope, continue with the main loop
-E0BB  7F0014                                  clr             var_cycle       ; reset the cycle count
+E0BB  7C0014                                  inc             var_cycle       ; increment the cycle counter
+E0BE  B60014                                  lda             var_cycle
+E0C1  8120                                    cmpa    #num_cycles             ; max cycles yet?
+E0C3  2323                                    bls             continue        ; nope, continue with the main loop
+E0C5  7F0014                                  clr             var_cycle       ; reset the cycle count
                       
                                               ; MODE CHANGES
-E0BE                  6
-E0BE  F60015                                  ldb             var_mode_index
-E0C1  7C0015                                  inc             var_mode_index
-E0C4  8EE0E0                                  ldx             #mode_data
-E0C7  A685                                    lda             b,x
-E0C9  81FF                                    cmpa    #$ff
-E0CB  270C                                    beq             5f
-E0CD  B61800                                  lda             GFX_FLAGS
-E0D0  84F0                                    anda    #$f0
-E0D2  AA85                                    ora             b,x
-E0D4  B71800                                  sta             GFX_FLAGS
-E0D7  2005                                    bra             continue
-E0D9                  5       
-E0D9  7F0015                                  clr             var_mode_index
-E0DC  20E0                                    bra             6b
-E0DE                  continue
+E0C8                  6
+E0C8  F60015                                  ldb             var_mode_index
+E0CB  7C0015                                  inc             var_mode_index
+E0CE  8EE0EA                                  ldx             #mode_data
+E0D1  A685                                    lda             b,x
+E0D3  81FF                                    cmpa    #$ff
+E0D5  270C                                    beq             5f
+E0D7  B61800                                  lda             GFX_FLAGS
+E0DA  84F0                                    anda    #$f0
+E0DC  AA85                                    ora             b,x
+E0DE  B71800                                  sta             GFX_FLAGS
+E0E1  2005                                    bra             continue
+E0E3                  5       
+E0E3  7F0015                                  clr             var_mode_index
+E0E6  20E0                                    bra             6b
+E0E8                  continue
                       
                               
                       
-E0DE  209D                                    bra             2b
+E0E8  209D                                    bra             2b
                       
                       ; ***********************************************************
                       
                       ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       
-E0E0  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-E0E8  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+E0EA  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+E0F2  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-E0F0  FF                                      fcb             $ff
+E0FA  FF                                      fcb             $ff
                       
                       ; interrupt vectors
 FFF0                                                  org  $fff0

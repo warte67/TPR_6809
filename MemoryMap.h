@@ -144,11 +144,44 @@ enum MEMMAP
 
 //  File I/O Hardware Registers:
      FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
-     FIO_FLAGS = 0x181e,        // (Byte) file i/o system flags:
-       FIO_END = 0x181f,        // end of the file i/o Hardware Registers
+  FIO_ERR_FLAGS = 0x181e,       // (Byte) file i/o system flags:
+                                //      bit 7:  file not found
+                                //      bit 6:  end of file
+                                //      bit 5:  buffer overrun
+                                //      bit 0-4: not yet assigned
+   FIO_COMMAND = 0x181f,        // (Byte) OnWrite - command to execute
+                                //      $00 = Reset/Null
+                                //      $01 = Open/Create Binary File for Reading
+                                //      $02 = Open/Create Binary File for Writing
+                                //      $03 = Open/Create Binary File for Append
+                                //      $04 = Close File
+                                //      $05 = Read Byte
+                                //      $06 = Write Byte
+                                //      $07 = Load Hex Format File
+                                //      $08 = Write Hex Format Line
+                                //      $09 = Get File Length (FIO_BFRLEN = file length
+                                //      $0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
+                                //      $0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
+                                //      $0C = (not yet designed) List Directory
+                                //      $0D = Make Directory
+                                //      $0E = Change Directory
+                                //      $0F = Rename Directory
+                                //      $10 = Remove Directory
+                                //      $11 = Delete File
+                                //      $12 = Rename file
+                                //      $13 = Copy File
+                                //      $14 = Seek Start
+                                //      $15 = Seek Current
+                                //      $16 = Seek End
+    FIO_HANDLE = 0x1820,        // (Byte) file handle or ZERO
+    FIO_BFROFS = 0x1821,        // (Word) start of I/O buffer
+    FIO_BFRLEN = 0x1822,        // (Word) length of I/O buffer
+   FIO_SEEKOFS = 0x1823,        // (Word) seek offset
+  FIO_FILEPATH = 0x1824,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1924,        // end of file i/o hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x181f,        // Reserved 2012 bytes ($181F - $1FFB)
+  RESERVED_HDW = 0x1925,        // Reserved 1750 bytes ($1925 - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -175,6 +208,10 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
+
+
+
 
 #endif // __MEMORY_MAP__
 

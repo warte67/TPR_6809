@@ -92,11 +92,44 @@ GFX_END equ     $181e   ; end of the GFX Hardware Registers
 
 ;  File I/O Hardware Registers:
 FIO_BEGIN       equ     $181e   ; start of file i/o hardware registers
-FIO_FLAGS       equ     $181e   ; (Byte) file i/o system flags:
-FIO_END equ     $181f   ; end of the file i/o Hardware Registers
+FIO_ERR_FLAGS   equ     $181e   ; (Byte) file i/o system flags:
+                                ;      bit 7:   file not found
+                                ;      bit 6:  end of file
+                                ;      bit 5:   buffer overrun
+                                ;      bit 0-4: not yet assigned
+FIO_COMMAND     equ     $181f   ; (Byte) OnWrite - command to execute
+                                ;      $00 = Reset/Null
+                                ;      $01 = Open/Create Binary File for Reading
+                                ;      $02 = Open/Create Binary File for Writing
+                                ;      $03 = Open/Create Binary File for Append
+                                ;      $04 = Close File
+                                ;      $05 = Read Byte
+                                ;      $06 = Write Byte
+                                ;      $07 = Load Hex Format File
+                                ;      $08 = Write Hex Format Line
+                                ;      $09 = Get File Length (FIO_BFRLEN = file length
+                                ;      $0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
+                                ;      $0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
+                                ;      $0C = (not yet designed) List Directory
+                                ;      $0D = Make Directory
+                                ;      $0E = Change Directory
+                                ;      $0F = Rename Directory
+                                ;      $10 = Remove Directory
+                                ;      $11 = Delete File
+                                ;      $12 = Rename file
+                                ;      $13 = Copy File
+                                ;      $14 = Seek Start
+                                ;      $15 = Seek Current
+                                ;      $16 = Seek End
+FIO_HANDLE      equ     $1820   ; (Byte) file handle or ZERO
+FIO_BFROFS      equ     $1821   ; (Word) start of I/O buffer
+FIO_BFRLEN      equ     $1822   ; (Word) length of I/O buffer
+FIO_SEEKOFS     equ     $1823   ; (Word) seek offset
+FIO_FILEPATH    equ     $1824   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1924   ; end of file i/o hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $181f   ; Reserved 2012 bytes ($181F - $1FFB)
+RESERVED_HDW    equ     $1925   ; Reserved 1750 bytes ($1925 - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -112,3 +145,5 @@ RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
 
 ;  Bios Kernal ROM:
 BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+
+
