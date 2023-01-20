@@ -426,13 +426,13 @@ void GFX::OnEvent(SDL_Event *evnt)
 {
 	if (evnt->type == SDL_KEYDOWN)
 	{
-		if (evnt->key.keysym.sym == SDLK_SPACE)
-		{
-			Byte data = bus->read(DBG_FLAGS);
-			data |= 0x80;
-			bus->write(DBG_FLAGS, data);
-			gfx_debug->SetSingleStep(true);
-		}
+		//if (evnt->key.keysym.sym == SDLK_SPACE)
+		//{
+		//	Byte data = bus->read(DBG_FLAGS);
+		//	data |= 0x80;
+		//	bus->write(DBG_FLAGS, data);
+		//	gfx_debug->SetSingleStep(true);
+		//}
 
 		// toggle fullscreen/windowed
 		if (evnt->key.keysym.sym == SDLK_RETURN)

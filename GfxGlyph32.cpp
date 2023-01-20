@@ -51,9 +51,10 @@ GfxGlyph32::GfxGlyph32()
 
 void GfxGlyph32::OnInitialize()
 {
-	//printf("GfxGlyph32::OnInitialize()\n");
-	// 
-   // load the default palette
+	bus->debug_write(GFX_FG_WDTH, 31);
+	bus->debug_write(GFX_FG_HGHT, 19);
+
+	// load the default palette
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {

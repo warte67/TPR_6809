@@ -7,6 +7,7 @@
 #define __GFXDEBUG_H__
 
 #include <map>
+#include <list>
 #include "GfxMode.h"
 
 class GfxMode;
@@ -131,7 +132,7 @@ private:
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
 
-	//bool bDebugMemDump = false;
+	std::list<Word> asmHistory;
 };
 
 

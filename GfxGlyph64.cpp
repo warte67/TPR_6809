@@ -22,7 +22,7 @@ Byte GfxGlyph64::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 		if (bWasRead)
 		{	// READ	
 			// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
-			if (ofs >= GFX_FG_WDTH && ofs <= GFX_FG_HGHT + 1)
+			if (ofs >= GFX_FG_BEGIN && ofs <= GFX_FG_END)
 			{
 				Word fg_Width = 63;
 				Word fg_Height = 39;
@@ -51,9 +51,10 @@ GfxGlyph64::GfxGlyph64()
 }
 
 void GfxGlyph64::OnInitialize()
-{
-	 //printf("GfxGlyph::OnInitialize()\n");
-	 // 
+{	 
+	bus->debug_write(GFX_FG_WDTH, 63);
+	bus->debug_write(GFX_FG_HGHT, 39);
+
 	// load the default palette
 	if (default_palette.size() == 0)
 	{

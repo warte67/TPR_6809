@@ -4,6 +4,7 @@
 // ************************************
 
 #include <map>
+#include <list>
 #include "types.h"
 #include "Bus.h"
 #include "C6809.h"
@@ -172,6 +173,7 @@ void GfxDebug::OnEvent(SDL_Event* evnt)
 		// SPACE advances single step
 		if (evnt->key.keysym.sym == SDLK_SPACE)
 		{			
+			bSingleStep = true;
 			bIsStepPaused = false;
 			nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
 		}
@@ -241,6 +243,8 @@ void GfxDebug::OnDestroy()
 void GfxDebug::OnUpdate(float fElapsedTime)
 {
 	//printf("GfxDebug::OnUpdate()\n"); 
+	if (!gfx->DebugEnabled())	return;
+
 
 	const float delay = 1.0f / 30.0f;
 	static float delayAcc = fElapsedTime;
@@ -421,18 +425,6 @@ void GfxDebug::DrawCpu(int x, int y)
 
 void GfxDebug::DrawCode(int col, int row)
 {
-	//int line = 0;
-	//Word top = cpu->getPC() + topOffset;
-	//while (row + line < 30)
-	//{
-	//	if (top < cpu->getPC())
-	//		OutText(col, row + line++, cpu->disasm(top, top), 160, 160, 128);
-	//	else if (top == cpu->getPC())
-	//		OutText(col, row + line++, cpu->disasm(top, top), 255, 255, 255);
-	//	else
-	//		OutText(col, row + line++, cpu->disasm(top, top), 192, 192, 128);
-	//}
-
 	int line = 0;
 	Word top = cpu->getPC() + topOffset;
 	std::string code = "";

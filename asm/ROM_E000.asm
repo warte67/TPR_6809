@@ -29,7 +29,13 @@ SOFT_SWI2       fdb 	do_SWI2      	; Software SWI2 Vector
 SOFT_SWI3       fdb 	do_SWI3      	; Software SWI3 Vector
 SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 
-EXEC_VECTOR		fdb		reset
+; reserved system variables
+EXEC_VECTOR		fdb		reset			; execution vector 
+
+TCSR_ROW		fcb		0				; current cursor row
+TCSR_COL		fcb		0				; current cursor column
+TCSR_ATTRIB		fcb		$10				; current cursor attribute
+TEXT_ATTRIB		fcv		$a2				; current text attribute
 
 
 			INCLUDE "mem_map.asm"
@@ -85,92 +91,73 @@ just_rti
 
 test_file	fcn		"./asm/test.hex"
 
-prompt_msg1	fcn		"Two-PI Retro 6809"
-prompt_msg2	fcn		"BIOS KERNEL v.0.01"
-prompt_msg3 fcn		"Copyright 2023 by Jay Faries"
-prompt_ready fcn	"OK"
+prompt_msg	fcc		"Two-PI Retro 6809\n"
+			fcc		"BIOS KERNEL v.0.02\n"
+			fcc		"Copyright 2023 by Jay Faries\n\n"
+prompt_ready fcn	"OK\n"
 
 reset		
+		; simply run the test code		
 			;jsr		test_load_hex
 
 
-	; load the default graphics mode
+		; load the default graphics mode
 			lda		#$02
 			sta		GFX_FLAGS
 
-	; clear screen
-			ldx		#VIDEO_START
+		; set the text attribute default
+			lda		#$a2
+			sta		TEXT_ATTRIB	
+
+		; clear screen
+			jsr		clear_text_screen
+
+
+		; preset the starting text cursor position
+			clr		TCSR_ROW
+			clr		TCSR_COL
+
+		; display the text prompt
+			ldx		#prompt_msg
+			jsr		text_out
+
+
+		; main KERNEL loop
+			ldb		#$10
+			stb		TCSR_ATTRIB
+
+main_kernel
+			; rotate the cursor attributes
+			inc		TCSR_ATTRIB
+			jsr		_tcsr_pos		; fetch x from row/col
+			lda		#' '			; space character
+			ldb		TCSR_ATTRIB		; load the current attribute
+			std		0,x				; place the cursor onto the screen
+
+
+			lda		CHAR_Q_LEN
+			beq		main_kernel		 
+			; delete the old cursor
+			jsr		_tcsr_pos
 			lda		#' '
-			ldb		#$a2
-1		
-			std		,x++
-			cmpx	#VIDEO_END
-			bls		1b	
-
-	; first prompt line
-			ldy		#prompt_msg1
-			ldx		#VIDEO_START
-			jsr		prt_line
-
-			ldy		#prompt_msg2
-			ldx		#VIDEO_START + 128
-			jsr		prt_line
-
-			ldy		#prompt_msg3
-			ldx		#VIDEO_START + 256
-			jsr		prt_line
-
-			ldy		#prompt_ready
-			ldx		#VIDEO_START + 512
-			jsr		prt_line
-
-	; simply flash a cursor
-			ldx		#VIDEO_START + 640
-1
-			lda		#' '	;$8f
-			; update the cursor
-			sta		0,x
-
-			; increment bg cursor color with black fg
-			ldb		1,x
-			addb	#$01		;$10
-			andb	#$0F		;$f0
-			stb		1,x
-
-			; delay
-			ldy		#$4000
-2			leay	-1, y
-			bne		2b
-
-	; check for a key press
+			ldb		TEXT_ATTRIB
+			std		0,x
 			
-			lda		CHAR_Q_LEN	; if no keys waiting in queue
-			beq		1b			; continue looping
+			; display typed character
+			lda		CHAR_POP		; pop the last typed character			
+			jsr		char_out		; display it
 
-	; handle key presses
-			lda		CHAR_POP	; pop the next key press from the queue
-			sta		$0020
+			; display the new cursor
+			jsr		_tcsr_pos		; fetch x from row/col
+			lda		#' '			; space character
+			ldb		TCSR_ATTRIB		; load the current attribute
+			std		0,x				; place the cursor onto the screen
+			
 
-
-			bra		1b
-
+			bra		main_kernel
 
 
 done		bra		done
-
-
-; ** Subroutines ****************************
-
-prt_line	
-2
-			lda		,y+
-			beq		3f
-			sta		,x++
-			bra		2b
-3		
-			rts
-		
-
 
 ; **** SUBROUTINES ***************************************************
 
@@ -194,6 +181,110 @@ test_load_hex
 			jsr		[$0010]			; call the loaded subroutine
 1
 			rts
+
+
+; **** SYSTEM CALLS ******************************
+
+clear_text_screen	; clear the text screen
+			pshs	D,X
+			ldx		#VIDEO_START
+			lda		#' '
+			ldb		TEXT_ATTRIB
+1			std		,x++
+			cmpx	#VIDEO_END
+			bls		1b	
+			puls	D,X
+			rts
+
+
+char_out	; Display character in the A register to the screen
+			; at the current cursor position and in the 
+			; current color.
+
+			pshs	D, X, Y
+			ldb		TEXT_ATTRIB
+			bsr		_tcsr_pos		; find X from Row and Col
+
+			cmpa	#$0a
+			beq		_cr
+			cmpa	#$0D
+			beq		_cr
+			cmpa	#$08			; backspace
+			beq		_backspace
+			cmpa	#$20
+			blt		3f
+			; standard printable character
+			std		,x
+			inc		TCSR_COL
+			lda		TCSR_COL
+			cmpa	GFX_FG_WDTH
+			bls		3f
+_cr
+			clr		TCSR_COL
+			lda		TCSR_ROW
+			cmpa	GFX_FG_HGHT
+			bge		_scroll
+			inc		TCSR_ROW
+			bra		3f
+_backspace
+			lda		TCSR_COL
+			beq		3f
+			dec		TCSR_COL
+			bra		3f
+
+_scroll			
+			lda		GFX_FG_WDTH
+			inca
+			ldb		#2
+			mul
+			ldx		#VIDEO_START
+			leax	d,X
+			ldy		#VIDEO_START
+1			ldd		,x++
+			std		,y++
+			cmpx	#VIDEO_END
+			blt		1b
+			lda		#' '
+			ldb		TEXT_ATTRIB
+2			std		,y++
+			cmpy	#VIDEO_END
+			blt		2b
+
+3			puls	D, X, Y
+			rts
+
+_tcsr_pos	; load into X according to TCSR_ROW & TCSR_COL
+			pshs	D
+			ldx		#VIDEO_START
+			lda		TCSR_ROW
+			lsla
+			ldb		GFX_FG_WDTH
+			incb
+			mul
+			leax	D,X
+			lda		TCSR_COL
+			lsla
+			leax	a,x
+			cmpx	#VIDEO_END
+			bls		1f
+			ldx		#VIDEO_END-1
+1
+			puls	D
+			rts
+
+text_out	; output the string pointed to by X using the current attribute
+			pshs	D,X
+1			lda		,X+		
+			beq		2f				
+			jsr		char_out
+			bra		1b
+2			puls	D,X
+			rts
+
+		
+
+
+
 
 
 
