@@ -30,16 +30,19 @@
 000E  E01D            SOFT_RSRVD      fdb     do_RSRV         ; Software Motorola Reserved Vector
                       
                       ; reserved system variables
-0010  E07A            EXEC_VECTOR             fdb             reset                   ; execution vector 
+0010  E079            EXEC_VECTOR             fdb             reset                   ; execution vector 
                       
-0012  00              TCSR_ROW                fcb             0                               ; current cursor row
-0013  00              TCSR_COL                fcb             0                               ; current cursor column
+0012  00              TCSR_ROW                fcb             0                               ; current text cursor row
+0013  00              TCSR_COL                fcb             0                               ; current text cursor column
 0014  10              TCSR_ATTRIB             fcb             $10                             ; current cursor attribute
 0015  A2              TEXT_ATTRIB             fcb             $a2                             ; current text attribute
 0016  0000            TCSR_DECAY              fdb             $0000                   ; counter delay for the cursor
+0018  00              TCSR_ANC_ROW    fcb             0                               ; beginning row of line currently being edited
+0019  00              TCSR_ANC_COL    fcb             0                               ; beginning column of line currently being edited
+001A  0000            TCSR_ANC_ADR    fdb             0                               ; anchor address
+001C  0000            TCSR_EDT_ADR    fdb             0                               ; address when enter was pressed during line edit
                       
-                      
-0018                                          INCLUDE "mem_map.asm"
+001E                                          INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
@@ -172,14 +175,16 @@
                       
                       ;  Keyboard Hardware Registers:
 1928                  KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waitingin queue        (Read Only)
+1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       (Read Only)
 1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
 192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
 192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-193B                  KEY_END equ     $193b   ; end of keyboard hardware registers
+193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within the edit buffer      (Read)
+193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer          (Read)
+1A3C                  KEY_END equ     $1a3c   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-193C                  RESERVED_HDW    equ     $193c   ; Reserved 1727 bytes ($193C - $1FFB)
+1A3D                  RESERVED_HDW    equ     $1a3d   ; Reserved 1470 bytes ($1A3D - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -203,7 +208,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; ***************************************
                                             
                        
-0018                  SECTION.CODE
+001E                  SECTION.CODE
 E000                                          org     $E000  
                                   ;* Power On Initialization            
 E000                  ROM_ENTRY   
@@ -231,10 +236,10 @@ E017  7EE023          do_SWI2     JMP just_rti
 E01A  7EE023          do_SWI3     JMP just_rti
                       
                                   ;* Reserved Vector Handler
-E01D  7EE07A          do_RSRV     JMP reset
+E01D  7EE079          do_RSRV     JMP reset
                       
                                   ;* Reset Vector Handler         
-E020  7EE07A          do_RESET    JMP reset
+E020  7EE079          do_RESET    JMP reset
                                   
                       ;********************
                       ;* RESET
@@ -252,33 +257,20 @@ E024  2E2F61736D2F746573742E68657800 test_file       fcn             "./asm/test
 E033  54776F2D504920526574726F20363830390A prompt_msg      fcc             "Two-PI Retro 6809\n"
 E045  42494F53204B45524E454C20762E302E30320A                         fcc             "BIOS KERNEL v.0.02\n"
 E058  436F707972696768742032303233206279204A6179204661726965730A0A                         fcc             "Copyright 2023 by Jay Faries\n\n"
-E076  4F4B0A00        prompt_ready fcn        "OK\n"
+E076  4F4B00          prompt_ready fcn        "OK"
                       
-E07A                  reset           
-                                      ; simply run the test code              
-                                              ;jsr            test_load_hex
-                      
-                      
-                                      ; load the default graphics mode
-E07A  8602                                    lda             #$02
-E07C  B71800                                  sta             GFX_FLAGS
-                      
-                                      ; set the text attribute default
-E07F  86A2                                    lda             #$a2
-E081  B70015                                  sta             TEXT_ATTRIB     
-                      
-                                      ; clear screen
-E084  BDE0FF                                  jsr             clear_text_screen
-                      
-                      
-                                      ; preset the starting text cursor position
-E087  7F0012                                  clr             TCSR_ROW
-E08A  7F0013                                  clr             TCSR_COL
-                      
-                                      ; display the text prompt
-E08D  8EE033                                  ldx             #prompt_msg
-E090  BDE19B                                  jsr             text_out
-                      
+E079                  reset           
+                                              ; display the starting screen
+E079  BDE21C                                  jsr             starting_screen
+E07C  860A                                    lda             #$0a
+E07E  BDE177                                  jsr             char_out
+                                              ; fresh anchor
+E081  B60012                                  lda             TCSR_ROW
+E084  B70018                                  sta             TCSR_ANC_ROW
+E087  B60013                                  lda             TCSR_COL
+E08A  B70019                                  sta             TCSR_ANC_COL
+E08D  7F001A                                  clr             TCSR_ANC_ADR
+E090  7F001B                                  clr             TCSR_ANC_ADR+1                  
                       
                                       ; main KERNEL loop
 E093  C610                                    ldb             #$10
@@ -292,39 +284,103 @@ E09E  FC0016                                  ldd             TCSR_DECAY        
 E0A1  C30001                                  addd    #1                              ; increment it
 E0A4  FD0016                                  std             TCSR_DECAY              ; store it      
 E0A7  10830200                                cmpd    #$200                   ; check if delay has expired
-E0AB  2D09                                    blt             1f                              ; skip past the color update
+E0AB  2D15                                    blt             1f                              ; skip past the color update
 E0AD  7C0014                                  inc             TCSR_ATTRIB             ; increment the color attribute
 E0B0  CC0000                                  ldd             #0                              ; reset the cursor delay
 E0B3  FD0016                                  std             TCSR_DECAY              ; store the reset delay
                       
-E0B6                  1                       ; display the cursor
-E0B6  BDE17A                                  jsr             _tcsr_pos               ; fetch x from row/col
-E0B9  8620                                    lda             #' '                    ; space character
-E0BB  F60014                                  ldb             TCSR_ATTRIB             ; load the current attribute
-E0BE  ED84                                    std             0,x                             ; place the cursor onto the screen
+                                              ; mark the anchor
+E0B6  B60018                                  lda     TCSR_ANC_ROW    ; A: text cursor row
+E0B9  F60019                                  ldb             TCSR_ANC_COL    ; B: text cursor column
+E0BC  BDE1FD                                  jsr             tcsr_pos_reg    ; X: calculated offset within the video buffer
+E0BF  BF001A                                  stx             TCSR_ANC_ADR
+                      
+                      ;; color the anchor character
+                      ;                       ldb             #$3B                    ; anchor color attribute
+                      ;                       stb             1,X                             ; highlight the anchor character
+                      
+E0C2                  1                       ; display the cursor
+                      
+E0C2  BDE1EF                                  jsr             tcsr_pos                ; fetch x from row/col
+E0C5  8620                                    lda             #' '                    ; space character
+E0C7  F60014                                  ldb             TCSR_ATTRIB             ; load the current attribute
+E0CA  ED84                                    std             0,x                             ; place the cursor onto the screen
                                               
                                               ; check for a key in the queue
-E0C0  B61928                                  lda             CHAR_Q_LEN              ; load the length of the key queue
-E0C3  27D9                                    beq             main_kernel             ; loop if nothing is queued
+E0CC  B61928                                  lda             CHAR_Q_LEN              ; load the length of the key queue
+E0CF  27CD                                    beq             main_kernel             ; loop if nothing is queued
                       
                                               ; delete the old cursor
-E0C5  BDE17A                                  jsr             _tcsr_pos               ; calculate X from row/col
-E0C8  8620                                    lda             #' '                    ; load a blank space character
-E0CA  F60015                                  ldb             TEXT_ATTRIB             ; load the current text attribute
-E0CD  ED84                                    std             0,x                             ; store the colored character at X (row/col)
+E0D1  BDE1EF                                  jsr             tcsr_pos                ; calculate X from row/col
+E0D4  8620                                    lda             #' '                    ; load a blank space character
+E0D6  F60015                                  ldb             TEXT_ATTRIB             ; load the current text attribute
+E0D9  ED84                                    std             0,x                             ; store the colored character at X (row/col)
                                               
                                               ; display typed character
-E0CF  B6192A                                  lda             CHAR_POP                ; pop the last typed character                  
-E0D2  BDE113                                  jsr             char_out                ; display it
+E0DB  B6192A                                  lda             CHAR_POP                ; pop the last typed character  
                       
+                                              ; was [ENTER] pressed
+E0DE  810D                                    cmpa    #$0D                    ; check for [ENTER]
+E0E0  262F                                    bne     2f                              ; nope, that wasn't it. Skip ahead to 2
+                      
+E0E2  3402                                    pshs    A                               ; save the typed key
+E0E4  B60012                                  lda             TCSR_ROW                ; A: current cursor row
+E0E7  F60013                                  ldb             TCSR_COL                ; B: current cursor column
+E0EA  BDE1FD                                  jsr             tcsr_pos_reg    ; X: calculated offset 
+E0ED  BF001C                                  stx             TCSR_EDT_ADR    ; save as the end of the current edit buffer
+                      
+                      ;;                      ; color highlight the pending string 
+                      ;                       ldb             #$4c            
+                      ;                       ldx             TCSR_ANC_ADR                    
+                      ;                       leax    1,x
+                      ;99                     stb             ,x++
+                      ;                       cmpx    TCSR_EDT_ADR
+                      ;                       blt             99b
+                      
+                                              ; copy the string to the hardware buffer
+E0F0  108E193C                                ldy             #EDT_BUFFER             ; Y: current hardware edit buffer
+E0F4  BE001A                                  ldx             TCSR_ANC_ADR    ; X: anchor or start of the edit string
+E0F7  A681            4                       lda             ,x++                    ; load the character from the screen
+E0F9  A7A0                                    sta             ,y+                             ; store it into the hardware edit buffer
+E0FB  BC001C                                  cmpx    TCSR_EDT_ADR    ; check for the end of the string
+E0FE  2DF7                                    blt             4b                              ; keep looping if not at the end
+E100  6FA4                                    clr             ,y                              ; append a NULL character in the hardware buffer
+                                              ;lda            #$0a
+                                              ;jsr    char_out
+E102  BDE242                                  jsr             execute_command ; parse and run the command                     
+E105  3502                                    puls    A                               ; A: restored Key typed
+                                              
+E107  BE0012                                  ldx             TCSR_ROW
+E10A  BC0018                                  cmpx    TCSR_ANC_ROW
+E10D  2702                                    beq             2f
+E10F  2003                                    bra             3f
+E111                  2
+E111  BDE177                                  jsr             char_out                ; display the last typed character
+E114                  3
+E114  810D                                    cmpa    #$0D                    ; Was [ENTER] pressed?
+E116  261A                                    bne             2f                              ; no, move on
+                      
+                                              ; [ENTER] pressed                       
+E118  B60018                                  lda             TCSR_ANC_ROW
+E11B  F60019                                  ldb             TCSR_ANC_COL
+E11E  BDE1FD                                  jsr             tcsr_pos_reg
+E121  F60015                                  ldb             TEXT_ATTRIB
+E124  E701                                    stb             1,x
+                      
+                                              ; move the anchor to the new cursor position
+E126  B60012                                  lda             TCSR_ROW
+E129  B70018                                  sta             TCSR_ANC_ROW
+E12C  B60013                                  lda             TCSR_COL
+E12F  B70019                                  sta             TCSR_ANC_COL
+E132                  2
                                               ; display the new cursor
-E0D5  BDE17A                                  jsr             _tcsr_pos               ; fetch x from row/col
-E0D8  8620                                    lda             #' '                    ; space character
-E0DA  F60014                                  ldb             TCSR_ATTRIB             ; load the current attribute
-E0DD  ED84                                    std             0,x                             ; place the cursor onto the screen              
+E132  BDE1EF                                  jsr             tcsr_pos                ; fetch x from row/col
+E135  8620                                    lda             #' '                    ; space character
+E137  F60014                                  ldb             TCSR_ATTRIB             ; load the current attribute
+E13A  ED84                                    std             0,x                             ; place the cursor onto the screen              
                       
                                               ; end of main kernel loop
-E0DF  20BD                                    bra             main_kernel             ; continue the main kernel loop
+E13C  7EE09E                                  jmp             main_kernel             ; continue the main kernel loop
                       
                       
                       ; **** SUBROUTINES ***************************************************
@@ -332,126 +388,206 @@ E0DF  20BD                                    bra             main_kernel       
                       
                       ; FILE SYSTEM TESTS:
                       
-E0E1                  test_load_hex
+E13F                  test_load_hex
                                               ; load "test.hex"
-E0E1  8EE024                                  ldx             #test_file              ; fetch the filename
-E0E4  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
-E0E8                  1
-E0E8  A680                                    lda             ,x+                             ; copy a character from the source filename
-E0EA  A7A0                                    sta             ,y+                             ; store it in the hardware register
-E0EC  26FA                                    bne             1b                              ; keep looping until null-termination
+E13F  8EE024                                  ldx             #test_file              ; fetch the filename
+E142  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
+E146                  1
+E146  A680                                    lda             ,x+                             ; copy a character from the source filename
+E148  A7A0                                    sta             ,y+                             ; store it in the hardware register
+E14A  26FA                                    bne             1b                              ; keep looping until null-termination
                       
-E0EE  8607                                    lda             #$07                    ; command: LoadHex
-E0F0  B71820                                  sta             FIO_COMMAND             ; executre the command
-E0F3  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
-E0F6  8180                                    cmpa    #$80                    ; test for bit: file not found?
-E0F8  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
-E0FA  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
-E0FE                  1
-E0FE  39                                      rts
+E14C  8607                                    lda             #$07                    ; command: LoadHex
+E14E  B71820                                  sta             FIO_COMMAND             ; executre the command
+E151  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E154  8180                                    cmpa    #$80                    ; test for bit: file not found?
+E156  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
+E158  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
+E15C                  1
+E15C  39                                      rts
                       
                       
                       ; **** SYSTEM CALLS ******************************
                       
-E0FF                  clear_text_screen       ; clear the text screen
-E0FF  3416                                    pshs    D,X
-E101  8E0400                                  ldx             #VIDEO_START
-E104  8620                                    lda             #' '
-E106  F60015                                  ldb             TEXT_ATTRIB
-E109  ED81            1                       std             ,x++
-E10B  8C17FF                                  cmpx    #VIDEO_END
-E10E  23F9                                    bls             1b      
-E110  3516                                    puls    D,X
-E112  39                                      rts
+E15D                  clear_text_screen       ; clear the text screen
+E15D  3416                                    pshs    D,X
+E15F  8E0400                                  ldx             #VIDEO_START
+E162  8620                                    lda             #' '
+E164  F60015                                  ldb             TEXT_ATTRIB
+E167  ED81            1                       std             ,x++
+E169  8C17FF                                  cmpx    #VIDEO_END
+E16C  23F9                                    bls             1b      
+E16E  3516                                    puls    D,X             
+E170  7F0012                                  clr             TCSR_ROW
+E173  7F0013                                  clr             TCSR_COL                        
+E176  39                                      rts
                       
                       
-E113                  char_out        ; Display character in the A register to the screen
+E177                  char_out        ; Display character in the A register to the screen
                                               ; at the current cursor position and in the 
                                               ; current color.
+E177  3436                                    pshs    D, X, Y
                       
-E113  3436                                    pshs    D, X, Y
-E115  F60015                                  ldb             TEXT_ATTRIB
-E118  8D60                                    bsr             _tcsr_pos               ; find X from Row and Col
-                      
-E11A  810A                                    cmpa    #$0a
-E11C  2719                                    beq             _cr
-E11E  810D                                    cmpa    #$0D
-E120  2715                                    beq             _cr
-E122  8108                                    cmpa    #$08                    ; backspace
-E124  2721                                    beq             _backspace
-E126  8120                                    cmpa    #$20
-E128  2D4D                                    blt             3f
+                                              ; just return if A=null
+E179  4D                                      tsta
+E17A  2762                                    beq             3f
+E17C  F60015                                  ldb             TEXT_ATTRIB
+E17F  8D6E                                    bsr             tcsr_pos                ; find X from Row and Col
+E181  810A                                    cmpa    #$0a
+E183  2719                                    beq             _cr
+E185  810D                                    cmpa    #$0D
+E187  2715                                    beq             _cr
+E189  8108                                    cmpa    #$08                    ; backspace
+E18B  2721                                    beq             _backspace
+E18D  8120                                    cmpa    #$20
+E18F  2D4D                                    blt             3f
                                               ; standard printable character
-E12A  ED84                                    std             ,x
-E12C  7C0013                                  inc             TCSR_COL
-E12F  B60013                                  lda             TCSR_COL
-E132  B11809                                  cmpa    GFX_FG_WDTH
-E135  2340                                    bls             3f
-E137                  _cr
-E137  7F0013                                  clr             TCSR_COL
-E13A  B60012                                  lda             TCSR_ROW
-E13D  B1180A                                  cmpa    GFX_FG_HGHT
-E140  2C0F                                    bge             _scroll
-E142  7C0012                                  inc             TCSR_ROW
-E145  2030                                    bra             3f
-E147                  _backspace
-E147  B60013                                  lda             TCSR_COL
-E14A  272B                                    beq             3f
-E14C  7A0013                                  dec             TCSR_COL
-E14F  2026                                    bra             3f
+E191  ED84                                    std             ,x
+E193  7C0013                                  inc             TCSR_COL
+E196  B60013                                  lda             TCSR_COL
+E199  B11809                                  cmpa    GFX_FG_WDTH
+E19C  2340                                    bls             3f
+E19E                  _cr
+E19E  7F0013                                  clr             TCSR_COL
+E1A1  B60012                                  lda             TCSR_ROW
+E1A4  B1180A                                  cmpa    GFX_FG_HGHT
+E1A7  2C0F                                    bge             _scroll
+E1A9  7C0012                                  inc             TCSR_ROW
                       
-E151                  _scroll                 
-E151  B61809                                  lda             GFX_FG_WDTH
-E154  4C                                      inca
-E155  C602                                    ldb             #2
-E157  3D                                      mul
-E158  8E0400                                  ldx             #VIDEO_START
-E15B  308B                                    leax    d,X
-E15D  108E0400                                ldy             #VIDEO_START
-E161  EC81            1                       ldd             ,x++
-E163  EDA1                                    std             ,y++
-E165  8C17FF                                  cmpx    #VIDEO_END
-E168  2DF7                                    blt             1b
-E16A  8620                                    lda             #' '
-E16C  F60015                                  ldb             TEXT_ATTRIB
-E16F  EDA1            2                       std             ,y++
-E171  108C17FF                                cmpy    #VIDEO_END
-E175  2DF8                                    blt             2b
+E1AC  2030                                    bra             3f
+E1AE                  _backspace
+E1AE  B60013                                  lda             TCSR_COL
+E1B1  272B                                    beq             3f
+E1B3  7A0013                                  dec             TCSR_COL
+                                              ;dec    EDT_BFR_CSR
+E1B6  2026                                    bra             3f
                       
-E177  3536            3                       puls    D, X, Y
-E179  39                                      rts
+E1B8                  _scroll                 
+E1B8  B61809                                  lda             GFX_FG_WDTH
+E1BB  4C                                      inca
+E1BC  C602                                    ldb             #2
+E1BE  3D                                      mul
+E1BF  8E0400                                  ldx             #VIDEO_START
+E1C2  308B                                    leax    d,X
+E1C4  108E0400                                ldy             #VIDEO_START
+E1C8  EC81            1                       ldd             ,x++
+E1CA  EDA1                                    std             ,y++
+E1CC  8C17FF                                  cmpx    #VIDEO_END
+E1CF  2DF7                                    blt             1b
+E1D1  8620                                    lda             #' '
+E1D3  F60015                                  ldb             TEXT_ATTRIB
+E1D6  EDA1            2                       std             ,y++
+E1D8  108C17FF                                cmpy    #VIDEO_END
+E1DC  2DF8                                    blt             2b
                       
-E17A                  _tcsr_pos       ; load into X according to TCSR_ROW & TCSR_COL
-E17A  3406                                    pshs    D
-E17C  8E0400                                  ldx             #VIDEO_START
-E17F  B60012                                  lda             TCSR_ROW
-E182  48                                      lsla
-E183  F61809                                  ldb             GFX_FG_WDTH
-E186  5C                                      incb
-E187  3D                                      mul
-E188  308B                                    leax    D,X
-E18A  B60013                                  lda             TCSR_COL
-E18D  48                                      lsla
-E18E  3086                                    leax    a,x
-E190  8C17FF                                  cmpx    #VIDEO_END
-E193  2303                                    bls             1f
-E195  8E17FE                                  ldx             #VIDEO_END-1
-E198                  1
-E198  3506                                    puls    D
-E19A  39                                      rts
+E1DE  3536            3                       puls    D, X, Y
+E1E0  39                                      rts
                       
-E19B                  text_out        ; output the string pointed to by X using the current attribute
-E19B  3416                                    pshs    D,X
-E19D  A680            1                       lda             ,X+             
-E19F  2705                                    beq             2f                              
-E1A1  BDE113                                  jsr             char_out
-E1A4  20F7                                    bra             1b
-E1A6  3516            2                       puls    D,X
-E1A8  39                                      rts
-                      
-                                      
+E1E1                  text_out        ; output the string pointed to by X using the current attribute
+E1E1  3416                                    pshs    D,X
+E1E3  A680            1                       lda             ,X+             
+E1E5  2705                                    beq             2f                              
+E1E7  BDE177                                  jsr             char_out
+E1EA  20F7                                    bra             1b
+E1EC  3516            2                       puls    D,X
+E1EE  39                                      rts
                       
                       
+E1EF                  tcsr_pos        ; load into X according to TCSR_ROW & TCSR_COL
+                      
+E1EF  3406                                    pshs    D                               ; save for later clean up
+E1F1  B60012                                  lda     TCSR_ROW                ; A: cursor row
+E1F4  F60013                                  ldb             TCSR_COL                ; B: cursor column
+E1F7  BDE1FD                                  jsr     tcsr_pos_reg    ; X: position within the video buffer
+E1FA  3506                                    puls    D                               ; clean up the registers
+E1FC  39                                      rts                                             ; return
+                      
+                      
+E1FD                  tcsr_pos_reg    ; load into X according to text cursor position (A:ROW, B:COL)
+E1FD  3406                                    pshs    D                                               ; save A and B 
+E1FF  3406                                            pshs    D                                       ; again, save A and B
+E201  8E0400                                                  ldx             #VIDEO_START    ; point X to the start of the video buffer
+E204  48                                                      lsla                                    ; account for the attribute byte
+E205  F61809                                                  ldb             GFX_FG_WDTH             ; load the max horizontal character position
+E208  5C                                                      incb                                    ; correct for width
+E209  3D                                                      mul                                             ; offset the horizontial position
+E20A  308B                                                    leax    D,X                             ; within the video buffer
+E20C  3506                                            puls    D                                       ; restore A and B
+E20E  58                                              lslb                                            ; correct vertical to account for height
+E20F  3085                                            leax    b,x                                     ; offset into the video buffer
+E211  8C17FF                                          cmpx    #VIDEO_END                      ; was the video buffer exceeded
+E214  2303                                            bls             1f                                      ; branch out if not
+E216  8E17FE                                          ldx             #VIDEO_END-1            ; point X to the very last cell as an error
+E219  3506            1                       puls    D                                               ; final register clean up
+E21B  39                                      rts                                                             ; return
+                      
+E21C                  starting_screen ; clear and display the starting screen condition
+                                      ; load the default graphics mode
+E21C  8602                                    lda             #$02
+E21E  B71800                                  sta             GFX_FLAGS
+                                      ; set the text attribute default
+E221  86A2                                    lda             #$a2
+E223  B70015                                  sta             TEXT_ATTRIB     
+                                      ; clear screen
+E226  BDE15D                                  jsr             clear_text_screen
+                                      ; display the text prompt
+E229  8EE033                                  ldx             #prompt_msg
+E22C  BDE1E1                                  jsr             text_out
+                                      ; start the first anchor
+E22F  B60012                                  lda             TCSR_ROW
+E232  B70018                                  sta             TCSR_ANC_ROW
+E235  B60013                                  lda             TCSR_COL
+E238  B70019                                  sta             TCSR_ANC_COL
+E23B  7F001A                                  clr             TCSR_ANC_ADR
+E23E  7F001B                                  clr             TCSR_ANC_ADR+1
+E241  39                                      rts
+                      
+E242                  execute_command ; parse and run the string that is currently in the hardware EDT_BUFFER register
+E242  B6193C                                  lda             EDT_BUFFER
+E245  8120                                    cmpa    #$20
+E247  274D                                    beq             4f
+                      
+E249  860A                                    lda             #$0a
+E24B  BDE177                                  jsr             char_out
+                      
+                                      ; [L] = test load "test.hex"
+E24E  B6193C                                  lda             EDT_BUFFER
+E251  8A20                                    ora             #$20                    ; force lowercase
+E253  816C                                    cmpa    #'l'
+E255  260F                                    bne             1f
+E257  BDE13F                                  jsr     test_load_hex
+                      
+                                      ; clear the input buffer
+E25A  B61928                                  lda             CHAR_Q_LEN
+E25D  2737                                    beq             4f
+E25F  B6192A                                  lda             CHAR_POP                        
+E262  BDE21C                                  jsr             starting_screen
+E265  39                                      rts
+                      
+E266                  1               ; Report a Syntax Error
+E266  8EE297                                  ldx             #strz_syntax_error
+E269  BDE1E1                                  jsr             text_out
+E26C  863A                                    lda             #':'
+E26E  BDE177                                  jsr             char_out
+E271  8620                                    lda             #' '
+E273  BDE177                                  jsr             char_out
+E276  8622                                    lda             #$22                    ; "
+E278  BDE177                                  jsr             char_out
+E27B  8E193C                                  ldx             #EDT_BUFFER
+E27E  BDE1E1                                  jsr             text_out
+E281  8622                                    lda             #$22                    ; "
+E283  BDE177                                  jsr             char_out
+E286  860A                                    lda             #$0a
+E288  BDE177                                  jsr             char_out
+E28B  8EE076                                  ldx             #prompt_ready
+E28E  BDE1E1                                  jsr             text_out
+E291  860A                                    lda             #$0a
+E293  BDE177                                  jsr             char_out
+E296                  4               ; return from subroutine
+E296  39                                      rts
+                      
+E297                  strz_syntax_error
+E297  3F2053796E746178204572726F7200                         fcn             "? Syntax Error"
                       
                       
                       

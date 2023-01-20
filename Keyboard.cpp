@@ -7,6 +7,7 @@
 
 #include <map>
 #include <queue>
+#include <array>
 #include "XK_KEYCODES.h"
 #include "types.h"
 #include "GFX.h"
@@ -16,10 +17,12 @@
 
 ////  Keyboard Hardware Registers:
 //     KEY_BEGIN = 0x1928,        // start of keyboard hardware registers
-//    CHAR_Q_LEN = 0x1928,        // (char) # of characters waitingin queue     (Read Only)
-//     CHAR_SCAN = 0x1929,        // read next character in queue      (not popped when read)
+//    CHAR_Q_LEN = 0x1928,        // (char) # of characters waitingin queue        (Read Only)
+//     CHAR_SCAN = 0x1929,        // read next character in queue       (not popped when read)
 //      CHAR_POP = 0x192a,        // (char) next character waiting in queue (popped when read)
-//   XKEY_BUFFER = 0x197e,        // (128 bits) 16 bytes for XK_KEY data buffer (Read Only)
+//   XKEY_BUFFER = 0x197e,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+//   EDT_BFR_CSR = 0x193b,        // (Byte) cursor position within the edit buffer      (Read)
+//    EDT_BUFFER = 0x193c,        // (256 Bytes) line editing character buffer    (Read/Write)
 //       KEY_END = 0x198e,        // end of keyboard hardware registers
 
 
@@ -44,7 +47,7 @@ Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 			{
 				if (bWasRead) // scan the front of the keyboard queue
 				{
-					Byte data = 0;
+					data = 0;
 					if (ptrKey->charQueueLen() > 0)
 						data = ptrKey->charScanQueue();
 					return data;
@@ -54,7 +57,7 @@ Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 			{
 				if (bWasRead) // pop the front of the keyboard queue
 				{
-					Byte data = 0;
+					data = 0;
 					if (ptrKey->charQueueLen() > 0)
 						data = ptrKey->charPopQueue();
 					return data;
@@ -64,9 +67,30 @@ Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 			{
 				if (bWasRead) // read the queue length
 				{
-					Byte data = ptrKey->charQueueLen();
+					data = ptrKey->charQueueLen();
 					return data;
 				} // read only
+			}
+			else if (ofs == EDT_BFR_CSR)
+			{
+				if (bWasRead) // read the edit cursor position
+				{
+					data = ptrKey->edt_bfr_csr;
+					return data;
+				} 
+			}
+			else if (ofs >= EDT_BUFFER && ofs <= KEY_END)
+			{
+				if (bWasRead) // read a byte within the editBuffer[] array
+				{
+					data = ptrKey->editBuffer[ofs - EDT_BUFFER];
+					return data;
+				}
+				else
+				{
+					ptrKey->editBuffer[ofs - EDT_BUFFER] = data;
+					bus->debug_write(ofs, data);
+				}
 			}
 		}
 	}
@@ -108,6 +132,9 @@ Word Keyboard::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "CHAR_SCAN",  "read next character in queue       (not popped when read)" }); offset += 1;
 	memmap->push({ offset, "CHAR_POP",   "(char) next character waiting in queue (popped when read)" }); offset += 1;
 	memmap->push({ offset, "XKEY_BUFFER","(128 bits) 16 bytes for XK_KEY data buffer    (Read Only)" }); offset += 16;
+	memmap->push({ offset, "EDT_BFR_CSR","(Byte) cursor position within edit buffer    (Read/Write)" }); offset += 1;
+	memmap->push({ offset, "EDT_BUFFER", "(256 Bytes) line editing character buffer    (Read/Write)" }); offset += 256;
+
 
 	memmap->push({ offset, "KEY_END", "end of keyboard hardware registers     " }); offset += 1;
 	memmap->push({ offset, "", "" });
@@ -137,8 +164,13 @@ Keyboard::~Keyboard()
 
 void Keyboard::OnInitialize()
 {
-	keyMap[XKey::NONE] = 0x00;	 // INVALID, NULL, or UNASSIGNED key types
+	// reset the character edit buffer
+	edt_bfr_csr = 0;
+	for (auto a : editBuffer)
+		a = 0;
 
+	// initialize the key map
+	keyMap[XKey::NONE] = 0x00;	 // INVALID, NULL, or UNASSIGNED key types
 	keyMap[XKey::NUMLOCK   ] = SDL_SCANCODE_NUMLOCKCLEAR;   // NUMLOCK key                 
 	keyMap[XKey::SCROLL	   ] = SDL_SCANCODE_SCROLLLOCK;     // SCROLL LOCK key
 	keyMap[XKey::BREAK	   ] = 0x03;                        // [CTRL]+[BREAK] the "BREAK KEY" (also CTRL-C)

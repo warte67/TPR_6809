@@ -39,7 +39,7 @@ const bool DEBUG_SINGLE_STEP = ENABLE_DEBUG;	// false;
 const Byte DEBUG_BACKGROUND_ALPHA = 0xAA;	// alpha level of the debug screen background
 const bool ENABLE_VSYNC = false;
 const bool ENABLE_BACKBUFFER = false;
-const bool DEFAULT_FULLSCREEN = true;
+const bool DEFAULT_FULLSCREEN = false;
 const int  DEFAULT_MONITOR = 1;
 const Byte DEFAULT_MOUSE_SIZE = 8;
 

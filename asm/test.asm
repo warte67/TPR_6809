@@ -40,9 +40,6 @@ start
 			ora		,x
 			sta		GFX_FLAGS
 
-			
-
-
 			; fill the background buffer with incrementing values
 			ldx		#0
 1
@@ -143,9 +140,15 @@ start
 			clr		var_mode_index
 			bra		6b
 continue
-			bra		2b
+			; WAS [ESCAPE] PRESSED
+			lda		CHAR_Q_LEN
+			beq		2b
 
-			rts
+			lda		CHAR_SCAN
+			cmpa	#$1b
+			bne		2b
+
+done		rts
 		
 ; ////////////////////////////////////////////////////
 

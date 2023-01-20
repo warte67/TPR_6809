@@ -10,6 +10,7 @@
 
 #include <map>
 #include <queue>
+#include <array>
 #include "XK_KEYCODES.h"
 
 class Bus;
@@ -55,7 +56,9 @@ private:
 
 	std::map<XKey::XK, int> keyMap;	
 	std::vector<std::tuple<XKey::XK, char, char>> xkToAsciiMap;
-	std::queue <Byte> charQueue;	// ascii character queue
+	std::queue <Byte> charQueue;		// ascii character queue
+	std::array <Byte, 256> editBuffer;	// internal line edit character buffer
+	Byte edt_bfr_csr = 0;				// internal edit character buffer cursor position
 };
 
 #endif // __KEYBOARD_H__

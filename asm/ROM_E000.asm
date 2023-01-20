@@ -32,12 +32,15 @@ SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
 ; reserved system variables
 EXEC_VECTOR		fdb		reset			; execution vector 
 
-TCSR_ROW		fcb		0				; current cursor row
-TCSR_COL		fcb		0				; current cursor column
+TCSR_ROW		fcb		0				; current text cursor row
+TCSR_COL		fcb		0				; current text cursor column
 TCSR_ATTRIB		fcb		$10				; current cursor attribute
 TEXT_ATTRIB		fcb		$a2				; current text attribute
 TCSR_DECAY		fdb		$0000			; counter delay for the cursor
-
+TCSR_ANC_ROW	fcb		0				; beginning row of line currently being edited
+TCSR_ANC_COL	fcb		0				; beginning column of line currently being edited
+TCSR_ANC_ADR	fdb		0				; anchor address
+TCSR_EDT_ADR	fdb		0				; address when enter was pressed during line edit
 
 			INCLUDE "mem_map.asm"
 
@@ -95,33 +98,20 @@ test_file	fcn		"./asm/test.hex"
 prompt_msg	fcc		"Two-PI Retro 6809\n"
 			fcc		"BIOS KERNEL v.0.02\n"
 			fcc		"Copyright 2023 by Jay Faries\n\n"
-prompt_ready fcn	"OK\n"
+prompt_ready fcn	"OK"
 
 reset		
-		; simply run the test code		
-			;jsr		test_load_hex
-
-
-		; load the default graphics mode
-			lda		#$02
-			sta		GFX_FLAGS
-
-		; set the text attribute default
-			lda		#$a2
-			sta		TEXT_ATTRIB	
-
-		; clear screen
-			jsr		clear_text_screen
-
-
-		; preset the starting text cursor position
-			clr		TCSR_ROW
-			clr		TCSR_COL
-
-		; display the text prompt
-			ldx		#prompt_msg
-			jsr		text_out
-
+			; display the starting screen
+			jsr		starting_screen
+			lda		#$0a
+			jsr		char_out
+			; fresh anchor
+			lda		TCSR_ROW
+			sta		TCSR_ANC_ROW
+			lda		TCSR_COL
+			sta		TCSR_ANC_COL
+			clr		TCSR_ANC_ADR
+			clr		TCSR_ANC_ADR+1			
 
 		; main KERNEL loop
 			ldb		#$10
@@ -140,8 +130,19 @@ main_kernel
 			ldd		#0				; reset the cursor delay
 			std		TCSR_DECAY		; store the reset delay
 
+			; mark the anchor
+			lda 	TCSR_ANC_ROW	; A: text cursor row
+			ldb		TCSR_ANC_COL	; B: text cursor column
+			jsr		tcsr_pos_reg	; X: calculated offset within the video buffer
+			stx		TCSR_ANC_ADR
+
+;; color the anchor character
+;			ldb		#$3B			; anchor color attribute
+;			stb		1,X				; highlight the anchor character
+
 1			; display the cursor
-			jsr		_tcsr_pos		; fetch x from row/col
+
+			jsr		tcsr_pos		; fetch x from row/col
 			lda		#' '			; space character
 			ldb		TCSR_ATTRIB		; load the current attribute
 			std		0,x				; place the cursor onto the screen
@@ -151,23 +152,76 @@ main_kernel
 			beq		main_kernel		; loop if nothing is queued
 
 			; delete the old cursor
-			jsr		_tcsr_pos		; calculate X from row/col
+			jsr		tcsr_pos		; calculate X from row/col
 			lda		#' '			; load a blank space character
 			ldb		TEXT_ATTRIB		; load the current text attribute
 			std		0,x				; store the colored character at X (row/col)
 			
 			; display typed character
-			lda		CHAR_POP		; pop the last typed character			
-			jsr		char_out		; display it
+			lda		CHAR_POP		; pop the last typed character	
 
+			; was [ENTER] pressed
+			cmpa	#$0D			; check for [ENTER]
+			bne 	2f				; nope, that wasn't it. Skip ahead to 2
+
+			pshs	A				; save the typed key
+			lda		TCSR_ROW		; A: current cursor row
+			ldb		TCSR_COL		; B: current cursor column
+			jsr		tcsr_pos_reg	; X: calculated offset 
+			stx		TCSR_EDT_ADR	; save as the end of the current edit buffer
+
+;;			; color highlight the pending string 
+;			ldb		#$4c		
+;			ldx		TCSR_ANC_ADR			
+;			leax	1,x
+;99			stb		,x++
+;			cmpx	TCSR_EDT_ADR
+;			blt		99b
+
+			; copy the string to the hardware buffer
+			ldy		#EDT_BUFFER		; Y: current hardware edit buffer
+			ldx		TCSR_ANC_ADR	; X: anchor or start of the edit string
+4			lda		,x++			; load the character from the screen
+			sta		,y+				; store it into the hardware edit buffer
+			cmpx	TCSR_EDT_ADR	; check for the end of the string
+			blt		4b				; keep looping if not at the end
+			clr		,y				; append a NULL character in the hardware buffer
+			;lda		#$0a
+			;jsr 	char_out
+			jsr		execute_command	; parse and run the command			
+			puls	A				; A: restored Key typed
+			
+			ldx		TCSR_ROW
+			cmpx	TCSR_ANC_ROW
+			beq		2f
+			bra		3f
+2
+			jsr		char_out		; display the last typed character
+3
+			cmpa	#$0D			; Was [ENTER] pressed?
+			bne		2f				; no, move on
+
+			; [ENTER] pressed			
+			lda		TCSR_ANC_ROW
+			ldb		TCSR_ANC_COL
+			jsr		tcsr_pos_reg
+			ldb		TEXT_ATTRIB
+			stb		1,x
+
+			; move the anchor to the new cursor position
+			lda		TCSR_ROW
+			sta		TCSR_ANC_ROW
+			lda		TCSR_COL
+			sta		TCSR_ANC_COL
+2
 			; display the new cursor
-			jsr		_tcsr_pos		; fetch x from row/col
+			jsr		tcsr_pos		; fetch x from row/col
 			lda		#' '			; space character
 			ldb		TCSR_ATTRIB		; load the current attribute
 			std		0,x				; place the cursor onto the screen		
 
 			; end of main kernel loop
-			bra		main_kernel		; continue the main kernel loop
+			jmp		main_kernel		; continue the main kernel loop
 
 
 ; **** SUBROUTINES ***************************************************
@@ -204,18 +258,22 @@ clear_text_screen	; clear the text screen
 1			std		,x++
 			cmpx	#VIDEO_END
 			bls		1b	
-			puls	D,X
+			puls	D,X		
+			clr		TCSR_ROW
+			clr		TCSR_COL			
 			rts
 
 
 char_out	; Display character in the A register to the screen
 			; at the current cursor position and in the 
 			; current color.
-
 			pshs	D, X, Y
-			ldb		TEXT_ATTRIB
-			bsr		_tcsr_pos		; find X from Row and Col
 
+			; just return if A=null
+			tsta
+			beq		3f
+			ldb		TEXT_ATTRIB
+			bsr		tcsr_pos		; find X from Row and Col
 			cmpa	#$0a
 			beq		_cr
 			cmpa	#$0D
@@ -236,11 +294,13 @@ _cr
 			cmpa	GFX_FG_HGHT
 			bge		_scroll
 			inc		TCSR_ROW
+
 			bra		3f
 _backspace
 			lda		TCSR_COL
 			beq		3f
 			dec		TCSR_COL
+			;dec	EDT_BFR_CSR
 			bra		3f
 
 _scroll			
@@ -264,25 +324,6 @@ _scroll
 3			puls	D, X, Y
 			rts
 
-_tcsr_pos	; load into X according to TCSR_ROW & TCSR_COL
-			pshs	D
-			ldx		#VIDEO_START
-			lda		TCSR_ROW
-			lsla
-			ldb		GFX_FG_WDTH
-			incb
-			mul
-			leax	D,X
-			lda		TCSR_COL
-			lsla
-			leax	a,x
-			cmpx	#VIDEO_END
-			bls		1f
-			ldx		#VIDEO_END-1
-1
-			puls	D
-			rts
-
 text_out	; output the string pointed to by X using the current attribute
 			pshs	D,X
 1			lda		,X+		
@@ -292,9 +333,102 @@ text_out	; output the string pointed to by X using the current attribute
 2			puls	D,X
 			rts
 
-		
+
+tcsr_pos	; load into X according to TCSR_ROW & TCSR_COL
+
+			pshs	D				; save for later clean up
+			lda 	TCSR_ROW		; A: cursor row
+			ldb		TCSR_COL		; B: cursor column
+			jsr 	tcsr_pos_reg	; X: position within the video buffer
+			puls	D				; clean up the registers
+			rts						; return
 
 
+tcsr_pos_reg	; load into X according to text cursor position (A:ROW, B:COL)
+			pshs	D						; save A and B 
+				pshs	D					; again, save A and B
+					ldx		#VIDEO_START	; point X to the start of the video buffer
+					lsla					; account for the attribute byte
+					ldb		GFX_FG_WDTH		; load the max horizontal character position
+					incb					; correct for width
+					mul						; offset the horizontial position
+					leax	D,X				; within the video buffer
+				puls	D					; restore A and B
+				lslb						; correct vertical to account for height
+				leax	b,x					; offset into the video buffer
+				cmpx	#VIDEO_END			; was the video buffer exceeded
+				bls		1f					; branch out if not
+				ldx		#VIDEO_END-1		; point X to the very last cell as an error
+1			puls	D						; final register clean up
+			rts								; return
+
+starting_screen ; clear and display the starting screen condition
+		; load the default graphics mode
+			lda		#$02
+			sta		GFX_FLAGS
+		; set the text attribute default
+			lda		#$a2
+			sta		TEXT_ATTRIB	
+		; clear screen
+			jsr		clear_text_screen
+		; display the text prompt
+			ldx		#prompt_msg
+			jsr		text_out
+		; start the first anchor
+			lda		TCSR_ROW
+			sta		TCSR_ANC_ROW
+			lda		TCSR_COL
+			sta		TCSR_ANC_COL
+			clr		TCSR_ANC_ADR
+			clr		TCSR_ANC_ADR+1
+			rts
+
+execute_command	; parse and run the string that is currently in the hardware EDT_BUFFER register
+			lda		EDT_BUFFER
+			cmpa	#$20
+			beq		4f
+
+			lda		#$0a
+			jsr		char_out
+
+		; [L] = test load "test.hex"
+			lda		EDT_BUFFER
+			ora		#$20			; force lowercase
+			cmpa	#'l'
+			bne		1f
+			jsr 	test_load_hex
+
+		; clear the input buffer
+			lda		CHAR_Q_LEN
+			beq		4f
+			lda		CHAR_POP			
+			jsr		starting_screen
+			rts
+
+1		; Report a Syntax Error
+			ldx		#strz_syntax_error
+			jsr		text_out
+			lda		#':'
+			jsr		char_out
+			lda		#' '
+			jsr		char_out
+			lda		#$22			; "
+			jsr		char_out
+			ldx		#EDT_BUFFER
+			jsr		text_out
+			lda		#$22			; "
+			jsr		char_out
+			lda		#$0a
+			jsr		char_out
+			ldx		#prompt_ready
+			jsr		text_out
+			lda		#$0a
+			jsr		char_out
+4		; return from subroutine
+			rts
+
+strz_syntax_error
+			fcn		"? Syntax Error"
 
 
 

@@ -138,8 +138,18 @@
 1827                  FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
 1927                  FIO_END equ     $1927   ; end of file i/o hardware registers
                       
+                      ;  Keyboard Hardware Registers:
+1928                  KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
+1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       (Read Only)
+1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
+192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
+192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within the edit buffer      (Read)
+193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer          (Read)
+1A3C                  KEY_END equ     $1a3c   ; end of keyboard hardware registers
+                      
                       ;  Reserved Hardware:
-1928                  RESERVED_HDW    equ     $1928   ; Reserved 1747 bytes ($1928 - $1FFB)
+1A3D                  RESERVED_HDW    equ     $1a3d   ; Reserved 1470 bytes ($1A3D - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -183,14 +193,11 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                                               ; set up the initial graphics mode 
 200B  7F2005                                  clr             var_mode_index  ; start with index 0
-200E  8E20C3                                  ldx             #mode_data
+200E  8E20CD                                  ldx             #mode_data
 2011  B61800                                  lda             GFX_FLAGS
 2014  84F0                                    anda    #$f0
 2016  AA84                                    ora             ,x
 2018  B71800                                  sta             GFX_FLAGS
-                      
-                                              
-                      
                       
                                               ; fill the background buffer with incrementing values
 201B  8E0000                                  ldx             #0
@@ -279,7 +286,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20A0                  6
 20A0  F62005                                  ldb             var_mode_index
 20A3  7C2005                                  inc             var_mode_index
-20A6  8E20C3                                  ldx             #mode_data
+20A6  8E20CD                                  ldx             #mode_data
 20A9  A685                                    lda             b,x
 20AB  81FF                                    cmpa    #$ff
 20AD  270C                                    beq             5f
@@ -292,16 +299,22 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20BB  7F2005                                  clr             var_mode_index
 20BE  20E0                                    bra             6b
 20C0                  continue
-20C0  209D                                    bra             2b
+                                              ; WAS [ESCAPE] PRESSED
+20C0  B61928                                  lda             CHAR_Q_LEN
+20C3  279A                                    beq             2b
                       
-20C2  39                                      rts
+20C5  B61929                                  lda             CHAR_SCAN
+20C8  811B                                    cmpa    #$1b
+20CA  2693                                    bne             2b
+                      
+20CC  39              done            rts
                                       
                       ; ////////////////////////////////////////////////////
                       
                       ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       
-20C3  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-20CB  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+20CD  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+20D5  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-20D3  FF                                      fcb             $ff
+20DD  FF                                      fcb             $ff
