@@ -35,7 +35,8 @@ EXEC_VECTOR		fdb		reset			; execution vector
 TCSR_ROW		fcb		0				; current cursor row
 TCSR_COL		fcb		0				; current cursor column
 TCSR_ATTRIB		fcb		$10				; current cursor attribute
-TEXT_ATTRIB		fcv		$a2				; current text attribute
+TEXT_ATTRIB		fcb		$a2				; current text attribute
+TCSR_DECAY		fdb		$0000			; counter delay for the cursor
 
 
 			INCLUDE "mem_map.asm"
@@ -125,23 +126,35 @@ reset
 		; main KERNEL loop
 			ldb		#$10
 			stb		TCSR_ATTRIB
+			ldd		#0
+			std		TCSR_DECAY
 
 main_kernel
 			; rotate the cursor attributes
-			inc		TCSR_ATTRIB
+			ldd		TCSR_DECAY		; load the cursor delay
+			addd	#1				; increment it
+			std		TCSR_DECAY		; store it	
+			cmpd	#$200			; check if delay has expired
+			blt		1f				; skip past the color update
+			inc		TCSR_ATTRIB		; increment the color attribute
+			ldd		#0				; reset the cursor delay
+			std		TCSR_DECAY		; store the reset delay
+
+1			; display the cursor
 			jsr		_tcsr_pos		; fetch x from row/col
 			lda		#' '			; space character
 			ldb		TCSR_ATTRIB		; load the current attribute
 			std		0,x				; place the cursor onto the screen
+			
+			; check for a key in the queue
+			lda		CHAR_Q_LEN		; load the length of the key queue
+			beq		main_kernel		; loop if nothing is queued
 
-
-			lda		CHAR_Q_LEN
-			beq		main_kernel		 
 			; delete the old cursor
-			jsr		_tcsr_pos
-			lda		#' '
-			ldb		TEXT_ATTRIB
-			std		0,x
+			jsr		_tcsr_pos		; calculate X from row/col
+			lda		#' '			; load a blank space character
+			ldb		TEXT_ATTRIB		; load the current text attribute
+			std		0,x				; store the colored character at X (row/col)
 			
 			; display typed character
 			lda		CHAR_POP		; pop the last typed character			
@@ -151,13 +164,11 @@ main_kernel
 			jsr		_tcsr_pos		; fetch x from row/col
 			lda		#' '			; space character
 			ldb		TCSR_ATTRIB		; load the current attribute
-			std		0,x				; place the cursor onto the screen
-			
+			std		0,x				; place the cursor onto the screen		
 
-			bra		main_kernel
+			; end of main kernel loop
+			bra		main_kernel		; continue the main kernel loop
 
-
-done		bra		done
 
 ; **** SUBROUTINES ***************************************************
 
