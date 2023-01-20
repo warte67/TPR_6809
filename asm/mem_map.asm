@@ -130,12 +130,14 @@ FIO_END equ     $1927   ; end of file i/o hardware registers
 
 ;  Keyboard Hardware Registers:
 KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-KEY_TEMP1       equ     $1928   ; (Byte) temporary keyboard register
-KEY_TEMP2       equ     $1929   ; (Byte) secondary keyboard register
-KEY_END equ     $192a   ; end of keyboard hardware registers
+CHAR_Q_LEN      equ     $1928   ; (char) # of characters waitingin queue        (Read Only)
+CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
+CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
+XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+KEY_END equ     $193b   ; end of keyboard hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $192b   ; Reserved 1744 bytes ($192B - $1FFB)
+RESERVED_HDW    equ     $193c   ; Reserved 1727 bytes ($193C - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

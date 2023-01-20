@@ -48,7 +48,7 @@ public:
 
 	void SetSingleStep(bool step) { bSingleStep = step; }
 
-	bool IsMemDumping() { return bDebugMemDump; }
+	//bool IsMemDumping() { return bDebugMemDump; }
 
 	// button callbacks
 	void cbClearBreaks();
@@ -131,7 +131,7 @@ private:
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
 
-	bool bDebugMemDump = false;
+	//bool bDebugMemDump = false;
 };
 
 

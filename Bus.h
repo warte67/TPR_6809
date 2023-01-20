@@ -57,7 +57,7 @@ private:
     static void _OnQuit();                 // fires on exit -- reverses OnInitialize()
 
     std::vector<Device*> _devices;
-    int m_fps = 0;
+    int m_fps = 0;    
 
 public:
     Byte read(Word offset);
@@ -81,6 +81,7 @@ public:
     void run(); // main game loop
     static void CpuThread();
     bool bCpuEnabled = false;
+    // bool bDebugMemDumping = false;
 
 public:
     static std::string hex(Uint32 n, Uint8 d);

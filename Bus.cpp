@@ -406,15 +406,17 @@ void Bus::run()
                 }
                 case SDL_KEYDOWN:
                 {
-                    if (evnt.key.keysym.sym == SDLK_ESCAPE)
+                    if (evnt.key.keysym.sym == SDLK_PAUSE)  //SDLK_ESCAPE)
                     {
-                        if (!gfxdebug->bIsCursorVisible &&
-                            gfxdebug->nRegisterBeingEdited.reg == GfxDebug::EDIT_REGISTER::EDIT_NONE)
+                        s_bIsRunning = false;
+                        m_gfx->bIsDirty = true;
 
-                        {
-                            s_bIsRunning = false;
-                            m_gfx->bIsDirty = true;
-                        }
+                        //if (!gfxdebug->bIsCursorVisible &&
+                        //    gfxdebug->nRegisterBeingEdited.reg == GfxDebug::EDIT_REGISTER::EDIT_NONE)
+                        //{
+                        //    s_bIsRunning = false;
+                        //    m_gfx->bIsDirty = true;
+                        //}
                     }                    
                     break;
                 }

@@ -8,6 +8,10 @@
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__
 
+#include <map>
+#include <queue>
+#include "XK_KEYCODES.h"
+
 class Bus;
 class Memory;
 
@@ -36,10 +40,22 @@ public:
 	//virtual void OnRender() override;					// render the current frames texture
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()
 
+	XKey::XK TranslateSDLtoXKey(SDL_Scancode k);
+	XKey::XK AscToXKey(Byte asc);
+	char XKeyToAscii(XKey::XK xKey);
+	bool IsKeyDown(Byte xk);
+	Byte charScanQueue();
+	Byte charPopQueue();
+	int charQueueLen();
+	void Clear();
+
 private:
 	Bus* bus = nullptr;
 	Memory* memory = nullptr;
 
+	std::map<XKey::XK, int> keyMap;	
+	std::vector<std::tuple<XKey::XK, char, char>> xkToAsciiMap;
+	std::queue <Byte> charQueue;	// ascii character queue
 };
 
 #endif // __KEYBOARD_H__

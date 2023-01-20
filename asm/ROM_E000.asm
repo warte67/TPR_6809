@@ -91,7 +91,7 @@ prompt_msg3 fcn		"Copyright 2023 by Jay Faries"
 prompt_ready fcn	"OK"
 
 reset		
-			jsr		test_load_hex
+			;jsr		test_load_hex
 
 
 	; load the default graphics mode
@@ -126,8 +126,8 @@ reset
 
 	; simply flash a cursor
 			ldx		#VIDEO_START + 640
-			lda		#' '	;$8f
 1
+			lda		#' '	;$8f
 			; update the cursor
 			sta		0,x
 
@@ -142,17 +142,19 @@ reset
 2			leay	-1, y
 			bne		2b
 
+	; check for a key press
+			
+			lda		CHAR_Q_LEN	; if no keys waiting in queue
+			beq		1b			; continue looping
+
+	; handle key presses
+			lda		CHAR_POP	; pop the next key press from the queue
+			sta		$0020
+
+
 			bra		1b
 
 
-
-
-;2
-;			lda		,y+
-;			beq		3f
-;			sta		,x++
-;			bra		2b
-;3		
 
 done		bra		done
 

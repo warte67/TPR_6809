@@ -426,21 +426,6 @@ void GFX::OnEvent(SDL_Event *evnt)
 {
 	if (evnt->type == SDL_KEYDOWN)
 	{
-		//// TEMPORARY: TESTING (Toggle the backbuffer)
-		//if (evnt->key.keysym.sym == SDLK_SPACE)
-		//{
-		//	// flip the back buffer
-		//	if (m_enable_backbuffer)
-		//	{
-		//		// m_current_backbuffer = 1 - m_current_backbuffer;
-		//		
-		//		//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
-		//		Byte data = bus->read(GFX_FLAGS);
-		//		data ^= 0x08;
-		//		bus->write(GFX_FLAGS, data);
-		//		//printf("GFX::OnEvent() --- current backbuffer: %d\n", m_current_backbuffer);
-		//	}
-		//}
 		if (evnt->key.keysym.sym == SDLK_SPACE)
 		{
 			Byte data = bus->read(DBG_FLAGS);

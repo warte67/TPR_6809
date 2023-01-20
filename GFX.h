@@ -67,6 +67,7 @@ public:
     bool DebugEnabled() { return m_enable_debug; }
     void DebugEnabled(bool en) { m_enable_debug = en; }
 
+
 protected:
 
     void _onRender();   // render the GFX children (graphics modes)

@@ -330,7 +330,6 @@ std::string GfxDebug::hex(Uint32 n, Uint8 d)
 
 void GfxDebug::DumpMemory(int col, int row, Word addr)
 {
-	bDebugMemDump = true;
 	const bool use_debug_read = false;
 	int line = 0;
 	for (int ofs = addr; ofs < addr + 0x48; ofs += 8)
@@ -361,7 +360,6 @@ void GfxDebug::DumpMemory(int col, int row, Word addr)
 		}
 		line++;
 	}
-	bDebugMemDump = false;
 }
 
 void GfxDebug::DrawCpu(int x, int y)

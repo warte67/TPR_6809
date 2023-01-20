@@ -165,12 +165,14 @@
                       
                       ;  Keyboard Hardware Registers:
 1928                  KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-1928                  KEY_TEMP1       equ     $1928   ; (Byte) temporary keyboard register
-1929                  KEY_TEMP2       equ     $1929   ; (Byte) secondary keyboard register
-192A                  KEY_END equ     $192a   ; end of keyboard hardware registers
+1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waitingin queue        (Read Only)
+1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
+192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
+192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+193B                  KEY_END equ     $193b   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-192B                  RESERVED_HDW    equ     $192b   ; Reserved 1744 bytes ($192B - $1FFB)
+193C                  RESERVED_HDW    equ     $193c   ; Reserved 1727 bytes ($193C - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -246,82 +248,84 @@ E058  436F707972696768742032303233206279204A61792046617269657300 prompt_msg3 fcn
 E075  4F4B00          prompt_ready fcn        "OK"
                       
 E078                  reset           
-E078  BDE0DA                                  jsr             test_load_hex
+                                              ;jsr            test_load_hex
                       
                       
                               ; load the default graphics mode
-E07B  8602                                    lda             #$02
-E07D  B71800                                  sta             GFX_FLAGS
+E078  8602                                    lda             #$02
+E07A  B71800                                  sta             GFX_FLAGS
                       
                               ; clear screen
-E080  8E0400                                  ldx             #VIDEO_START
-E083  8620                                    lda             #' '
-E085  C6A2                                    ldb             #$a2
-E087                  1               
-E087  ED81                                    std             ,x++
-E089  8C17FF                                  cmpx    #VIDEO_END
-E08C  23F9                                    bls             1b      
+E07D  8E0400                                  ldx             #VIDEO_START
+E080  8620                                    lda             #' '
+E082  C6A2                                    ldb             #$a2
+E084                  1               
+E084  ED81                                    std             ,x++
+E086  8C17FF                                  cmpx    #VIDEO_END
+E089  23F9                                    bls             1b      
                       
                               ; first prompt line
-E08E  108EE033                                ldy             #prompt_msg1
-E092  8E0400                                  ldx             #VIDEO_START
-E095  BDE0D1                                  jsr             prt_line
+E08B  108EE033                                ldy             #prompt_msg1
+E08F  8E0400                                  ldx             #VIDEO_START
+E092  BDE0D9                                  jsr             prt_line
                       
-E098  108EE045                                ldy             #prompt_msg2
-E09C  8E0480                                  ldx             #VIDEO_START + 128
-E09F  BDE0D1                                  jsr             prt_line
+E095  108EE045                                ldy             #prompt_msg2
+E099  8E0480                                  ldx             #VIDEO_START + 128
+E09C  BDE0D9                                  jsr             prt_line
                       
-E0A2  108EE058                                ldy             #prompt_msg3
-E0A6  8E0500                                  ldx             #VIDEO_START + 256
-E0A9  BDE0D1                                  jsr             prt_line
+E09F  108EE058                                ldy             #prompt_msg3
+E0A3  8E0500                                  ldx             #VIDEO_START + 256
+E0A6  BDE0D9                                  jsr             prt_line
                       
-E0AC  108EE075                                ldy             #prompt_ready
-E0B0  8E0600                                  ldx             #VIDEO_START + 512
-E0B3  BDE0D1                                  jsr             prt_line
+E0A9  108EE075                                ldy             #prompt_ready
+E0AD  8E0600                                  ldx             #VIDEO_START + 512
+E0B0  BDE0D9                                  jsr             prt_line
                       
                               ; simply flash a cursor
-E0B6  8E0680                                  ldx             #VIDEO_START + 640
-E0B9  8620                                    lda             #' '    ;$8f
-E0BB                  1
+E0B3  8E0680                                  ldx             #VIDEO_START + 640
+E0B6                  1
+E0B6  8620                                    lda             #' '    ;$8f
                                               ; update the cursor
-E0BB  A784                                    sta             0,x
+E0B8  A784                                    sta             0,x
                       
                                               ; increment bg cursor color with black fg
-E0BD  E601                                    ldb             1,x
-E0BF  CB01                                    addb    #$01            ;$10
-E0C1  C40F                                    andb    #$0F            ;$f0
-E0C3  E701                                    stb             1,x
+E0BA  E601                                    ldb             1,x
+E0BC  CB01                                    addb    #$01            ;$10
+E0BE  C40F                                    andb    #$0F            ;$f0
+E0C0  E701                                    stb             1,x
                       
                                               ; delay
-E0C5  108E4000                                ldy             #$4000
-E0C9  313F            2                       leay    -1, y
-E0CB  26FC                                    bne             2b
+E0C2  108E4000                                ldy             #$4000
+E0C6  313F            2                       leay    -1, y
+E0C8  26FC                                    bne             2b
                       
-E0CD  20EC                                    bra             1b
+                              ; check for a key press
+                                              
+E0CA  B61928                                  lda             CHAR_Q_LEN      ; if no keys waiting in queue
+E0CD  27E7                                    beq             1b                      ; continue looping
+                      
+                              ; handle key presses
+E0CF  B6192A                                  lda             CHAR_POP        ; pop the next key press from the queue
+E0D2  B70020                                  sta             $0020
+                      
+                      
+E0D5  20DF                                    bra             1b
                       
                       
                       
-                      
-                      ;2
-                      ;                       lda             ,y+
-                      ;                       beq             3f
-                      ;                       sta             ,x++
-                      ;                       bra             2b
-                      ;3              
-                      
-E0CF  20FE            done            bra             done
+E0D7  20FE            done            bra             done
                       
                       
                       ; ** Subroutines ****************************
                       
-E0D1                  prt_line        
-E0D1                  2
-E0D1  A6A0                                    lda             ,y+
-E0D3  2704                                    beq             3f
-E0D5  A781                                    sta             ,x++
-E0D7  20F8                                    bra             2b
-E0D9                  3               
-E0D9  39                                      rts
+E0D9                  prt_line        
+E0D9                  2
+E0D9  A6A0                                    lda             ,y+
+E0DB  2704                                    beq             3f
+E0DD  A781                                    sta             ,x++
+E0DF  20F8                                    bra             2b
+E0E1                  3               
+E0E1  39                                      rts
                                       
                       
                       
@@ -330,23 +334,23 @@ E0D9  39                                      rts
                       
                       ; FILE SYSTEM TESTS:
                       
-E0DA                  test_load_hex
+E0E2                  test_load_hex
                                               ; load "test.hex"
-E0DA  8EE024                                  ldx             #test_file              ; fetch the filename
-E0DD  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
-E0E1                  1
-E0E1  A680                                    lda             ,x+                             ; copy a character from the source filename
-E0E3  A7A0                                    sta             ,y+                             ; store it in the hardware register
-E0E5  26FA                                    bne             1b                              ; keep looping until null-termination
+E0E2  8EE024                                  ldx             #test_file              ; fetch the filename
+E0E5  108E1827                                ldy             #FIO_FILEPATH   ; fetch the filename hardware register storage
+E0E9                  1
+E0E9  A680                                    lda             ,x+                             ; copy a character from the source filename
+E0EB  A7A0                                    sta             ,y+                             ; store it in the hardware register
+E0ED  26FA                                    bne             1b                              ; keep looping until null-termination
                       
-E0E7  8607                                    lda             #$07                    ; command: LoadHex
-E0E9  B71820                                  sta             FIO_COMMAND             ; executre the command
-E0EC  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
-E0EF  8180                                    cmpa    #$80                    ; test for bit: file not found?
-E0F1  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
-E0F3  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
-E0F7                  1
-E0F7  39                                      rts
+E0EF  8607                                    lda             #$07                    ; command: LoadHex
+E0F1  B71820                                  sta             FIO_COMMAND             ; executre the command
+E0F4  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E0F7  8180                                    cmpa    #$80                    ; test for bit: file not found?
+E0F9  2704                                    beq             1f                              ; dont call the sub if it wasnt loaded
+E0FB  AD9F0010                                jsr             [$0010]                 ; call the loaded subroutine
+E0FF                  1
+E0FF  39                                      rts
                       
                       
                       
