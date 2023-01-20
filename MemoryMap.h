@@ -180,8 +180,14 @@ enum MEMMAP
   FIO_FILEPATH = 0x1827,        // (Char Array 256) file path and argument buffer
        FIO_END = 0x1927,        // end of file i/o hardware registers
 
+//  Keyboard Hardware Registers:
+     KEY_BEGIN = 0x1928,        // start of keyboard hardware registers
+     KEY_TEMP1 = 0x1928,        // (Byte) temporary keyboard register
+     KEY_TEMP2 = 0x1929,        // (Byte) secondary keyboard register
+       KEY_END = 0x192a,        // end of keyboard hardware registers
+
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1928,        // Reserved 1747 bytes ($1928 - $1FFB)
+  RESERVED_HDW = 0x192b,        // Reserved 1744 bytes ($192B - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -208,7 +214,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
 
 
 

@@ -128,8 +128,14 @@ FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
 FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
 FIO_END equ     $1927   ; end of file i/o hardware registers
 
+;  Keyboard Hardware Registers:
+KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
+KEY_TEMP1       equ     $1928   ; (Byte) temporary keyboard register
+KEY_TEMP2       equ     $1929   ; (Byte) secondary keyboard register
+KEY_END equ     $192a   ; end of keyboard hardware registers
+
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1928   ; Reserved 1747 bytes ($1928 - $1FFB)
+RESERVED_HDW    equ     $192b   ; Reserved 1744 bytes ($192B - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

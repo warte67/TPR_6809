@@ -179,6 +179,7 @@
     <ClCompile Include="GfxRaw.cpp" />
     <ClCompile Include="GfxTile16.cpp" />
     <ClCompile Include="GfxTile32.cpp" />
+    <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="GfxRaw.h" />
     <ClInclude Include="GfxTile16.h" />
     <ClInclude Include="GfxTile32.h" />
+    <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />

@@ -9,6 +9,7 @@
 #include "GFX.h"
 #include "MemoryMap.h"      // move this to the Memory.h when available
 #include "Memory.h"
+#include "Keyboard.h"
 #include "FileIO.h"
 #include "C6809.h"
 #include "Bus.h"
@@ -88,11 +89,11 @@ Bus::Bus()
     // END OF GRAPHICS DEVICE
 
 
-
-
     // attach a FileIO device:
     m_file = FileIO::Assign_FileIO(memmap, mem_offset);
 
+    // attach a keyboard device:
+    m_keyboard = Keyboard::Assign_Keyboard(memmap, mem_offset);
 
     // add more hardware devices here:
     // ...
