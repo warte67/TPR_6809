@@ -19,10 +19,6 @@
 //    CHAR_Q_LEN = 0x1928,        // (char) # of characters waitingin queue     (Read Only)
 //     CHAR_SCAN = 0x1929,        // read next character in queue      (not popped when read)
 //      CHAR_POP = 0x192a,        // (char) next character waiting in queue (popped when read)
-//   EDT_BFR_MAX = 0x192b,        // (char) current max buffer length  < 80     (Read Only)
-//   EDT_BFR_LEN = 0x192c,        // (Byte) current edit buffer length          (Read Only)
-//   EDT_BFR_CSR = 0x192d,        // (Byte) cursor position in the edit buffer  (Read Only)
-//    EDT_BUFFER = 0x192e,        // (80 Bytes) line editing buffer             (Read Only)
 //   XKEY_BUFFER = 0x197e,        // (128 bits) 16 bytes for XK_KEY data buffer (Read Only)
 //       KEY_END = 0x198e,        // end of keyboard hardware registers
 
