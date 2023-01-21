@@ -25,7 +25,6 @@
 //    EDT_BUFFER = 0x193c,        // (256 Bytes) line editing character buffer    (Read/Write)
 //       KEY_END = 0x198e,        // end of keyboard hardware registers
 
-
 // memory-map callback function
 Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 {
@@ -404,6 +403,10 @@ void Keyboard::OnInitialize()
 
 void Keyboard::OnEvent(SDL_Event* evnt)
 {
+	SDL_Keymod km = SDL_GetModState();
+	if ((km & KMOD_ALT) || (km & KMOD_CTRL) || bus->m_gfx->DebugEnabled())
+		return;
+
 	switch (evnt->type)
 	{
 		case SDL_KEYDOWN:

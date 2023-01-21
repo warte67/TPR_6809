@@ -132,7 +132,7 @@ private:
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
 
-	std::list<Word> asmHistory;
+	//std::list<Word> asmHistory;
 };
 
 

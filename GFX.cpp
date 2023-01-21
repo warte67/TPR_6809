@@ -16,6 +16,7 @@
 #include "GfxTile32.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
+#include "Keyboard.h"
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
 #include "GfxIndexed.h"
@@ -460,6 +461,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 				//if (data & 0x80)
 				//	gfx_debug->SetSingleStep(true);
 				bus->write(DBG_FLAGS, data);
+				// clear the keyboard buffer
+				bus->m_keyboard->Clear();
 			}
 
 			// left 
@@ -489,25 +492,6 @@ void GFX::OnEvent(SDL_Event *evnt)
 					bus->write(GFX_AUX, data);
 				}
 			}
-			// up (graphics mode index)
-			//if (evnt->key.keysym.sym == SDLK_UP)
-			//{
-			//	m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
-			//	if (m_gmode_index<7) 
-			//		m_gmode_index++;
-			//	Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
-			//	bus->write(GFX_FLAGS, data);
-			//}
-			// down (graphics mode index)
-			//if (evnt->key.keysym.sym == SDLK_DOWN)
-			//{
-			//	m_gmode_index = bus->read(GFX_FLAGS) & 0x07;
-			//	if (m_gmode_index > 0)
-			//		m_gmode_index--;
-			//	Byte data = (bus->read(GFX_FLAGS) & 0xf8) | m_gmode_index;
-			//	bus->write(GFX_FLAGS, data);
-			//}
-
 			// [V] VSYNC toggle (GFX_FLAGS bit 6)
 			if (evnt->key.keysym.sym == SDLK_v)
 			{

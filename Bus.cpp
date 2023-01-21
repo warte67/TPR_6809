@@ -150,6 +150,17 @@ Bus::Bus()
     //    printf("$%04X $%02X\n", t, read(t));
     //// ****** TESTING ***************************
 
+    if (OUTPUT_MEMORY_MAP == true)
+    {
+        printf("Execution Terminated: OUTPUT_MEMORY_MAP (in types.h) is set to true.\n");
+        if (MEMORY_MAP_CPP)
+            printf("copy/paste above enum{} to replace it in MemoryMap.h\n");
+        else
+            printf("copy/paste equ's above from SYSTEM_VARS through BIOS_ROM to replace them in mem_map.asm\n");
+        printf("Set OUTPUT_MEMORY_MAP (in types.h) back to false when done\n");
+        this->IsRunning(false);
+    }
+
     m_cpu->reset();
     //bCpuEnabled = true;
 }
