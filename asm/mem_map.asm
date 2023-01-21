@@ -2,6 +2,7 @@
 ;  * Allocated 64k Memory Mapped System Symbols *
 ;  **********************************************
 
+
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
 
@@ -121,6 +122,7 @@ FIO_COMMAND     equ     $1820   ; (Byte) OnWrite - command to execute
                                 ;      $14 = Seek Start
                                 ;      $15 = Seek Current
                                 ;      $16 = Seek End
+                                ;      $17 = SYSTEM: Shutdown
 FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
 FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
 FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
@@ -134,8 +136,8 @@ CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       
 CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
 CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
 XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within the edit buffer      (Read)
-EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer          (Read)
+EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within edit buffer    (Read/Write)
+EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer    (Read/Write)
 KEY_END equ     $1a3c   ; end of keyboard hardware registers
 
 ;  Reserved Hardware:

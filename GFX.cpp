@@ -39,11 +39,6 @@ int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
 Uint8 GFX::m_palette_index = 0;
 
 
-
-
-
-
-
 Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GFX::OnCallback()\n");
@@ -304,6 +299,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_BEGIN", "start of graphics hardware registers" }); offset += 0;
+
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bit 7: VSYNC" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6: backbuffer enable" }); offset += 0;
@@ -327,6 +323,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 4: reserved" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 3: reserved" }); offset += 0;
 	memmap->push({ offset, "", ">    bit 0-2: monitor display index (0-7)" }); offset += 0;
+
 	memmap->push({ offset, "GFX_TIMING_W", "(Word) horizontal timing" }); offset += 2;
 	memmap->push({ offset, "GFX_TIMING_H", "(Word) vertical timing" }); offset += 2;
 	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
@@ -346,9 +343,6 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses" }); offset += 2;
 	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
-
-
-
 
 	//memmap->push({ offset, "", "" }); offset -= 1;
 	//memmap->push({ offset, "GFX_END", "end of the GFX Hardware Registers" }); offset += 1;

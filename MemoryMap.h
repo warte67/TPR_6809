@@ -173,6 +173,7 @@ enum MEMMAP
                                 //      $14 = Seek Start
                                 //      $15 = Seek Current
                                 //      $16 = Seek End
+                                //      $17 = SYSTEM: Shutdown
     FIO_HANDLE = 0x1821,        // (Byte) file handle or ZERO
     FIO_BFROFS = 0x1822,        // (Word) start of I/O buffer
     FIO_BFRLEN = 0x1823,        // (Word) length of I/O buffer
@@ -218,6 +219,9 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
+
+
 
 
 #endif // __MEMORY_MAP__

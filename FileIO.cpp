@@ -109,6 +109,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 					case 0x14:	ptrFile->_cmd_seek_start();				break;
 					case 0x15:	ptrFile->_cmd_seek_current();			break;
 					case 0x16:	ptrFile->_cmd_seek_end();				break;
+					case 0x17:	bus->IsRunning(false);					break;
 
 					default:
 						break;
@@ -203,6 +204,7 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    $14 = Seek Start                          " }); offset += 0;
 	memmap->push({ offset, "", ">    $15 = Seek Current                        " }); offset += 0;
 	memmap->push({ offset, "", ">    $16 = Seek End                            " }); offset += 0;
+	memmap->push({ offset, "", ">    $17 = SYSTEM: Shutdown                    " }); offset += 0;
 
 	memmap->push({ offset, "FIO_HANDLE", "(Byte) file handle or ZERO          " }); offset += 1;
 	memmap->push({ offset, "FIO_BFROFS", "(Word) start of I/O buffer          " }); offset += 1;

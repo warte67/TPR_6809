@@ -243,7 +243,11 @@ test_load_hex
 			lda		FIO_ERR_FLAGS	; load the errors flag
 			cmpa	#$80			; test for bit: file not found?
 			beq		1f				; dont call the sub if it wasnt loaded
-			jsr		[$0010]			; call the loaded subroutine
+
+
+			;jsr		[$0010]			; call the loaded subroutine
+
+
 1
 			rts
 
@@ -383,10 +387,32 @@ starting_screen ; clear and display the starting screen condition
 			clr		TCSR_ANC_ADR+1
 			rts
 
+ok_prompt ; display the ready prompt
+		; load the default graphics mode
+			lda		#$02
+			sta		GFX_FLAGS
+		; set the text attribute default
+			lda		#$a2
+			sta		TEXT_ATTRIB	
+		; clear screen
+			jsr		clear_text_screen
+		; display the text prompt
+			ldx		#prompt_ready
+			jsr		text_out
+		; start the first anchor
+			lda		TCSR_ROW
+			sta		TCSR_ANC_ROW
+			lda		TCSR_COL
+			sta		TCSR_ANC_COL
+			clr		TCSR_ANC_ADR
+			clr		TCSR_ANC_ADR+1
+			rts
+
+
 execute_command	; parse and run the string that is currently in the hardware EDT_BUFFER register
 			lda		EDT_BUFFER
 			cmpa	#$20
-			beq		4f
+			beq		1000f
 
 			lda		#$0a
 			jsr		char_out
@@ -395,20 +421,53 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			jsr		lookup_cmd
 
 		; [L] = test load "test.hex"
-			lda		EDT_BUFFER
-			ora		#$20			; force lowercase
-			cmpa	#'l'
-			bne		1f
-			jsr 	test_load_hex
+			cmpa	#0
+			beq		999f				; do syntax error
+			cmpa	#1				
+			beq		1f				; do "cls"
+			cmpa	#2				
+			beq		2f				; do "load"
+			cmpa	#3
+			beq		3f				; do "exec"
+			cmpa	#4
+			beq		4f				; do "reset"
+			cmpa	#5
+			beq		5f				; do "exit"
+			bra		999f				; syntax error
 
-		; clear the input buffer
-			lda		CHAR_Q_LEN
-			beq		4f
-			lda		CHAR_POP			
-			jsr		starting_screen
+1 ; cls
+			lda		#$a2
+			sta		TEXT_ATTRIB	
+		; clear screen
+			jsr		clear_text_screen
+			jsr		ok_prompt
+			rts		
+
+2 ; load
+			jsr 	test_load_hex			
+			lda		#$02			; load the default graphics mode
+			bsr		1b
 			rts
 
-1		; Report a Syntax Error
+3 ; exec			
+			lda		FIO_ERR_FLAGS	; load the errors flag
+			cmpa	#$80			; test for bit: file not found?
+			beq		31f				; dont call the sub if it wasnt loaded
+			jsr		[$0010]			; call the loaded subroutine
+31 ; skip exec
+			jsr		ok_prompt		
+			rts
+
+4 ; reset
+			jmp		reset
+
+5 ; exit
+			lda		#$17			; $17 = SYSTEM: Shutdown
+			sta		FIO_COMMAND		; send the command 
+			rts
+
+
+999		; Report a Syntax Error
 			ldx		#strz_syntax_error
 			jsr		text_out
 			lda		#':'
@@ -427,35 +486,60 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			jsr		text_out
 			lda		#$0a
 			jsr		char_out
-4		; return from subroutine
+1000 ; return from subroutine
 			rts
 
 lookup_cmd	; return in A index of the command
-			; or a = 0 if command not found
-			pshs	A				; save a spot on the stack for a local variable
-			clr		0,S				
-
-			ldx		#command_LUT
-			ldy		#EDT_BUFFER
-			
-8	; return the index
-			puls	A
-			rts
-
-9	; command not found in list
-			puls	A				; fix the stack
-			clra			
-			rts
+			; or A = 0 if command not found
+			pshs 	B, X, Y
+			lda		#1				; RET = 1
+			pshs	A				; push local RET onto the stack
+			clra					; A = Working Accumilator			
+			clrb					; B = EDT_BUFFER[B] index
+			ldx		#EDT_BUFFER		; X = EDT_BUFFER[0]
+			ldy		#command_LUT	; Y points to the position within the lookup table
+1 ; loop:					
+			lda		B, X			; load A from EDT_BUFFER[X]	
+			cmpa	#$ff			; compare A with 0xFF
+			beq		3f				; branch if EQUAL to failure
+			cmpa	#$00			; compare A with NULL-TERMINATION
+			beq		4f				; branch if EQUAL to success
+			ora		#$20			; force lower case
+			cmpa	,Y+				; compare A with command_LUT[Y]
+			bne		2f				; branch if NOT equal to next_token
+			incb					; increment index in EDT_BUFFER[B]
+			;leay	1,Y				; increment Y
+			bra		1b				; branch back to loop    	
+2 ; next_token:
+			inc		0,S				; increment RET
+			clrb					; clear EDT_BUFFER[B] index
+			; move Y to the beginning of the next label
+5 ; lp_1:
+			lda		,Y+				; load a with the current character in the LUT
+			cmpa	#$ff			; if were at the end of the LUT
+			beq		3f				; branch to failure
+			cmpa	#$00			; end of a token
+			bne		5b				; keep searching if not
+			;lda		,Y+				; increment to the start of next token
+			bra		1b				; branch back to loop    
+3 ; failure:
+			clr		0,S				; RET = 0
+4 ; success:
+			puls	A				; recover local RET
+			puls    B, X, Y
+			rts						; return RET			
 
 
 strz_syntax_error
 			fcn		"? Syntax Error"
 command_LUT 
-			fcn		"cls"
-			fcn		"load"
-			fcn		"exec"
-			fcn		"exit"
+			fcn		"cls"			; 1
+			fcn		"load"			; 2
+			fcn		"exec"			; 3
+			fcn		"reset"			; 4
+			fcn		"exit"			; 5
 			fcb		0xFF
+
 
 
 

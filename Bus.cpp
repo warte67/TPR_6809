@@ -82,7 +82,7 @@ Bus::Bus()
     _devices.push_back(m_gfx);
     m_memory->ReassignReg(reg->Base(), m_gfx, reg->Name(), reg->Size(), reg->callback);
     delete temp;
-    // close the graphics memory map
+    // close the graphics device in the memory map
     memmap->push({ (Word)mem_offset, "", "" }); 
     memmap->push({ (Word)mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
     memmap->push({ (Word)mem_offset, "", "" });
