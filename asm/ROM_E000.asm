@@ -54,7 +54,9 @@ SECTION.CODE
             ;* Power On Initialization            
 ROM_ENTRY   
 			LDU		#U_STK_TOP		; top of user stack	
-			LDS     #S_STK_TOP		; top of stack space            
+			LDS     #S_STK_TOP		; top of stack space   
+			LDX		#reset
+			STX		EXEC_VECTOR        
             JMP     [SOFT_RESET]      
 
             
@@ -388,6 +390,13 @@ starting_screen ; clear and display the starting screen condition
 			rts
 
 ok_prompt ; display the ready prompt
+			ldx		#prompt_ready
+			jsr		text_out
+			lda		#$0A
+			jsr		char_out
+			rts
+
+text_screen_reset
 		; load the default graphics mode
 			lda		#$02
 			sta		GFX_FLAGS
@@ -396,9 +405,6 @@ ok_prompt ; display the ready prompt
 			sta		TEXT_ATTRIB	
 		; clear screen
 			jsr		clear_text_screen
-		; display the text prompt
-			ldx		#prompt_ready
-			jsr		text_out
 		; start the first anchor
 			lda		TCSR_ROW
 			sta		TCSR_ANC_ROW
@@ -412,7 +418,7 @@ ok_prompt ; display the ready prompt
 execute_command	; parse and run the string that is currently in the hardware EDT_BUFFER register
 			lda		EDT_BUFFER
 			cmpa	#$20
-			beq		1000f
+			lbeq	1000f
 
 			lda		#$0a
 			jsr		char_out
@@ -446,20 +452,36 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 2 ; load
 			jsr 	test_load_hex			
 			lda		#$02			; load the default graphics mode
-			bsr		1b
+			jsr		ok_prompt
 			rts
 
 3 ; exec			
 			lda		FIO_ERR_FLAGS	; load the errors flag
-			cmpa	#$80			; test for bit: file not found?
-			beq		31f				; dont call the sub if it wasnt loaded
-			jsr		[$0010]			; call the loaded subroutine
-31 ; skip exec
+			anda	#$80			; test for bit: file not found?		
+			tsta	
+			bne		31f				; dont call the sub if it wasnt loaded
+			ldx		EXEC_VECTOR		; whats in the exec vector?
+			cmpx	#reset			; if its set to default
+			beq		31f				; then skip to OK prompt
+			jsr		[EXEC_VECTOR]	; call the loaded subroutine
+
+			jsr		text_screen_reset
 			jsr		ok_prompt		
+			rts
+31 ; skip exec
+			jsr		ok_prompt
+;			ldx		#prompt_ready
+;			jsr		text_out
+;			lda		#$0A
+;			jsr		char_out
 			rts
 
 4 ; reset
-			jmp		reset
+			lda		#$00			; $00 = Reset/Null
+			sta		FIO_COMMAND		; send the command
+			rts
+
+			;jmp		reset
 
 5 ; exit
 			lda		#$17			; $17 = SYSTEM: Shutdown

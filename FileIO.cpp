@@ -9,6 +9,7 @@
 #include "types.h"
 #include "Bus.h"
 #include "Memory.h"
+#include "C6809.h"
 #include "FileIO.h"
 
 //     FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
@@ -352,6 +353,7 @@ void FileIO::load_hex(const char* filename)
 void FileIO::_cmd_reset()
 {
 	printf("FileIO::_cmd_reset()\n");
+	bus->m_cpu->reset();
 }
 
 // $01 = Open/Create Binary File for Reading
