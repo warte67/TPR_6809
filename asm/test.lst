@@ -12,6 +12,7 @@
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
                       
+                      
                       ;  Zero-Page Kernal Variables:
 0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
                       
@@ -131,6 +132,7 @@
                                                       ;      $14 = Seek Start
                                                       ;      $15 = Seek Current
                                                       ;      $16 = Seek End
+                                                      ;      $17 = SYSTEM: Shutdown
 1821                  FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
 1822                  FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
 1823                  FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
@@ -144,8 +146,8 @@
 1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
 192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
 192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within the edit buffer      (Read)
-193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer          (Read)
+193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within edit buffer    (Read/Write)
+193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer    (Read/Write)
 1A3C                  KEY_END equ     $1a3c   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
@@ -303,7 +305,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20C0  B61928                                  lda             CHAR_Q_LEN
 20C3  279A                                    beq             2b
                       
-20C5  B61929                                  lda             CHAR_SCAN
+20C5  B6192A                                  lda             CHAR_POP
 20C8  811B                                    cmpa    #$1b            ; [ESCAPE]
 20CA  2693                                    bne             2b
                       

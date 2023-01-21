@@ -144,7 +144,7 @@ continue
 			lda		CHAR_Q_LEN
 			beq		2b
 
-			lda		CHAR_SCAN
+			lda		CHAR_POP
 			cmpa	#$1b		; [ESCAPE]
 			bne		2b
 

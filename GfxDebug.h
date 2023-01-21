@@ -15,6 +15,7 @@ class GfxMode;
 class GfxDebug : public GfxMode
 {
 	friend class Bus;
+	friend class GFX;
 
 public:
 	GfxDebug();
@@ -122,17 +123,20 @@ private:
 	std::vector <Word> mem_bank = { 0x0000, 0x0400, 0x1800 };
 	std::vector <Word> sDisplayedAsm;
 	std::map<Word, bool> mapBreakpoints;
+	std::list<Word> asmHistory;		// track last several asm addresses
 
 	int csr_x = 0;
 	int csr_y = 0;
 	int csr_at = CSR_AT::CSR_AT_NONE;
 	char mouse_wheel = 0;
-	int topOffset = -25;
 	bool bSingleStep = DEBUG_SINGLE_STEP;	// false;
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
 
-	//std::list<Word> asmHistory;
+	Word mousewheel_offset = 0;
+	bool bMouseWheelActive = false;
+
+	
 };
 
 

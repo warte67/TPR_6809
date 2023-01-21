@@ -176,6 +176,7 @@ void GfxDebug::OnEvent(SDL_Event* evnt)
 			bSingleStep = true;
 			bIsStepPaused = false;
 			nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+			bMouseWheelActive = false;
 		}
 
 	}
@@ -244,7 +245,6 @@ void GfxDebug::OnUpdate(float fElapsedTime)
 {
 	//printf("GfxDebug::OnUpdate()\n"); 
 	if (!gfx->DebugEnabled())	return;
-
 
 	const float delay = 1.0f / 30.0f;
 	static float delayAcc = fElapsedTime;
@@ -425,44 +425,142 @@ void GfxDebug::DrawCpu(int x, int y)
 
 void GfxDebug::DrawCode(int col, int row)
 {
-	int line = 0;
-	Word top = cpu->getPC() + topOffset;
 	std::string code = "";
+	int line = 0;
+	Word next = 0;
 	sDisplayedAsm.clear();
-	while (row + line < 30)
+
+	if (bMouseWheelActive)
 	{
-		bool atBreak = false;
-		if (top < cpu->getPC())
+		Word cpu_PC = cpu->getPC();
+		Word offset = cpu_PC + mousewheel_offset;
+		while (line < 24)
 		{
-			if (mapBreakpoints[top])	atBreak = true;
-			sDisplayedAsm.push_back(top);
-			code = cpu->disasm(top, top);
-			if (atBreak)
-				OutText(col, row + line++, code, 160, 32, 32);
-			else
-				OutText(col, row + line++, code, 160, 160, 128);
+			if (offset < cpu_PC)
+			{
+				bool atBreak = false;
+				if (mapBreakpoints[offset])	atBreak = true;
+				sDisplayedAsm.push_back(offset);
+				code = cpu->disasm(offset, offset);
+				if (atBreak)
+					OutText(col, row + line, code, 208, 32, 32);
+				else
+					OutText(col, row + line, code, 96, 128, 32);
+				line++;
+			}
+			if (offset == cpu_PC)
+			{
+				bool atBreak = false;
+				if (mapBreakpoints[offset])	atBreak = true;
+				sDisplayedAsm.push_back(offset);
+				code = cpu->disasm(offset, offset);
+				if (atBreak)
+					OutText(col, row + line, code, 255, 208, 128);
+				else
+					OutText(col, row + line, code, 255, 255, 0);
+				line++;
+			}
+			if (offset > cpu_PC)
+			{
+				bool atBreak = false;
+				if (mapBreakpoints[offset])	atBreak = true;
+				sDisplayedAsm.push_back(offset);
+				code = cpu->disasm(offset, offset);
+				if (atBreak)
+					OutText(col, row + line, code, 128, 64, 32);
+				else
+					OutText(col, row + line, code, 128, 192, 64);
+				line++;
+			}
+
 		}
-		else if (top == cpu->getPC())
+		
+	}
+	else
+	{
+		// draw the last several lines
+		for (auto& a : asmHistory)
 		{
-			if (mapBreakpoints[top])	atBreak = true;
-			sDisplayedAsm.push_back(top);
-			code = cpu->disasm(top, top);
-			if (atBreak)
-				OutText(col, row + line++, code, 255, 96, 96);
-			else
-				OutText(col, row + line++, code, 255, 255, 255);
+			if (a != cpu->getPC())
+			{
+				bool atBreak = false;
+				if (mapBreakpoints[a])	atBreak = true;
+				sDisplayedAsm.push_back(a);
+				code = cpu->disasm(a, next);
+				if (atBreak)
+					OutText(col, row + line++, code, 208, 32, 32);
+				else
+					OutText(col, row + line++, code, 128, 128, 128);
+			}
 		}
+		// draw the current line
+		sDisplayedAsm.push_back(cpu->getPC());
+		code = cpu->disasm(cpu->getPC(), next);
+		if (mapBreakpoints[cpu->getPC()])
+			OutText(col, row + line++, code, 255, 96, 32);
 		else
+			OutText(col, row + line++, code, 255, 255, 255);
+		// create a history of addresses to display in the future
+		static Word last = cpu->getPC();
+		if (last != cpu->getPC())
 		{
-			if (mapBreakpoints[top])	atBreak = true;
-			sDisplayedAsm.push_back(top);
-			code = cpu->disasm(top, top);
+			last = cpu->getPC();
+			asmHistory.push_back(cpu->getPC());
+			while (asmHistory.size() > 12)
+				asmHistory.pop_front();
+		}
+		// draw the next several future lines
+		while (line < 24)
+		{
+			bool atBreak = false;
+			if (mapBreakpoints[next])	atBreak = true;
+			sDisplayedAsm.push_back(next);
+			code = cpu->disasm(next, next);
 			if (atBreak)
-				OutText(col, row + line++, code, 192, 64, 64);
+				OutText(col, row + line++, code, 208, 64, 32);
 			else
 				OutText(col, row + line++, code, 192, 192, 128);
 		}
 	}
+
+	//int line = 0;
+	//Word top = cpu->getPC() + topOffset;
+	//std::string code = "";
+	//sDisplayedAsm.clear();
+	//while (row + line < 30)
+	//{
+	//	bool atBreak = false;
+	//	if (top < cpu->getPC())
+	//	{
+	//		if (mapBreakpoints[top])	atBreak = true;
+	//		sDisplayedAsm.push_back(top);
+	//		code = cpu->disasm(top, top);
+	//		if (atBreak)
+	//			OutText(col, row + line++, code, 160, 32, 32);
+	//		else
+	//			OutText(col, row + line++, code, 160, 160, 128);
+	//	}
+	//	else if (top == cpu->getPC())
+	//	{
+	//		if (mapBreakpoints[top])	atBreak = true;
+	//		sDisplayedAsm.push_back(top);
+	//		code = cpu->disasm(top, top);
+	//		if (atBreak)
+	//			OutText(col, row + line++, code, 255, 96, 96);
+	//		else
+	//			OutText(col, row + line++, code, 255, 255, 255);
+	//	}
+	//	else
+	//	{
+	//		if (mapBreakpoints[top])	atBreak = true;
+	//		sDisplayedAsm.push_back(top);
+	//		code = cpu->disasm(top, top);
+	//		if (atBreak)
+	//			OutText(col, row + line++, code, 192, 64, 64);
+	//		else
+	//			OutText(col, row + line++, code, 192, 192, 128);
+	//	}
+	//}
 }
 
 bool GfxDebug::EditRegister(float fElapsedTime) 
@@ -493,7 +591,7 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 	case EDIT_X:	data = cpu->getX(); break;
 	case EDIT_Y:	data = cpu->getY(); break;
 	case EDIT_U:	data = cpu->getU(); break;
-	case EDIT_PC:	data = cpu->getPC(); bSingleStep = true;  topOffset = -20;  break;
+	case EDIT_PC:	data = cpu->getPC(); bSingleStep = true;  break; 
 	case EDIT_S:	data = cpu->getS(); break;
 	case EDIT_DP:	data = (Word)cpu->getDP() << 8; break;
 		//case EDIT_BREAK: data = breakpoint; break;
@@ -547,7 +645,7 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 		case EDIT_X:	cpu->setX(data);		break;
 		case EDIT_Y:	cpu->setY(data);		break;
 		case EDIT_U:	cpu->setU(data);		break;
-		case EDIT_PC:	cpu->setPC(data);		break;
+		case EDIT_PC:	cpu->setPC(data);		bMouseWheelActive = false;  break;
 		case EDIT_S:	cpu->setS(data);		break;
 		case EDIT_DP:	cpu->setDP(data >> 8);  break;
 			//case EDIT_BREAK:	breakpoint = data;  break;
@@ -655,7 +753,6 @@ void GfxDebug::ContinueSingleStep() {
 	}
 	// continue from paused state?
 	bIsStepPaused = bSingleStep;
-	topOffset = -25;
 }
 
 
@@ -675,18 +772,21 @@ void GfxDebug::MouseStuff()
 			if (my > 20 && my < 30)	mem_bank[2] -= mouse_wheel * 8;
 			bIsCursorVisible = false;
 		}
-		// scroll the code
+		// Scroll the Code
 		if (mx > 38 && mx < 64 && my > 5 && my < 30)
 		{
+			if (bMouseWheelActive == false)
+			{
+				mousewheel_offset = -25;
+				bMouseWheelActive = true;
+			}
 			bSingleStep = true;	// scrollwheel enters into single step mode
 			nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
-			topOffset -= mouse_wheel * 1;		// slow scroll
+			mousewheel_offset -= mouse_wheel * 1;		// slow scroll
 			if (SDL_GetModState() & KMOD_CTRL)	// is CTRL down?
-				topOffset -= mouse_wheel * 3;	// faster scroll
-
-			if (SDL_GetModState() & KMOD_ALT)	// is ALT down?
-				bSingleStep = false;	// alt+scrollwheel turns off single step mode
+				mousewheel_offset -= mouse_wheel * 3;	// faster scroll			
 		}
+
 		// reset the wheel
 		mouse_wheel = 0;
 	}
@@ -927,7 +1027,6 @@ void GfxDebug::cbClearBreaks()
 void GfxDebug::cbReset()
 {
 	cpu->reset();
-	topOffset = 0;
 }
 void GfxDebug::cbNMI()
 {
@@ -952,4 +1051,5 @@ void GfxDebug::cbRunStop()
 	(bSingleStep) ? bSingleStep = false : bSingleStep = true;
 	bIsStepPaused = bSingleStep;
 	nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+	bMouseWheelActive = false;
 }

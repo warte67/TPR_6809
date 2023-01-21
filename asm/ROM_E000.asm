@@ -41,6 +41,7 @@ TCSR_ANC_ROW	fcb		0				; beginning row of line currently being edited
 TCSR_ANC_COL	fcb		0				; beginning column of line currently being edited
 TCSR_ANC_ADR	fdb		0				; anchor address
 TCSR_EDT_ADR	fdb		0				; address when enter was pressed during line edit
+DEF_GFX_FLAGS	fcb		$02				; default graphics flags	($02)
 
 			INCLUDE "mem_map.asm"
 
@@ -370,7 +371,7 @@ tcsr_pos_reg	; load into X according to text cursor position (A:ROW, B:COL)
 
 starting_screen ; clear and display the starting screen condition
 		; load the default graphics mode
-			lda		#$02
+			lda		DEF_GFX_FLAGS
 			sta		GFX_FLAGS
 		; set the text attribute default
 			lda		#$a2
@@ -398,7 +399,7 @@ ok_prompt ; display the ready prompt
 
 text_screen_reset
 		; load the default graphics mode
-			lda		#$02
+			lda		DEF_GFX_FLAGS
 			sta		GFX_FLAGS
 		; set the text attribute default
 			lda		#$a2
@@ -439,6 +440,10 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			beq		4f				; do "reset"
 			cmpa	#5
 			beq		5f				; do "exit"
+			cmpa	#6
+			beq		6f				; do "text32"
+			cmpa	#7
+			beq		7f				; do "text64"
 			bra		999f				; syntax error
 
 1 ; cls
@@ -488,10 +493,33 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			sta		FIO_COMMAND		; send the command 
 			rts
 
+6 ; text32
+			lda		GFX_FLAGS
+			anda	#$FC			; mask out FG mode
+			ora		#$01			; mask in 32 column text mode
+			sta		GFX_FLAGS		; update the display mode
+			sta		DEF_GFX_FLAGS	; replace the defaults
+			jmp		4b				; system: reset
+
+7 ; text64
+			lda		GFX_FLAGS
+			anda	#$FC			; mask out FG mode
+			ora		#$02			; mask in 64 column text mode
+			sta		GFX_FLAGS		; update the display mode
+			sta		DEF_GFX_FLAGS	; replace the defaults
+			jmp		4b				; system reset
+
 
 999		; Report a Syntax Error
+;			lda		#$0a
+;			jsr		char_out		
 			ldx		#strz_syntax_error
 			jsr		text_out
+;			lda		#$0a
+;			jsr		char_out		
+			jsr		ok_prompt	
+			rts
+
 			lda		#':'
 			jsr		char_out
 			lda		#' '
@@ -530,7 +558,6 @@ lookup_cmd	; return in A index of the command
 			cmpa	,Y+				; compare A with command_LUT[Y]
 			bne		2f				; branch if NOT equal to next_token
 			incb					; increment index in EDT_BUFFER[B]
-			;leay	1,Y				; increment Y
 			bra		1b				; branch back to loop    	
 2 ; next_token:
 			inc		0,S				; increment RET
@@ -542,7 +569,6 @@ lookup_cmd	; return in A index of the command
 			beq		3f				; branch to failure
 			cmpa	#$00			; end of a token
 			bne		5b				; keep searching if not
-			;lda		,Y+				; increment to the start of next token
 			bra		1b				; branch back to loop    
 3 ; failure:
 			clr		0,S				; RET = 0
@@ -553,13 +579,15 @@ lookup_cmd	; return in A index of the command
 
 
 strz_syntax_error
-			fcn		"? Syntax Error"
+			fcn		"ERROR: Syntax!\n"
 command_LUT 
 			fcn		"cls"			; 1
 			fcn		"load"			; 2
 			fcn		"exec"			; 3
 			fcn		"reset"			; 4
 			fcn		"exit"			; 5
+			fcn		"mode 32"		; 6
+			fcn		"mode 64"		; 7
 			fcb		0xFF
 
 

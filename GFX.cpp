@@ -453,17 +453,18 @@ void GFX::OnEvent(SDL_Event *evnt)
 			//	bus->write(GFX_FLAGS, data);
 			//}
 			
-			// toggle debug enable
-			if (evnt->key.keysym.sym == SDLK_d)
-			{
-				Byte data = bus->read(DBG_FLAGS);
-				data ^= 0x80;
-				//if (data & 0x80)
-				//	gfx_debug->SetSingleStep(true);
-				bus->write(DBG_FLAGS, data);
-				// clear the keyboard buffer
-				bus->m_keyboard->Clear();
-			}
+														// toggle debug enable (move this to GfxDebug)
+														if (evnt->key.keysym.sym == SDLK_d)
+														{
+															Byte data = bus->read(DBG_FLAGS);
+															data ^= 0x80;
+															//if (data & 0x80)
+															//	gfx_debug->SetSingleStep(true);
+															bus->write(DBG_FLAGS, data);
+															// clear the keyboard buffer
+															bus->m_keyboard->Clear();
+															gfx_debug->bMouseWheelActive = false;
+														}
 
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
