@@ -545,51 +545,76 @@ E241  39                                      rts
 E242                  execute_command ; parse and run the string that is currently in the hardware EDT_BUFFER register
 E242  B6193C                                  lda             EDT_BUFFER
 E245  8120                                    cmpa    #$20
-E247  274D                                    beq             4f
+E247  2750                                    beq             4f
                       
 E249  860A                                    lda             #$0a
 E24B  BDE177                                  jsr             char_out
                       
+                                      ; parse
+E24E  BDE29A                                  jsr             lookup_cmd
+                      
                                       ; [L] = test load "test.hex"
-E24E  B6193C                                  lda             EDT_BUFFER
-E251  8A20                                    ora             #$20                    ; force lowercase
-E253  816C                                    cmpa    #'l'
-E255  260F                                    bne             1f
-E257  BDE13F                                  jsr     test_load_hex
+E251  B6193C                                  lda             EDT_BUFFER
+E254  8A20                                    ora             #$20                    ; force lowercase
+E256  816C                                    cmpa    #'l'
+E258  260F                                    bne             1f
+E25A  BDE13F                                  jsr     test_load_hex
                       
                                       ; clear the input buffer
-E25A  B61928                                  lda             CHAR_Q_LEN
-E25D  2737                                    beq             4f
-E25F  B6192A                                  lda             CHAR_POP                        
-E262  BDE21C                                  jsr             starting_screen
-E265  39                                      rts
+E25D  B61928                                  lda             CHAR_Q_LEN
+E260  2737                                    beq             4f
+E262  B6192A                                  lda             CHAR_POP                        
+E265  BDE21C                                  jsr             starting_screen
+E268  39                                      rts
                       
-E266                  1               ; Report a Syntax Error
-E266  8EE297                                  ldx             #strz_syntax_error
-E269  BDE1E1                                  jsr             text_out
-E26C  863A                                    lda             #':'
-E26E  BDE177                                  jsr             char_out
-E271  8620                                    lda             #' '
-E273  BDE177                                  jsr             char_out
-E276  8622                                    lda             #$22                    ; "
-E278  BDE177                                  jsr             char_out
-E27B  8E193C                                  ldx             #EDT_BUFFER
-E27E  BDE1E1                                  jsr             text_out
-E281  8622                                    lda             #$22                    ; "
-E283  BDE177                                  jsr             char_out
-E286  860A                                    lda             #$0a
-E288  BDE177                                  jsr             char_out
-E28B  8EE076                                  ldx             #prompt_ready
-E28E  BDE1E1                                  jsr             text_out
-E291  860A                                    lda             #$0a
-E293  BDE177                                  jsr             char_out
-E296                  4               ; return from subroutine
-E296  39                                      rts
+E269                  1               ; Report a Syntax Error
+E269  8EE2AC                                  ldx             #strz_syntax_error
+E26C  BDE1E1                                  jsr             text_out
+E26F  863A                                    lda             #':'
+E271  BDE177                                  jsr             char_out
+E274  8620                                    lda             #' '
+E276  BDE177                                  jsr             char_out
+E279  8622                                    lda             #$22                    ; "
+E27B  BDE177                                  jsr             char_out
+E27E  8E193C                                  ldx             #EDT_BUFFER
+E281  BDE1E1                                  jsr             text_out
+E284  8622                                    lda             #$22                    ; "
+E286  BDE177                                  jsr             char_out
+E289  860A                                    lda             #$0a
+E28B  BDE177                                  jsr             char_out
+E28E  8EE076                                  ldx             #prompt_ready
+E291  BDE1E1                                  jsr             text_out
+E294  860A                                    lda             #$0a
+E296  BDE177                                  jsr             char_out
+E299                  4               ; return from subroutine
+E299  39                                      rts
                       
-E297                  strz_syntax_error
-E297  3F2053796E746178204572726F7200                         fcn             "? Syntax Error"
+E29A                  lookup_cmd      ; return in A index of the command
+                                              ; or a = 0 if command not found
+E29A  3402                                    pshs    A                               ; save a spot on the stack for a local variable
+E29C  6FE4                                    clr             0,S                             
+                      
+E29E  8EE2BB                                  ldx             #command_LUT
+E2A1  108E193C                                ldy             #EDT_BUFFER
+                                              
+E2A5                  8       ; return the index
+E2A5  3502                                    puls    A
+E2A7  39                                      rts
+                      
+E2A8                  9       ; command not found in list
+E2A8  3502                                    puls    A                               ; fix the stack
+E2AA  4F                                      clra                    
+E2AB  39                                      rts
                       
                       
+E2AC                  strz_syntax_error
+E2AC  3F2053796E746178204572726F7200                         fcn             "? Syntax Error"
+E2BB                  command_LUT 
+E2BB  636C7300                                fcn             "cls"
+E2BF  6C6F616400                              fcn             "load"
+E2C4  6578656300                              fcn             "exec"
+E2C9  6578697400                              fcn             "exit"
+E2CE  FF                                      fcb             0xFF
                       
                       
                       

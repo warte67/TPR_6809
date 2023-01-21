@@ -145,7 +145,7 @@ continue
 			beq		2b
 
 			lda		CHAR_SCAN
-			cmpa	#$1b
+			cmpa	#$1b		; [ESCAPE]
 			bne		2b
 
 done		rts

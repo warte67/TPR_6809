@@ -304,7 +304,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20C3  279A                                    beq             2b
                       
 20C5  B61929                                  lda             CHAR_SCAN
-20C8  811B                                    cmpa    #$1b
+20C8  811B                                    cmpa    #$1b            ; [ESCAPE]
 20CA  2693                                    bne             2b
                       
 20CC  39              done            rts

@@ -391,6 +391,9 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lda		#$0a
 			jsr		char_out
 
+		; parse
+			jsr		lookup_cmd
+
 		; [L] = test load "test.hex"
 			lda		EDT_BUFFER
 			ora		#$20			; force lowercase
@@ -427,10 +430,32 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 4		; return from subroutine
 			rts
 
+lookup_cmd	; return in A index of the command
+			; or a = 0 if command not found
+			pshs	A				; save a spot on the stack for a local variable
+			clr		0,S				
+
+			ldx		#command_LUT
+			ldy		#EDT_BUFFER
+			
+8	; return the index
+			puls	A
+			rts
+
+9	; command not found in list
+			puls	A				; fix the stack
+			clra			
+			rts
+
+
 strz_syntax_error
 			fcn		"? Syntax Error"
-
-
+command_LUT 
+			fcn		"cls"
+			fcn		"load"
+			fcn		"exec"
+			fcn		"exit"
+			fcb		0xFF
 
 
 
