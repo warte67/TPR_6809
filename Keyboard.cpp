@@ -404,11 +404,6 @@ void Keyboard::OnInitialize()
 void Keyboard::OnEvent(SDL_Event* evnt)
 {
 	SDL_Keymod km = SDL_GetModState();
-
-	//// don't let key presses pass through the debugger screen
-	//if ((km & KMOD_ALT) || (km & KMOD_CTRL) || bus->m_gfx->DebugEnabled())
-	//	return;
-
 	switch (evnt->type)
 	{
 		case SDL_KEYDOWN:
