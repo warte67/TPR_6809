@@ -26,17 +26,18 @@ class GfxMode;
 class GfxSystem;
 class GfxDebug;
 
-class C6809	// : public Device
+class C6809		//		: public REG
 {
 	friend class Bus;
 	friend class GfxDebug;
 
 public:
-	C6809(Bus* ptrBus);
+	C6809();
 	~C6809();
 	void Init();
 
-	//std::map <Word, std::string> _disasm(Word wStart, Word wEnd);	// Wont work on PICO!!!
+	static Byte OnCallback(Word ofs, Byte data, bool bWasRead);
+	static Word MapDevice(MemoryMap* memmap, Word offset);
 
 	std::string disasm(Word addr, Word& next);	// returns standard string containing instruction pointed to by addr
 
@@ -280,7 +281,7 @@ protected:
 	Bus* bus = nullptr;
 	GfxDebug* debug = nullptr;
 
-public:
+public:	
 
 	// disassembly stuff
 	std::list<Word> lstPrevInstructions;

@@ -302,7 +302,10 @@ void FileIO::OnInitialize()
 void FileIO::OnEvent(SDL_Event* evnt) {}
 void FileIO::OnCreate() {}
 void FileIO::OnDestroy() {}
-void FileIO::OnUpdate(float fElapsedTime) {}
+void FileIO::OnUpdate(float fElapsedTime) 
+{
+	//	printf("CPU_CLK_DIV: $%02X\n", bus->read(CPU_CLK_DIV));
+}
 void FileIO::OnQuit() {}
 
 

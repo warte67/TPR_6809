@@ -139,6 +139,11 @@ public:
     Uint8 grn(Uint8 index) { Uint8 c = palette[index].g;  return c | (c << 4) | (c << 8) | (c << 12); }
     Uint8 blu(Uint8 index) { Uint8 c = palette[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
     Uint8 alf(Uint8 index) { Uint8 c = palette[index].a;  return c | (c << 4) | (c << 8) | (c << 12); }
+
+private:
+    Byte _clock_div = 0;
+    Byte clock_div(Byte& cl_div, int bit);
+    void clockDivider();
 };
 
 

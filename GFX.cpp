@@ -6,7 +6,10 @@
 // ************************************
 
 #include <array>
+#include <chrono>
+
 #include "Bus.h"
+#include "C6809.h"
 #include "Memory.h"
 #include "Device.h"
 #include "GfxMode.h"
@@ -51,6 +54,13 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 	{
 		if (bWasRead)
 		{	// READ FROM
+			if (ofs == GFX_CLK_DIV)
+			{
+				Byte data = ptrGfx->_clock_div;
+				bus->debug_write(GFX_CLK_DIV, data);
+				return data;
+			}
+
 			if (ofs == GFX_FLAGS)
 			{	// READ:
 				Byte ret = 0;
@@ -300,6 +310,16 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Graphics Hardware Registers:" }); offset += 0;
 	memmap->push({ offset, "GFX_BEGIN", "start of graphics hardware registers" }); offset += 0;
+
+	memmap->push({ offset, "GFX_CLK_DIV", "(Byte) 60 hz Clock Divider:     " }); offset += 1;
+	memmap->push({ offset, "", ">    bit 7: 0.46875 hz " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6: 0.9375 hz  " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5: 1.875 hz   " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: 3.75 hz    " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: 7.5 hz     " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2: 15.0 hz    " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 1: 30.0 hz    " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0: 60.0 hz    " }); offset += 0;
 
 	memmap->push({ offset, "GFX_FLAGS", "(Byte) gfx system flags:" }); offset += 1;
 	memmap->push({ offset, "", ">    bit 7: VSYNC" }); offset += 0;
@@ -673,14 +693,83 @@ void GFX::OnDestroy()
 	//bWasInit = false;
 }
 
+
+
+Byte GFX::clock_div(Byte& cl_div, int bit)
+{
+	if (bit > 7)    bit = 7;
+	double count[] =
+	{ // pulse width:   // frequency:
+		8.33333,        // 60 hz
+		16.66667,       // 30 hz
+		33.33333,       // 15 hz
+		66.66667,       // 7.5 hz
+		133.33333,      // 3.75 hz
+		266.66667,      // 1.875 hz
+		533.33333,      // 0.9375 hz
+		1066.66667,     // 0.46875
+	};
+
+	Bus* bus = Bus::getInstance();
+	using clock = std::chrono::system_clock;
+	using sec = std::chrono::duration<double, std::milli>;
+	static auto before0 = clock::now();
+	static auto before1 = clock::now();
+	static auto before2 = clock::now();
+	static auto before3 = clock::now();
+	static auto before4 = clock::now();
+	static auto before5 = clock::now();
+	static auto before6 = clock::now();
+	static auto before7 = clock::now();
+	static auto before = clock::now();
+	switch (bit)
+	{
+	case 0: before = before0; break;
+	case 1: before = before1; break;
+	case 2: before = before2; break;
+	case 3: before = before3; break;
+	case 4: before = before4; break;
+	case 5: before = before5; break;
+	case 6: before = before6; break;
+	case 7: before = before7; break;
+	}
+	const sec duration = clock::now() - before;
+	if (duration.count() > count[bit])
+	{
+		before = clock::now();
+		switch (bit)
+		{
+		case 0: before0 = clock::now();  break;
+		case 1: before1 = clock::now();  break;
+		case 2: before2 = clock::now();  break;
+		case 3: before3 = clock::now();  break;
+		case 4: before4 = clock::now();  break;
+		case 5: before5 = clock::now();  break;
+		case 6: before6 = clock::now();  break;
+		case 7: before7 = clock::now();  break;
+		}
+		cl_div = (cl_div & (0x01 << bit)) ? cl_div & ~(0x01 << bit) : cl_div | (0x01 << bit);
+	}
+	return cl_div;
+}
+
+void GFX::clockDivider()
+{
+	// static Byte cl_div = 0;
+	for (int bit = 0; bit < 8; bit++)
+		clock_div(_clock_div, bit);
+}
+
 void GFX::OnUpdate(float fElapsedTime)
 {
+	// update the clock divider
+	clockDivider();
+
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
 	// render the graphics mode
-	//m_gmodes[m_gmode_index]->OnUpdate(fElapsedTime);
 	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);
 	m_fg_gmodes[m_fg_mode_index]->OnUpdate(fElapsedTime);
 	gfx_mouse->OnUpdate(fElapsedTime);
@@ -697,9 +786,6 @@ void GFX::OnUpdate(float fElapsedTime)
 		std::string title = "FPS: " + std::to_string(Bus::getFPS());
 		SDL_SetWindowTitle(_window, title.c_str());
 	}
-
-	//printf("GFX::OnCallback() =---> FG Index: %d\n", m_fg_mode_index);
-	//printf("GFX::OnCallback() =---> BG Index: %d\n\n", m_bg_mode_index);
 
 	// render the GFX object to the main screen texture
 	_onRender();

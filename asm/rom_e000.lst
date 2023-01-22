@@ -64,7 +64,16 @@
                       
                       ;  Graphics Hardware Registers:
 1800                  GFX_BEGIN       equ     $1800   ; start of graphics hardware registers
-1800                  GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
+1800                  GFX_CLK_DIV     equ     $1800   ; (Byte) 60 hz Clock Divider:
+                                                      ;      bit 7: 0.46875 hz
+                                                      ;      bit 6: 0.9375 hz
+                                                      ;      bit 5: 1.875 hz
+                                                      ;      bit 4: 3.75 hz
+                                                      ;      bit 3: 7.5 hz
+                                                      ;      bit 2: 15.0 hz
+                                                      ;      bit 1: 30.0 hz
+                                                      ;      bit 0: 60.0 hz
+1801                  GFX_FLAGS       equ     $1801   ; (Byte) gfx system flags:
                                                       ;      bit 7: VSYNC
                                                       ;      bit 6: backbuffer enable
                                                       ;      bit 5: swap backbuffers (on write)
@@ -79,51 +88,51 @@
                                                       ;          1) Glyph Mode (32x20 text)
                                                       ;          2) Glyph Mode (64x40 text)
                                                       ;          3) 128x80 x 16-Color
-1801                  GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
+1802                  GFX_AUX equ     $1802   ; (Byte) gfx auxillary/emulation flags:
                                                       ;      bit 7: 1:fullscreen / 0:windowed
                                                       ;      bit 6: reserved
                                                       ;      bit 5: reserved
                                                       ;      bit 4: reserved
                                                       ;      bit 3: reserved
                                                       ;      bit 0-2: monitor display index (0-7)
-1802                  GFX_TIMING_W    equ     $1802   ; (Word) horizontal timing
-1804                  GFX_TIMING_H    equ     $1804   ; (Word) vertical timing
-1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-1807                  GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits RGBA4444
+1803                  GFX_TIMING_W    equ     $1803   ; (Word) horizontal timing
+1805                  GFX_TIMING_H    equ     $1805   ; (Word) vertical timing
+1807                  GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-15)
+1808                  GFX_PAL_DATA    equ     $1808   ; (Word) gfx palette color bits RGBA4444
                       
                       ;  Paged Foreground Graphics Mode Hardware Registers:
-1809                  GFX_FG_BEGIN    equ     $1809   ; start of paged foreground gfxmode registers
-1809                  GFX_FG_WDTH     equ     $1809   ; (Byte) Foreground Unit Width-1
-180A                  GFX_FG_HGHT     equ     $180a   ; (Byte) Foreground Unit Height-1
-180A                  GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
+180A                  GFX_FG_BEGIN    equ     $180a   ; start of paged foreground gfxmode registers
+180A                  GFX_FG_WDTH     equ     $180a   ; (Byte) Foreground Unit Width-1
+180B                  GFX_FG_HGHT     equ     $180b   ; (Byte) Foreground Unit Height-1
+180B                  GFX_FG_END      equ     $180b   ; end of paged foreground gfxmode registers
                       
                       ;  Paged Background Graphics Mode Hardware Registers:
-180B                  GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
-180B                  GFX_EXT_ADDR    equ     $180b   ; (Word) 20K extended graphics addresses
-180D                  GFX_EXT_DATA    equ     $180d   ; (Byte) 20K extended graphics RAM data
-180D                  GFX_BG_END      equ     $180d   ; end of paged background gfxmode registers
+180C                  GFX_BG_BEGIN    equ     $180c   ; start of paged background gfxmode registers
+180C                  GFX_EXT_ADDR    equ     $180c   ; (Word) 20K extended graphics addresses
+180E                  GFX_EXT_DATA    equ     $180e   ; (Byte) 20K extended graphics RAM data
+180E                  GFX_BG_END      equ     $180e   ; end of paged background gfxmode registers
                       
                       ;  Mouse Cursor Hardware Registers:
-180E                  CSR_BEGIN       equ     $180e   ; start of mouse cursor hardware registers
-180E                  CSR_XPOS        equ     $180e   ; (Word) horizontal mouse cursor coordinate
-1810                  CSR_YPOS        equ     $1810   ; (Word) vertical mouse cursor coordinate
-1812                  CSR_XOFS        equ     $1812   ; (Byte) horizontal mouse cursor offset
-1813                  CSR_YOFS        equ     $1813   ; (Byte) vertical mouse cursor offset
-1814                  CSR_SIZE        equ     $1814   ; (Byte) cursor size (0-15) 0:off
-1815                  CSR_SCROLL      equ     $1815   ; (Signed) MouseWheel Scroll: -1, 0, 1
-1816                  CSR_FLAGS       equ     $1816   ; (Byte) mouse button flags:
+180F                  CSR_BEGIN       equ     $180f   ; start of mouse cursor hardware registers
+180F                  CSR_XPOS        equ     $180f   ; (Word) horizontal mouse cursor coordinate
+1811                  CSR_YPOS        equ     $1811   ; (Word) vertical mouse cursor coordinate
+1813                  CSR_XOFS        equ     $1813   ; (Byte) horizontal mouse cursor offset
+1814                  CSR_YOFS        equ     $1814   ; (Byte) vertical mouse cursor offset
+1815                  CSR_SIZE        equ     $1815   ; (Byte) cursor size (0-15) 0:off
+1816                  CSR_SCROLL      equ     $1816   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1817                  CSR_FLAGS       equ     $1817   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1817                  CSR_PAL_INDX    equ     $1817   ; (Byte) mouse cursor color palette index (0-15)
-1818                  CSR_PAL_DATA    equ     $1818   ; (Word) mouse cursor color palette data RGBA4444
-181A                  CSR_BMP_INDX    equ     $181a   ; (Byte) mouse cursor bitmap pixel offset
-181B                  CSR_BMP_DATA    equ     $181b   ; (Byte) mouse cursor bitmap pixel index color
-181B                  CSR_END equ     $181b   ; end of mouse cursor hardware registers
+1818                  CSR_PAL_INDX    equ     $1818   ; (Byte) mouse cursor color palette index (0-15)
+1819                  CSR_PAL_DATA    equ     $1819   ; (Word) mouse cursor color palette data RGBA4444
+181B                  CSR_BMP_INDX    equ     $181b   ; (Byte) mouse cursor bitmap pixel offset
+181C                  CSR_BMP_DATA    equ     $181c   ; (Byte) mouse cursor bitmap pixel index color
+181C                  CSR_END equ     $181c   ; end of mouse cursor hardware registers
                       
                       ;  Debugger Hardware Registers:
-181C                  DBG_BEGIN       equ     $181c   ; Start of Debugger Hardware Registers
-181C                  DBG_BRK_ADDR    equ     $181c   ; (Word) Address of current breakpoint
-181E                  DBG_FLAGS       equ     $181e   ; (Byte) Debug Specific Hardware Flags
+181D                  DBG_BEGIN       equ     $181d   ; Start of Debugger Hardware Registers
+181D                  DBG_BRK_ADDR    equ     $181d   ; (Word) Address of current breakpoint
+181F                  DBG_FLAGS       equ     $181f   ; (Byte) Debug Specific Hardware Flags
                                                       ;      bit 7: Debug Enable
                                                       ;      bit 6: Single Step Enable
                                                       ;      bit 5: clear all breakpoints
@@ -132,19 +141,21 @@
                                                       ;      bit 2: IRQ   (on low to high edge)
                                                       ;      bit 1: NMI   (on low to high edge)
                                                       ;      bit 0: RESET (on low to high edge)
-181E                  DBG_END equ     $181e   ; End of the Debugger Hardware Registers
+181F                  DBG_END equ     $181f   ; End of the Debugger Hardware Registers
                       
                       
-181F                  GFX_END equ     $181f   ; end of the GFX Hardware Registers
+1820                  GFX_END equ     $1820   ; end of the GFX Hardware Registers
                       
                       ;  File I/O Hardware Registers:
-181F                  FIO_BEGIN       equ     $181f   ; start of file i/o hardware registers
-181F                  FIO_ERR_FLAGS   equ     $181f   ; (Byte) file i/o system flags:
+1820                  FIO_BEGIN       equ     $1820   ; start of file i/o hardware registers
+1820                  FIO_ERR_FLAGS   equ     $1820   ; (Byte) file i/o system flags:
                                                       ;      bit 7:   file not found
                                                       ;      bit 6:  end of file
                                                       ;      bit 5:   buffer overrun
-                                                      ;      bit 0-4: not yet assigned
-1820                  FIO_COMMAND     equ     $1820   ; (Byte) OnWrite - command to execute
+                                                      ;      bit 4: wrong file type
+                                                      ;      bit 3: directory not found
+                                                      ;      bit 0-2: not yet assigned
+1821                  FIO_COMMAND     equ     $1821   ; (Byte) OnWrite - command to execute
                                                       ;      $00 = Reset/Null
                                                       ;      $01 = Open/Create Binary File for Reading
                                                       ;      $02 = Open/Create Binary File for Writing
@@ -169,28 +180,28 @@
                                                       ;      $15 = Seek Current
                                                       ;      $16 = Seek End
                                                       ;      $17 = SYSTEM: Shutdown
-1821                  FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
-1822                  FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
-1823                  FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
-1825                  FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
-1827                  FIO_RET_COUNT   equ     $1827   ; (Byte) number of return entries
-1828                  FIO_RET_INDEX   equ     $1828   ; (Byte) command return index
-1829                  FIO_RET_BUFFER  equ     $1829   ; (Char Array 256) paged return buffer
-1929                  FIO_FILEPATH    equ     $1929   ; (Char Array 256) file path and argument buffer
-1A29                  FIO_END equ     $1a29   ; end of file i/o hardware registers
+1822                  FIO_HANDLE      equ     $1822   ; (Byte) file handle or ZERO
+1823                  FIO_BFROFS      equ     $1823   ; (Word) start of I/O buffer
+1824                  FIO_BFRLEN      equ     $1824   ; (Word) length of I/O buffer
+1826                  FIO_SEEKOFS     equ     $1826   ; (Word) seek offset
+1828                  FIO_RET_COUNT   equ     $1828   ; (Byte) number of return entries
+1829                  FIO_RET_INDEX   equ     $1829   ; (Byte) command return index
+182A                  FIO_RET_BUFFER  equ     $182a   ; (Char Array 256) paged return buffer
+192A                  FIO_FILEPATH    equ     $192a   ; (Char Array 256) file path and argument buffer
+1A2A                  FIO_END equ     $1a2a   ; end of file i/o hardware registers
                       
                       ;  Keyboard Hardware Registers:
-1A2A                  KEY_BEGIN       equ     $1a2a   ; start of keyboard hardware registers
-1A2A                  CHAR_Q_LEN      equ     $1a2a   ; (char) # of characters waiting in queue       (Read Only)
-1A2B                  CHAR_SCAN       equ     $1a2b   ; read next character in queue       (not popped when read)
-1A2C                  CHAR_POP        equ     $1a2c   ; (char) next character waiting in queue (popped when read)
-1A2D                  XKEY_BUFFER     equ     $1a2d   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-1A3D                  EDT_BFR_CSR     equ     $1a3d   ; (Byte) cursor position within edit buffer    (Read/Write)
-1A3E                  EDT_BUFFER      equ     $1a3e   ; (256 Bytes) line editing character buffer    (Read/Write)
-1B3E                  KEY_END equ     $1b3e   ; end of keyboard hardware registers
+1A2B                  KEY_BEGIN       equ     $1a2b   ; start of keyboard hardware registers
+1A2B                  CHAR_Q_LEN      equ     $1a2b   ; (char) # of characters waiting in queue       (Read Only)
+1A2C                  CHAR_SCAN       equ     $1a2c   ; read next character in queue       (not popped when read)
+1A2D                  CHAR_POP        equ     $1a2d   ; (char) next character waiting in queue (popped when read)
+1A2E                  XKEY_BUFFER     equ     $1a2e   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+1A3E                  EDT_BFR_CSR     equ     $1a3e   ; (Byte) cursor position within edit buffer    (Read/Write)
+1A3F                  EDT_BUFFER      equ     $1a3f   ; (256 Bytes) line editing character buffer    (Read/Write)
+1B3F                  KEY_END equ     $1b3f   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-1B3F                  RESERVED_HDW    equ     $1b3f   ; Reserved 1212 bytes ($1B3F - $1FFB)
+1B40                  RESERVED_HDW    equ     $1b40   ; Reserved 1211 bytes ($1B40 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -206,8 +217,6 @@ C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       
                       ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
-                      
-                      
                       
                       ; ***************************************
                       ; * Read Only Sytem KERNAL ROM          *
@@ -315,7 +324,7 @@ E0CD  F60014                                  ldb             TCSR_ATTRIB       
 E0D0  ED84                                    std             0,x                             ; place the cursor onto the screen
                                               
                                               ; check for a key in the queue
-E0D2  B61A2A                                  lda             CHAR_Q_LEN              ; load the length of the key queue
+E0D2  B61A2B                                  lda             CHAR_Q_LEN              ; load the length of the key queue
 E0D5  27CD                                    beq             main_kernel             ; loop if nothing is queued
                       
                                               ; delete the old cursor
@@ -325,7 +334,7 @@ E0DC  F60015                                  ldb             TEXT_ATTRIB       
 E0DF  ED84                                    std             0,x                             ; store the colored character at X (row/col)
                                               
                                               ; display typed character
-E0E1  B61A2C                                  lda             CHAR_POP                ; pop the last typed character  
+E0E1  B61A2D                                  lda             CHAR_POP                ; pop the last typed character  
                       
                                               ; was [ENTER] pressed
 E0E4  810D                                    cmpa    #$0D                    ; check for [ENTER]
@@ -346,7 +355,7 @@ E0F3  BF001C                                  stx             TCSR_EDT_ADR    ; 
                       ;                       blt             99b
                       
                                               ; copy the string to the hardware buffer
-E0F6  108E1A3E                                ldy             #EDT_BUFFER             ; Y: current hardware edit buffer
+E0F6  108E1A3F                                ldy             #EDT_BUFFER             ; Y: current hardware edit buffer
 E0FA  BE001A                                  ldx             TCSR_ANC_ADR    ; X: anchor or start of the edit string
 E0FD  A681            4                       lda             ,x++                    ; load the character from the screen
 E0FF  A7A0                                    sta             ,y+                             ; store it into the hardware edit buffer
@@ -406,8 +415,8 @@ E145                  load_hex
                       ;                       bne             1b                              ; keep looping until null-termination
                       
 E145  8607                                    lda             #$07                    ; command: LoadHex
-E147  B71820                                  sta             FIO_COMMAND             ; executre the command
-E14A  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E147  B71821                                  sta             FIO_COMMAND             ; executre the command
+E14A  B61820                                  lda             FIO_ERR_FLAGS   ; load the errors flag
 E14D  8180                                    cmpa    #$80                    ; test for bit: file not found?
 E14F  2706                                    beq             1f                              ; dont call the sub if it wasnt loaded
 E151  8110                                    cmpa    #$10                    ; test for bit: file not found?
@@ -463,12 +472,12 @@ E198  2D4D                                    blt             3f
 E19A  ED84                                    std             ,x
 E19C  7C0013                                  inc             TCSR_COL
 E19F  B60013                                  lda             TCSR_COL
-E1A2  B11809                                  cmpa    GFX_FG_WDTH
+E1A2  B1180A                                  cmpa    GFX_FG_WDTH
 E1A5  2340                                    bls             3f
 E1A7                  _cr
 E1A7  7F0013                                  clr             TCSR_COL
 E1AA  B60012                                  lda             TCSR_ROW
-E1AD  B1180A                                  cmpa    GFX_FG_HGHT
+E1AD  B1180B                                  cmpa    GFX_FG_HGHT
 E1B0  2C0F                                    bge             _scroll
 E1B2  7C0012                                  inc             TCSR_ROW
                       
@@ -481,7 +490,7 @@ E1BC  7A0013                                  dec             TCSR_COL
 E1BF  2026                                    bra             3f
                       
 E1C1                  _scroll                 
-E1C1  B61809                                  lda             GFX_FG_WDTH
+E1C1  B6180A                                  lda             GFX_FG_WDTH
 E1C4  4C                                      inca
 E1C5  C602                                    ldb             #2
 E1C7  3D                                      mul
@@ -526,7 +535,7 @@ E206  3406                                    pshs    D                         
 E208  3406                                            pshs    D                                       ; again, save A and B
 E20A  8E0400                                                  ldx             #VIDEO_START    ; point X to the start of the video buffer
 E20D  48                                                      lsla                                    ; account for the attribute byte
-E20E  F61809                                                  ldb             GFX_FG_WDTH             ; load the max horizontal character position
+E20E  F6180A                                                  ldb             GFX_FG_WDTH             ; load the max horizontal character position
 E211  5C                                                      incb                                    ; correct for width
 E212  3D                                                      mul                                             ; offset the horizontial position
 E213  308B                                                    leax    D,X                             ; within the video buffer
@@ -542,7 +551,7 @@ E224  39                                      rts                               
 E225                  starting_screen ; clear and display the starting screen condition
                                       ; load the default graphics mode
 E225  B6001E                                  lda             DEF_GFX_FLAGS
-E228  B71800                                  sta             GFX_FLAGS
+E228  B71801                                  sta             GFX_FLAGS
                                       ; set the text attribute default
 E22B  86A2                                    lda             #$a2
 E22D  B70015                                  sta             TEXT_ATTRIB     
@@ -570,7 +579,7 @@ E257  39                                      rts
 E258                  text_screen_reset
                                       ; load the default graphics mode
 E258  B6001E                                  lda             DEF_GFX_FLAGS
-E25B  B71800                                  sta             GFX_FLAGS
+E25B  B71801                                  sta             GFX_FLAGS
                                       ; set the text attribute default
 E25E  86A2                                    lda             #$a2
 E260  B70015                                  sta             TEXT_ATTRIB     
@@ -587,7 +596,7 @@ E278  39                                      rts
                       
                       
 E279                  execute_command ; parse and run the string that is currently in the hardware EDT_BUFFER register
-E279  B61A3E                                  lda             EDT_BUFFER
+E279  B61A3F                                  lda             EDT_BUFFER
 E27C  8120                                    cmpa    #$20
 E27E  10270128                                lbeq    1000f
                       
@@ -633,7 +642,7 @@ E2C8  BDE24C                                  jsr             ok_prompt
 E2CB  39                                      rts
                       
 E2CC                  3 ; exec                        
-E2CC  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E2CC  B61820                                  lda             FIO_ERR_FLAGS   ; load the errors flag
 E2CF  8480                                    anda    #$80                    ; test for bit: file not found?         
 E2D1  4D                                      tsta    
 E2D2  2613                                    bne             31f                             ; dont call the sub if it wasnt loaded
@@ -651,14 +660,14 @@ E2EA  39                                      rts
                       
 E2EB                  4 ; reset
 E2EB  8600                                    lda             #$00                    ; $00 = Reset/Null
-E2ED  B71820                                  sta             FIO_COMMAND             ; send the command
+E2ED  B71821                                  sta             FIO_COMMAND             ; send the command
 E2F0  39                                      rts
                       
                                               ;jmp            reset
                       
 E2F1                  5 ; exit
 E2F1  8617                                    lda             #$17                    ; $17 = SYSTEM: Shutdown
-E2F3  B71820                                  sta             FIO_COMMAND             ; send the command 
+E2F3  B71821                                  sta             FIO_COMMAND             ; send the command 
 E2F6  39                                      rts
                       
 E2F7                  6 ; screen <arg>
@@ -666,7 +675,7 @@ E2F7                  6 ; screen <arg>
                                               ; $31 = 1       64x40
                                               ; $32 = 2       128x80 bitmap mode
                                               ; check the argument
-E2F7  B61929                                  lda             FIO_FILEPATH
+E2F7  B6192A                                  lda             FIO_FILEPATH
 E2FA  8130                                    cmpa    #'0'                    ; mode 0 = 32x20 
 E2FC  2712                                    beq             60f
 E2FE  8131                                    cmpa    #'1'                    ; mode 0 = 32x20 
@@ -679,39 +688,39 @@ E309  BDE1EA                                  jsr             text_out
 E30C  BDE24C                                  jsr             ok_prompt       
 E30F  39                                      rts
 E310                  60 ; 32x20 text
-E310  B61800                                  lda             GFX_FLAGS
+E310  B61801                                  lda             GFX_FLAGS
 E313  84FC                                    anda    #$FC                    ; mask out FG mode
 E315  8A01                                    ora             #$01                    ; mask in 32 column text mode
-E317  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E317  B71801                                  sta             GFX_FLAGS               ; update the display mode
 E31A  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
 E31D  7EE2EB                                  jmp             4b                              ; system: reset
 E320                  61 ; 64x40 text (default)
-E320  B61800                                  lda             GFX_FLAGS
+E320  B61801                                  lda             GFX_FLAGS
 E323  84FC                                    anda    #$FC                    ; mask out FG mode
 E325  8A02                                    ora             #$02                    ; mask in 64 column text mode
-E327  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E327  B71801                                  sta             GFX_FLAGS               ; update the display mode
 E32A  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
 E32D  7EE2EB                                  jmp             4b                              ; system: reset
                       
 E330                  62 ; 128x80 16-color bitmap
-E330  B61800                                  lda             GFX_FLAGS
+E330  B61801                                  lda             GFX_FLAGS
 E333  84FC                                    anda    #$FC                    ; mask out FG mode
 E335  8A03                                    ora             #$03                    ; mask in 64 column text mode
-E337  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E337  B71801                                  sta             GFX_FLAGS               ; update the display mode
 E33A  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
 E33D  7EE2EB                                  jmp             4b                              ; system: reset
                       
 E340                  7 ; dir
 E340  860C                                    lda             #$0c                    ; list files
-E342  B71820                                  sta             FIO_COMMAND
+E342  B71821                                  sta             FIO_COMMAND
                       
 E345  4F                                      clra
-E346  8E1829                                  ldx             #FIO_RET_BUFFER
+E346  8E182A                                  ldx             #FIO_RET_BUFFER
 E349                  71 ; loop
-E349  B71828                                  sta             FIO_RET_INDEX   ; get the File[A]
+E349  B71829                                  sta             FIO_RET_INDEX   ; get the File[A]
 E34C  BDE1EA                                  jsr             text_out                ; send it to the screen
 E34F  4C                                      inca    
-E350  B11827                                  cmpa    FIO_RET_COUNT   ; how many entries?
+E350  B11828                                  cmpa    FIO_RET_COUNT   ; how many entries?
 E353  26F4                                    bne             71b
                                       
 E355  860A                                    lda             #$0A
@@ -721,9 +730,9 @@ E35D  39                                      rts
                       
 E35E                  8 ; chdir
 E35E  860E                                    lda             #$0e                    ; $0E = command "CHDIR"
-E360  B71820                                  sta             FIO_COMMAND
+E360  B71821                                  sta             FIO_COMMAND
                       
-E363  B6181F                                  lda     FIO_ERR_FLAGS
+E363  B61820                                  lda     FIO_ERR_FLAGS
 E366  8408                                    anda    #$08                    ; directory not found
 E368  8108                                    cmpa    #$08
 E36A  2606                                    bne             81f                             ; nope, just end
@@ -749,7 +758,7 @@ E385  8620                                    lda             #' '
 E387  BDE180                                  jsr             char_out
 E38A  8622                                    lda             #$22                    ; "
 E38C  BDE180                                  jsr             char_out
-E38F  8E1A3E                                  ldx             #EDT_BUFFER
+E38F  8E1A3F                                  ldx             #EDT_BUFFER
 E392  BDE1EA                                  jsr             text_out
 E395  8622                                    lda             #$22                    ; "
 E397  BDE180                                  jsr             char_out
@@ -764,13 +773,13 @@ E3AA  39                                      rts
                       
 E3AB                  fetch_cl_argument       ; copy everything past the first space character to FIO_FILEPATH
 E3AB  3432                                    pshs    A, X, Y
-E3AD  8E1A3E                                  ldx             #EDT_BUFFER
-E3B0  108E1929                                ldy             #FIO_FILEPATH
+E3AD  8E1A3F                                  ldx             #EDT_BUFFER
+E3B0  108E192A                                ldy             #FIO_FILEPATH
 E3B4                  1 ; look for space
 E3B4  A680                                    lda             ,X+
 E3B6  8120                                    cmpa    #' '
 E3B8  2705                                    beq             2f                              ; copy the argument
-E3BA  8C1B3D                                  cmpx    #EDT_BUFFER+255
+E3BA  8C1B3E                                  cmpx    #EDT_BUFFER+255
 E3BD  26F5                                    bne             1b
 E3BF                  2 ; loop through the argument
 E3BF  6F1F                                    clr             -1,X
@@ -778,7 +787,7 @@ E3C1  A680                                    lda             ,X+
 E3C3  A7A0                                    sta             ,Y+
 E3C5  4D                                      tsta
 E3C6  2706                                    beq             3f      
-E3C8  108C1A28                                cmpy    #FIO_FILEPATH+255
+E3C8  108C1A29                                cmpy    #FIO_FILEPATH+255
 E3CC  26F1                                    bne             2b
 E3CE                  3 ; done
 E3CE  3532                                    puls    A, X, Y
@@ -793,7 +802,7 @@ E3D6  8601                                    lda             #1                
 E3D8  3402                                    pshs    A                               ; push local RET onto the stack
 E3DA  4F                                      clra                                    ; A = Working Accumilator                       
 E3DB  5F                                      clrb                                    ; B = EDT_BUFFER[B] index
-E3DC  8E1A3E                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
+E3DC  8E1A3F                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
 E3DF  108EE485                                ldy             #command_LUT    ; Y points to the position within the lookup table
 E3E3                  1 ; loop:       
 E3E3  A685                                    lda             B, X                    ; load A from EDT_BUFFER[X]                             

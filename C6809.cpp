@@ -12,15 +12,48 @@
 #include "Memory.h"
 #include "Bus.h"
 #include "C6809.h"
-
-
 #include "GfxDebug.h"
 
 
-C6809::C6809(Bus* ptrBus) : A(acc.byte.A = 0), B(acc.byte.B = 0), D(acc.D = 0)
+Byte C6809::OnCallback(Word ofs, Byte data, bool bWasRead)
 {
-	// _deviceName = "CPU";
-	bus = ptrBus;
+	if (bWasRead)
+	{
+		printf("C6809::OnCallback() =--> READ\n");
+	}
+	return data;
+}
+
+Word C6809::MapDevice(MemoryMap* memmap, Word offset)
+{
+	int start_offset = offset;
+
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "PICO#1 CPU Hardware Registers:                   " }); offset += 0;
+	memmap->push({ offset, "CPU_BEGIN", "start of cpu hardware registers  " }); offset += 0;
+
+	memmap->push({ offset, "CPU_CLK_DIV", "(Byte) 2 Mhz CPU Clock Divider:     " }); offset += 1;
+	memmap->push({ offset, "", ">    bit 7:	1280/2560 = 1000.0 Khz       " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 6:  640/2560 =  500.0 Khz       " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 5:	 320/2560 =  250.0 Khz       " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4:  160/2560 =  125.0 Khz       " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3:   80/2560 =   62.5 Khz       " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2:   40/2560 =   31.25 Khz      " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2:   20/2560 =   15.625 Khz     " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2:   10/2560 =    7.8125 Khz    " }); offset += 0;
+
+	memmap->push({ offset, "CPU_END", "end of cpu hardware registers     " }); offset += 1;
+	memmap->push({ offset, "", "" });
+
+	return offset - start_offset;
+}
+
+
+
+C6809::C6809() : A(acc.byte.A = 0), B(acc.byte.B = 0), D(acc.D = 0)
+{
+	//_deviceName = "CPU";
+	bus = Bus::getInstance();
 	A = acc.byte.A;
 	B = acc.byte.B;
 	D = acc.D;

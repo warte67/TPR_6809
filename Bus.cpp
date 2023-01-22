@@ -51,7 +51,7 @@ Bus::Bus()
     // create the cpu (clocked via external thread)    
     // CPU is not attached to _devices vector
     bCpuEnabled = false;
-    m_cpu = new C6809(this);    
+    m_cpu = new C6809();    
 
     //// Memory-Mapped Devices:
     // 
@@ -59,6 +59,7 @@ Bus::Bus()
     int gfx_start = 0x1800;
     m_memory->AssignRAM("Low RAM", gfx_start);
     mem_offset = gfx_start;
+
 
     // GRAPHICS DEVICE
     // ToDO: Condense this into an Assign_Gfx() like the Assign_FileIO() below
@@ -303,9 +304,10 @@ void Bus::_OnQuit()
 }
 
 Byte Bus::read(Word offset) {
+    Byte data = 0xCC;
     if (m_memory)
-        return m_memory->read(offset);
-    return 0xcc;
+        data =  m_memory->read(offset);
+    return data;
 }
 void Bus::write(Word offset, Byte data) {
     if (m_memory)
@@ -365,19 +367,21 @@ void Bus::CpuThread()
     Bus* bus = Bus::getInstance();
     while (bus->IsRunning())
     {
+        // main CPU clock
         using clock = std::chrono::system_clock;
         using sec = std::chrono::duration<double, std::nano>;
         static auto before_CPU = clock::now();
         const sec duration = clock::now() - before_CPU;
         if (duration.count() > 500.0f) {		// 1000.f = 1mhz, 500.0f = 2mhz
             before_CPU = clock::now();
-            // dont send clocks while changing resolution modes
-            //if (!bus->gfx_restarting)
             if (bus->bCpuEnabled)
                 s_instance->m_cpu->clock();
         }
     }
 }
+
+
+
 void Bus::run()
 {
     //printf("Bus::run()\n");

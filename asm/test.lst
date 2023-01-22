@@ -28,7 +28,16 @@
                       
                       ;  Graphics Hardware Registers:
 1800                  GFX_BEGIN       equ     $1800   ; start of graphics hardware registers
-1800                  GFX_FLAGS       equ     $1800   ; (Byte) gfx system flags:
+1800                  CPU_CLK_DIV     equ     $1800   ; (Byte) 2 Mhz CPU Clock Divider:
+                                                      ;      bit 7:   1280/2560 = 1000.0 Khz
+                                                      ;      bit 6:  640/2560 =  500.0 Khz
+                                                      ;      bit 5:    320/2560 =  250.0 Khz
+                                                      ;      bit 4:  160/2560 =  125.0 Khz
+                                                      ;      bit 3:   80/2560 =   62.5 Khz
+                                                      ;      bit 2:   40/2560 =   31.25 Khz
+                                                      ;      bit 2:   20/2560 =   15.625 Khz
+                                                      ;      bit 2:   10/2560 =    7.8125 Khz
+1801                  GFX_FLAGS       equ     $1801   ; (Byte) gfx system flags:
                                                       ;      bit 7: VSYNC
                                                       ;      bit 6: backbuffer enable
                                                       ;      bit 5: swap backbuffers (on write)
@@ -43,51 +52,51 @@
                                                       ;          1) Glyph Mode (32x20 text)
                                                       ;          2) Glyph Mode (64x40 text)
                                                       ;          3) 128x80 x 16-Color
-1801                  GFX_AUX equ     $1801   ; (Byte) gfx auxillary/emulation flags:
+1802                  GFX_AUX equ     $1802   ; (Byte) gfx auxillary/emulation flags:
                                                       ;      bit 7: 1:fullscreen / 0:windowed
                                                       ;      bit 6: reserved
                                                       ;      bit 5: reserved
                                                       ;      bit 4: reserved
                                                       ;      bit 3: reserved
                                                       ;      bit 0-2: monitor display index (0-7)
-1802                  GFX_TIMING_W    equ     $1802   ; (Word) horizontal timing
-1804                  GFX_TIMING_H    equ     $1804   ; (Word) vertical timing
-1806                  GFX_PAL_INDX    equ     $1806   ; (Byte) gfx palette index (0-15)
-1807                  GFX_PAL_DATA    equ     $1807   ; (Word) gfx palette color bits RGBA4444
+1803                  GFX_TIMING_W    equ     $1803   ; (Word) horizontal timing
+1805                  GFX_TIMING_H    equ     $1805   ; (Word) vertical timing
+1807                  GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-15)
+1808                  GFX_PAL_DATA    equ     $1808   ; (Word) gfx palette color bits RGBA4444
                       
                       ;  Paged Foreground Graphics Mode Hardware Registers:
-1809                  GFX_FG_BEGIN    equ     $1809   ; start of paged foreground gfxmode registers
-1809                  GFX_FG_WDTH     equ     $1809   ; (Byte) Foreground Unit Width-1
-180A                  GFX_FG_HGHT     equ     $180a   ; (Byte) Foreground Unit Height-1
-180A                  GFX_FG_END      equ     $180a   ; end of paged foreground gfxmode registers
+180A                  GFX_FG_BEGIN    equ     $180a   ; start of paged foreground gfxmode registers
+180A                  GFX_FG_WDTH     equ     $180a   ; (Byte) Foreground Unit Width-1
+180B                  GFX_FG_HGHT     equ     $180b   ; (Byte) Foreground Unit Height-1
+180B                  GFX_FG_END      equ     $180b   ; end of paged foreground gfxmode registers
                       
                       ;  Paged Background Graphics Mode Hardware Registers:
-180B                  GFX_BG_BEGIN    equ     $180b   ; start of paged background gfxmode registers
-180B                  GFX_EXT_ADDR    equ     $180b   ; (Word) 20K extended graphics addresses
-180D                  GFX_EXT_DATA    equ     $180d   ; (Byte) 20K extended graphics RAM data
-180D                  GFX_BG_END      equ     $180d   ; end of paged background gfxmode registers
+180C                  GFX_BG_BEGIN    equ     $180c   ; start of paged background gfxmode registers
+180C                  GFX_EXT_ADDR    equ     $180c   ; (Word) 20K extended graphics addresses
+180E                  GFX_EXT_DATA    equ     $180e   ; (Byte) 20K extended graphics RAM data
+180E                  GFX_BG_END      equ     $180e   ; end of paged background gfxmode registers
                       
                       ;  Mouse Cursor Hardware Registers:
-180E                  CSR_BEGIN       equ     $180e   ; start of mouse cursor hardware registers
-180E                  CSR_XPOS        equ     $180e   ; (Word) horizontal mouse cursor coordinate
-1810                  CSR_YPOS        equ     $1810   ; (Word) vertical mouse cursor coordinate
-1812                  CSR_XOFS        equ     $1812   ; (Byte) horizontal mouse cursor offset
-1813                  CSR_YOFS        equ     $1813   ; (Byte) vertical mouse cursor offset
-1814                  CSR_SIZE        equ     $1814   ; (Byte) cursor size (0-15) 0:off
-1815                  CSR_SCROLL      equ     $1815   ; (Signed) MouseWheel Scroll: -1, 0, 1
-1816                  CSR_FLAGS       equ     $1816   ; (Byte) mouse button flags:
+180F                  CSR_BEGIN       equ     $180f   ; start of mouse cursor hardware registers
+180F                  CSR_XPOS        equ     $180f   ; (Word) horizontal mouse cursor coordinate
+1811                  CSR_YPOS        equ     $1811   ; (Word) vertical mouse cursor coordinate
+1813                  CSR_XOFS        equ     $1813   ; (Byte) horizontal mouse cursor offset
+1814                  CSR_YOFS        equ     $1814   ; (Byte) vertical mouse cursor offset
+1815                  CSR_SIZE        equ     $1815   ; (Byte) cursor size (0-15) 0:off
+1816                  CSR_SCROLL      equ     $1816   ; (Signed) MouseWheel Scroll: -1, 0, 1
+1817                  CSR_FLAGS       equ     $1817   ; (Byte) mouse button flags:
                                                       ;      bits 0-5: button states
                                                       ;      bits 6-7: number of clicks
-1817                  CSR_PAL_INDX    equ     $1817   ; (Byte) mouse cursor color palette index (0-15)
-1818                  CSR_PAL_DATA    equ     $1818   ; (Word) mouse cursor color palette data RGBA4444
-181A                  CSR_BMP_INDX    equ     $181a   ; (Byte) mouse cursor bitmap pixel offset
-181B                  CSR_BMP_DATA    equ     $181b   ; (Byte) mouse cursor bitmap pixel index color
-181B                  CSR_END equ     $181b   ; end of mouse cursor hardware registers
+1818                  CSR_PAL_INDX    equ     $1818   ; (Byte) mouse cursor color palette index (0-15)
+1819                  CSR_PAL_DATA    equ     $1819   ; (Word) mouse cursor color palette data RGBA4444
+181B                  CSR_BMP_INDX    equ     $181b   ; (Byte) mouse cursor bitmap pixel offset
+181C                  CSR_BMP_DATA    equ     $181c   ; (Byte) mouse cursor bitmap pixel index color
+181C                  CSR_END equ     $181c   ; end of mouse cursor hardware registers
                       
                       ;  Debugger Hardware Registers:
-181C                  DBG_BEGIN       equ     $181c   ; Start of Debugger Hardware Registers
-181C                  DBG_BRK_ADDR    equ     $181c   ; (Word) Address of current breakpoint
-181E                  DBG_FLAGS       equ     $181e   ; (Byte) Debug Specific Hardware Flags
+181D                  DBG_BEGIN       equ     $181d   ; Start of Debugger Hardware Registers
+181D                  DBG_BRK_ADDR    equ     $181d   ; (Word) Address of current breakpoint
+181F                  DBG_FLAGS       equ     $181f   ; (Byte) Debug Specific Hardware Flags
                                                       ;      bit 7: Debug Enable
                                                       ;      bit 6: Single Step Enable
                                                       ;      bit 5: clear all breakpoints
@@ -96,19 +105,21 @@
                                                       ;      bit 2: IRQ   (on low to high edge)
                                                       ;      bit 1: NMI   (on low to high edge)
                                                       ;      bit 0: RESET (on low to high edge)
-181E                  DBG_END equ     $181e   ; End of the Debugger Hardware Registers
+181F                  DBG_END equ     $181f   ; End of the Debugger Hardware Registers
                       
                       
-181F                  GFX_END equ     $181f   ; end of the GFX Hardware Registers
+1820                  GFX_END equ     $1820   ; end of the GFX Hardware Registers
                       
                       ;  File I/O Hardware Registers:
-181F                  FIO_BEGIN       equ     $181f   ; start of file i/o hardware registers
-181F                  FIO_ERR_FLAGS   equ     $181f   ; (Byte) file i/o system flags:
+1820                  FIO_BEGIN       equ     $1820   ; start of file i/o hardware registers
+1820                  FIO_ERR_FLAGS   equ     $1820   ; (Byte) file i/o system flags:
                                                       ;      bit 7:   file not found
                                                       ;      bit 6:  end of file
                                                       ;      bit 5:   buffer overrun
-                                                      ;      bit 0-4: not yet assigned
-1820                  FIO_COMMAND     equ     $1820   ; (Byte) OnWrite - command to execute
+                                                      ;      bit 4: wrong file type
+                                                      ;      bit 3: directory not found
+                                                      ;      bit 0-2: not yet assigned
+1821                  FIO_COMMAND     equ     $1821   ; (Byte) OnWrite - command to execute
                                                       ;      $00 = Reset/Null
                                                       ;      $01 = Open/Create Binary File for Reading
                                                       ;      $02 = Open/Create Binary File for Writing
@@ -133,28 +144,28 @@
                                                       ;      $15 = Seek Current
                                                       ;      $16 = Seek End
                                                       ;      $17 = SYSTEM: Shutdown
-1821                  FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
-1822                  FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
-1823                  FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
-1825                  FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
-1827                  FIO_RET_COUNT   equ     $1827   ; (Byte) number of return entries
-1828                  FIO_RET_INDEX   equ     $1828   ; (Byte) command return index
-1829                  FIO_RET_BUFFER  equ     $1829   ; (Char Array 256) paged return buffer
-1929                  FIO_FILEPATH    equ     $1929   ; (Char Array 256) file path and argument buffer
-1A29                  FIO_END equ     $1a29   ; end of file i/o hardware registers
+1822                  FIO_HANDLE      equ     $1822   ; (Byte) file handle or ZERO
+1823                  FIO_BFROFS      equ     $1823   ; (Word) start of I/O buffer
+1824                  FIO_BFRLEN      equ     $1824   ; (Word) length of I/O buffer
+1826                  FIO_SEEKOFS     equ     $1826   ; (Word) seek offset
+1828                  FIO_RET_COUNT   equ     $1828   ; (Byte) number of return entries
+1829                  FIO_RET_INDEX   equ     $1829   ; (Byte) command return index
+182A                  FIO_RET_BUFFER  equ     $182a   ; (Char Array 256) paged return buffer
+192A                  FIO_FILEPATH    equ     $192a   ; (Char Array 256) file path and argument buffer
+1A2A                  FIO_END equ     $1a2a   ; end of file i/o hardware registers
                       
                       ;  Keyboard Hardware Registers:
-1A2A                  KEY_BEGIN       equ     $1a2a   ; start of keyboard hardware registers
-1A2A                  CHAR_Q_LEN      equ     $1a2a   ; (char) # of characters waiting in queue       (Read Only)
-1A2B                  CHAR_SCAN       equ     $1a2b   ; read next character in queue       (not popped when read)
-1A2C                  CHAR_POP        equ     $1a2c   ; (char) next character waiting in queue (popped when read)
-1A2D                  XKEY_BUFFER     equ     $1a2d   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-1A3D                  EDT_BFR_CSR     equ     $1a3d   ; (Byte) cursor position within edit buffer    (Read/Write)
-1A3E                  EDT_BUFFER      equ     $1a3e   ; (256 Bytes) line editing character buffer    (Read/Write)
-1B3E                  KEY_END equ     $1b3e   ; end of keyboard hardware registers
+1A2B                  KEY_BEGIN       equ     $1a2b   ; start of keyboard hardware registers
+1A2B                  CHAR_Q_LEN      equ     $1a2b   ; (char) # of characters waiting in queue       (Read Only)
+1A2C                  CHAR_SCAN       equ     $1a2c   ; read next character in queue       (not popped when read)
+1A2D                  CHAR_POP        equ     $1a2d   ; (char) next character waiting in queue (popped when read)
+1A2E                  XKEY_BUFFER     equ     $1a2e   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+1A3E                  EDT_BFR_CSR     equ     $1a3e   ; (Byte) cursor position within edit buffer    (Read/Write)
+1A3F                  EDT_BUFFER      equ     $1a3f   ; (256 Bytes) line editing character buffer    (Read/Write)
+1B3F                  KEY_END equ     $1b3f   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-1B3F                  RESERVED_HDW    equ     $1b3f   ; Reserved 1212 bytes ($1B3F - $1FFB)
+1B40                  RESERVED_HDW    equ     $1b40   ; Reserved 1211 bytes ($1B40 - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -170,8 +181,6 @@ C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       
                       ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
-                      
-                      
                       
 2000                                  ORG             $2000
                       
@@ -194,8 +203,8 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                                               ; SAVE THE MOUSE CURSOR COLOR
 200D  8604                                    lda             #4
-200F  B71817                                  sta             CSR_PAL_INDX
-2012  FC1818                                  ldd             CSR_PAL_DATA
+200F  B71818                                  sta             CSR_PAL_INDX
+2012  FC1819                                  ldd             CSR_PAL_DATA
 2015  FD2006                                  std             var_mouse_color
                       
                       ;                       ; enable backbuffer mode
@@ -206,16 +215,16 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                                               ; set up the initial graphics mode 
 2018  7F2005                                  clr             var_mode_index  ; start with index 0
 201B  8E20E5                                  ldx             #mode_data
-201E  B61800                                  lda             GFX_FLAGS
+201E  B61801                                  lda             GFX_FLAGS
 2021  84F0                                    anda    #$f0
 2023  AA84                                    ora             ,x
-2025  B71800                                  sta             GFX_FLAGS
+2025  B71801                                  sta             GFX_FLAGS
                       
                                               ; fill the background buffer with incrementing values
 2028  8E0000                                  ldx             #0
 202B                  1
-202B  BF180B                                  stx             GFX_EXT_ADDR
-202E  B7180D                                  sta             GFX_EXT_DATA
+202B  BF180C                                  stx             GFX_EXT_ADDR
+202E  B7180E                                  sta             GFX_EXT_DATA
 2031  4C                                      inca
 2032  81FF                                    cmpa    #$ff
 2034  2601                                    bne             2f
@@ -266,23 +275,23 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                                               ; INCREMENT THE EXTENDED SCREEN BUFFER
 207A  8E0000                                  ldx             #0
 207D                  8                       
-207D  BF180B                                  stx             GFX_EXT_ADDR
-2080  7C180D                                  inc             GFX_EXT_DATA
+207D  BF180C                                  stx             GFX_EXT_ADDR
+2080  7C180E                                  inc             GFX_EXT_DATA
 2083  3001                                    leax    1,x
 2085  8C0280                                  cmpx    #640            ;#$0800
 2088  26F3                                    bne             8b
                       
                                               ; TOGGLE THE BACKBUFFER
-208A  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+208A  B61801                                  lda             GFX_FLAGS       ; load current backbuffer
 208D  8820                                    eora    #$20            ; toggle it
-208F  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+208F  B71801                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
 2092  8604                                    lda             #4
-2094  B71817                                  sta             CSR_PAL_INDX
-2097  FC1818                                  ldd             CSR_PAL_DATA
+2094  B71818                                  sta             CSR_PAL_INDX
+2097  FC1819                                  ldd             CSR_PAL_DATA
 209A  C300A0                                  addd    #$00a0
-209D  FD1818                                  std             CSR_PAL_DATA            
+209D  FD1819                                  std             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
 20A0  7C2004                                  inc             var_cycle       ; increment the cycle counter
@@ -299,29 +308,29 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20B6  A685                                    lda             b,x
 20B8  81FF                                    cmpa    #$ff
 20BA  270C                                    beq             5f
-20BC  B61800                                  lda             GFX_FLAGS
+20BC  B61801                                  lda             GFX_FLAGS
 20BF  84F0                                    anda    #$f0
 20C1  AA85                                    ora             b,x
-20C3  B71800                                  sta             GFX_FLAGS
+20C3  B71801                                  sta             GFX_FLAGS
 20C6  2005                                    bra             continue
 20C8                  5       
 20C8  7F2005                                  clr             var_mode_index
 20CB  20E0                                    bra             6b
 20CD                  continue
                                               ; WAS [ESCAPE] PRESSED
-20CD  B61A2A                                  lda             CHAR_Q_LEN
+20CD  B61A2B                                  lda             CHAR_Q_LEN
 20D0  279A                                    beq             2b
                       
                                               ; check for ESCAPE
-20D2  B61A2C                                  lda             CHAR_POP
+20D2  B61A2D                                  lda             CHAR_POP
 20D5  811B                                    cmpa    #$1b            ; [ESCAPE]
 20D7  2693                                    bne             2b
                       
                                               ; RESTORE THE MOUSE CURSOR COLOR
 20D9  8604                                    lda             #4
-20DB  B71817                                  sta             CSR_PAL_INDX
+20DB  B71818                                  sta             CSR_PAL_INDX
 20DE  FC2006                                  ldd             var_mouse_color
-20E1  FD1818                                  std             CSR_PAL_DATA
+20E1  FD1819                                  std             CSR_PAL_DATA
                       
 20E4  39              done            rts
                                       
