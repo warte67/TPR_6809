@@ -45,6 +45,7 @@ public:
 	void MouseStuff();
 	bool CoordIsValid(int x, int y);
 	void KeyboardStuff();
+	void DrawBreakpoints();
 	void DrawButtons();
 	void HandleButtons();
 
@@ -59,6 +60,10 @@ public:
 	void cbIRQ();
 	void cbFIRQ();
 	void cbRunStop();
+	void cbHide();
+	void cbStepIn();
+	void cbStepOver();
+	void cbAddBrk();
 
 protected:
 	enum CSR_AT {
@@ -89,7 +94,7 @@ protected:
 		{ EDIT_REGISTER::EDIT_PC, 0, 4, 43, 46 },
 		{ EDIT_REGISTER::EDIT_S, 0, 4, 51, 54 },
 		{ EDIT_REGISTER::EDIT_DP, 0, 4, 60, 61 },
-		{ EDIT_REGISTER::EDIT_BREAK, 0, 16, 113, 116 },			// TODO: ....
+		{ EDIT_REGISTER::EDIT_BREAK, 0, 33, 50, 53 },
 	};
 	REGISTER_NODE nRegisterBeingEdited = { EDIT_NONE,0,0,0,0 };
 
@@ -110,7 +115,11 @@ protected:
 		{"NMI",				SDL_SCANCODE_N,	37, 41, 31, 0xD, &GfxDebug::cbNMI },
 		{"IRQ",				SDL_SCANCODE_I,	31, 35, 31, 0xD, &GfxDebug::cbIRQ },
 		{" FIRQ",			SDL_SCANCODE_F,	24, 29, 31, 0xD, &GfxDebug::cbFIRQ },
-		{" RUN",			SDL_SCANCODE_D,	18, 22, 31, 0xA, &GfxDebug::cbRunStop },
+		{" RUN",			SDL_SCANCODE_D,	17, 22, 31, 0xA, &GfxDebug::cbRunStop },
+		{" HIDE",			SDL_SCANCODE_H,	17, 22, 33, 0xF, &GfxDebug::cbHide },
+		{"STEP_INTO",		SDL_SCANCODE_SPACE,	24, 34, 33, 0x7, &GfxDebug::cbStepIn },
+		{"STEP_OVER",		SDL_SCANCODE_O,	36, 46, 33, 0x8, &GfxDebug::cbStepOver },
+		{"ADD BRK",			SDL_SCANCODE_B,	48, 54, 33, 0xC, &GfxDebug::cbAddBrk },
 	};
 
 private:
@@ -132,10 +141,12 @@ private:
 	bool bSingleStep = DEBUG_SINGLE_STEP;	// false;
 	bool bIsStepPaused = true;
 	bool bIsCursorVisible = false;
+	Word mousewheel_offset = 0;		// applies to code scroll
+	bool bMouseWheelActive = false; // applies to code scroll
+	int mw_brk_offset = 0;			// mouse wheel adjusts the offset
 
-	Word mousewheel_offset = 0;
-	bool bMouseWheelActive = false;
-
+	bool bEditingBreakpoint = false;
+	Word new_breakpoint = 0;		// working copy to be edited
 	
 };
 

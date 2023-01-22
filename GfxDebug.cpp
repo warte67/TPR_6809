@@ -269,6 +269,8 @@ void GfxDebug::OnUpdate(float fElapsedTime)
 		DrawButtons();
 		HandleButtons();
 
+		DrawBreakpoints();
+
 		if (!EditRegister(fElapsedTime))
 			DrawCursor(fElapsedTime);
 
@@ -522,52 +524,13 @@ void GfxDebug::DrawCode(int col, int row)
 				OutText(col, row + line++, code, 192, 192, 128);
 		}
 	}
-
-	//int line = 0;
-	//Word top = cpu->getPC() + topOffset;
-	//std::string code = "";
-	//sDisplayedAsm.clear();
-	//while (row + line < 30)
-	//{
-	//	bool atBreak = false;
-	//	if (top < cpu->getPC())
-	//	{
-	//		if (mapBreakpoints[top])	atBreak = true;
-	//		sDisplayedAsm.push_back(top);
-	//		code = cpu->disasm(top, top);
-	//		if (atBreak)
-	//			OutText(col, row + line++, code, 160, 32, 32);
-	//		else
-	//			OutText(col, row + line++, code, 160, 160, 128);
-	//	}
-	//	else if (top == cpu->getPC())
-	//	{
-	//		if (mapBreakpoints[top])	atBreak = true;
-	//		sDisplayedAsm.push_back(top);
-	//		code = cpu->disasm(top, top);
-	//		if (atBreak)
-	//			OutText(col, row + line++, code, 255, 96, 96);
-	//		else
-	//			OutText(col, row + line++, code, 255, 255, 255);
-	//	}
-	//	else
-	//	{
-	//		if (mapBreakpoints[top])	atBreak = true;
-	//		sDisplayedAsm.push_back(top);
-	//		code = cpu->disasm(top, top);
-	//		if (atBreak)
-	//			OutText(col, row + line++, code, 192, 64, 64);
-	//		else
-	//			OutText(col, row + line++, code, 192, 192, 128);
-	//	}
-	//}
 }
 
 bool GfxDebug::EditRegister(float fElapsedTime) 
 {
 	if (nRegisterBeingEdited.reg == EDIT_REGISTER::EDIT_NONE)
 		return false;
-
+	
 	static float delay = 0.0625f;
 	static float delayAcc = fElapsedTime;
 	static int ci = 9;
@@ -594,7 +557,7 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 	case EDIT_PC:	data = cpu->getPC(); bSingleStep = true;  break; 
 	case EDIT_S:	data = cpu->getS(); break;
 	case EDIT_DP:	data = (Word)cpu->getDP() << 8; break;
-		//case EDIT_BREAK: data = breakpoint; break;
+	case EDIT_BREAK: data = new_breakpoint; break;
 	}
 	Byte digit = csr_x - nRegisterBeingEdited.x_min;
 	Byte num = 0;
@@ -638,17 +601,17 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 		if (digit == 3)		data = (data & 0xfff0) | (n << 0);
 
 		switch (nRegisterBeingEdited.reg) {
-		case EDIT_CC:	cpu->setCC(data >> 8);  break;
-		case EDIT_D:	cpu->setD(data);		break;
-		case EDIT_A:	cpu->setA(data >> 8);	break;
-		case EDIT_B:	cpu->setB(data >> 8);	break;
-		case EDIT_X:	cpu->setX(data);		break;
-		case EDIT_Y:	cpu->setY(data);		break;
-		case EDIT_U:	cpu->setU(data);		break;
-		case EDIT_PC:	cpu->setPC(data);		bMouseWheelActive = false;  break;
-		case EDIT_S:	cpu->setS(data);		break;
-		case EDIT_DP:	cpu->setDP(data >> 8);  break;
-			//case EDIT_BREAK:	breakpoint = data;  break;
+			case EDIT_CC:	cpu->setCC(data >> 8);  break;
+			case EDIT_D:	cpu->setD(data);		break;
+			case EDIT_A:	cpu->setA(data >> 8);	break;
+			case EDIT_B:	cpu->setB(data >> 8);	break;
+			case EDIT_X:	cpu->setX(data);		break;
+			case EDIT_Y:	cpu->setY(data);		break;
+			case EDIT_U:	cpu->setU(data);		break;
+			case EDIT_PC:	cpu->setPC(data);		bMouseWheelActive = false;  break;
+			case EDIT_S:	cpu->setS(data);		break;
+			case EDIT_DP:	cpu->setDP(data >> 8);  break;
+			case EDIT_BREAK: new_breakpoint = data; break; 
 		}
 		if (csr_x < nRegisterBeingEdited.x_max)
 			csr_x++;
@@ -669,7 +632,15 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 					csr_x++;
 			// enter updates and saves the register
 			if (ex[t] == SDL_SCANCODE_RETURN || ex[t] == SDL_SCANCODE_ESCAPE)
+			{
+				if (nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_BREAK)
+				{
+					mapBreakpoints[new_breakpoint] = true;
+					nRegisterBeingEdited.reg == EDIT_REGISTER::EDIT_NONE;
+					bEditingBreakpoint = false;
+				}
 				nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_NONE;
+			}
 			bEx[t] = 1;
 		}
 		else if (bEx[t] == 1 && !keybfr[ex[t]])
@@ -786,14 +757,34 @@ void GfxDebug::MouseStuff()
 			if (SDL_GetModState() & KMOD_CTRL)	// is CTRL down?
 				mousewheel_offset -= mouse_wheel * 3;	// faster scroll			
 		}
+		// scroll the break point display window (bottom right corner)
+		if (mx >= 55 && my >= 33)
+		{
+			// printf("mouse_wheel: %d\n", mouse_wheel);
+			mw_brk_offset -= mouse_wheel;
+		}
 
 		// reset the wheel
 		mouse_wheel = 0;
 	}
 	// left mouse button clicked?
 	static bool last_LMB = false;
-	if (btns & 1 && !last_LMB)
+	if ((btns & 1) && !last_LMB)
 	{
+		// left-clicked on breakpoint
+		if (mx >= 55 && my >= 33)
+		{
+			int index = (my - 33) + mw_brk_offset;
+			// build a vector of active breakpoints
+			std::vector<Word> breakpoints;
+			for (auto& bp : mapBreakpoints)
+				if (bp.second)
+					breakpoints.push_back(bp.first);
+			if (index < breakpoints.size())
+				printf("LEFT CLICK: $%04X\n", breakpoints[index]);
+			//mapBreakpoints[breakpoints[index]] = false;
+		}
+
 		// click to select
 		if (btns & 1)
 		{
@@ -852,6 +843,22 @@ void GfxDebug::MouseStuff()
 	static bool last_RMB = false;
 	if (btns & 4 && !last_RMB)
 	{
+		// right-clicked on breakpoint
+		if (mx >= 55 && my >= 33)
+		{
+			int index = (my - 33) + mw_brk_offset;
+			// build a vector of active breakpoints
+			std::vector<Word> breakpoints;
+			for (auto& bp : mapBreakpoints)
+				if (bp.second)
+					breakpoints.push_back(bp.first);
+			if (index < breakpoints.size())
+			{
+				//printf("RIGHT CLICK: $%04X\n", breakpoints[index]);
+				mapBreakpoints[breakpoints[index]] = false;
+			}
+		}
+
 		// on PC register
 		if (my == 4 && mx > 42 && mx < 47)
 		{
@@ -965,21 +972,109 @@ void GfxDebug::KeyboardStuff()
 	}
 }
 
+void GfxDebug::DrawBreakpoints()
+{
+	int x = 56, y = 33;		// y <= 38
+	Uint8 ci = 0x0C;
+
+	// build a vector of active breakpoints
+	std::vector<Word> breakpoints;
+	for (auto& bp : mapBreakpoints)
+		if (bp.second)
+			breakpoints.push_back(bp.first);
+	// standard display
+	if (breakpoints.size() < 8)
+	{
+		for (int t = 0; t < breakpoints.size(); t++)
+		{
+			std::string strBkpt = "[$";
+			strBkpt += hex(breakpoints[t], 4);
+			strBkpt += "]";
+			OutText(x, y, strBkpt, 255, 32, 32, true);
+			y++;
+		}
+	}
+	// oversized, mousewheel scrollable, display
+	else
+	{
+		if (mw_brk_offset < 0)							mw_brk_offset = 0;
+		if (mw_brk_offset + 7 > breakpoints.size())		mw_brk_offset = breakpoints.size() - 7;
+		
+		int index = mw_brk_offset;
+		for (int t = 0; t < 7; t++)
+		{
+			std::string strBkpt;
+			
+			if (t == 0 && mw_brk_offset > 0)
+				strBkpt = "[ ... ]";
+			else if (t == 6 && index != breakpoints.size() - 1)
+				strBkpt = "[ ... ]";
+			else
+			{
+				strBkpt = "[$";
+				strBkpt += hex(breakpoints[index], 4);
+				strBkpt += "]";
+			}
+			OutText(x, y, strBkpt, 255, 32, 32, true);
+			y++;
+			index++;
+		}
+
+		
+
+		//int cnt = 0;
+		//int index = mw_brk_offset;
+		//for (int t = 0; t < 14; t++)
+		//{
+		//	std::string strBkpt;
+		//	// top
+		//	if (index == 0 && t == 0)	//mw_brk_offset)
+		//		strBkpt = "[ ... ]";
+		//	// bottom
+		//	else if (index == breakpoints.size() - 1)
+		//		strBkpt = "[ ... ]";
+		//	// middle
+		//	else
+		//	{
+		//		strBkpt = "[$";
+		//		strBkpt += hex(breakpoints[t], 4);
+		//		strBkpt += "]";
+		//	}
+		//	// update the window
+		//	OutText(x, y, strBkpt, 255, 32, 32, true);
+		//	// 
+		//	index++;
+	}
+}
+
 
 void GfxDebug::DrawButtons()
 {
 	// change the run/stop according to the single step state
 	if (bSingleStep)
 	{
-		vButton[5].text = " RUN";
-		vButton[5].x_min = 18;
+		vButton[5].text = " RUN!";
+		vButton[5].x_min = 17;
 		vButton[5].clr_index = 0xA;
 	}
-	else
-	{
+	else{
 		vButton[5].text = " STOP";
 		vButton[5].x_min = 17;
 		vButton[5].clr_index = 0xE;
+	}
+	if (bEditingBreakpoint)
+	{
+		vButton[9].text = "[$";
+		vButton[9].text += hex(new_breakpoint, 4);
+		vButton[9].text += "]";
+		vButton[9].x_min = 48;
+		vButton[9].clr_index = 0xC;
+	}
+	else
+	{
+		vButton[9].text = "ADD BRK";
+		vButton[9].x_min = 48;
+		vButton[9].clr_index = 0xC;
 	}
 	// draw the buttons
 	for (auto& a : vButton)
@@ -1027,6 +1122,10 @@ void GfxDebug::cbClearBreaks()
 void GfxDebug::cbReset()
 {
 	cpu->reset();
+	mousewheel_offset = 0;
+	bMouseWheelActive = false;
+	bSingleStep = true;
+	bIsStepPaused = true;
 }
 void GfxDebug::cbNMI()
 {
@@ -1052,4 +1151,37 @@ void GfxDebug::cbRunStop()
 	bIsStepPaused = bSingleStep;
 	nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
 	bMouseWheelActive = false;
+}
+
+void GfxDebug::cbHide()
+{
+	bMouseWheelActive = false;
+	bSingleStep = false;
+	bIsStepPaused = bSingleStep;
+	nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+	bus->m_gfx->DebugEnabled(false);
+}
+
+void GfxDebug::cbStepIn()
+{
+	bSingleStep = true;
+	bIsStepPaused = false;
+	nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+	bMouseWheelActive = false;
+}
+void GfxDebug::cbStepOver()
+{
+	bSingleStep = true;
+	bIsStepPaused = false;
+	nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+	bMouseWheelActive = false;
+}
+
+void GfxDebug::cbAddBrk()
+{
+	printf("Add Breakpoint\n");
+	bEditingBreakpoint = true;
+	//new_breakpoint = cpu->getPC();
+
+	nRegisterBeingEdited.reg == EDIT_REGISTER::EDIT_BREAK;
 }
