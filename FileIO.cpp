@@ -310,28 +310,23 @@ static Byte fio_fread_hex_byte(FILE* fp)
 {
 	char str[3];
 	long l;
-
 	str[0] = fgetc(fp);
 	str[1] = fgetc(fp);
 	str[2] = '\0';
-
 	l = strtol(str, NULL, 16);
 	return (Byte)(l & 0xff);
 }
 static Word fio_fread_hex_word(FILE* fp)
 {
 	Word ret;
-
 	ret = fio_fread_hex_byte(fp);
 	ret <<= 8;
 	ret |= fio_fread_hex_byte(fp);
-
 	return ret;
 }
 void FileIO::load_hex(const char* filename)
 {
 	bus->write(FIO_ERR_FLAGS, 0);
-
 	if (strlen(filename) == 0)
 	{
 		// file not found
@@ -346,7 +341,6 @@ void FileIO::load_hex(const char* filename)
 	for (int t = 0; t < strlen(filename); t++)
 		if (filename[t] != '\"' && filename[t] != ' ')
 			strFilename += filename[t];
-
 	FILE* fp;
 	int done = 0;
 	//setFilename(filename);
@@ -357,16 +351,7 @@ void FileIO::load_hex(const char* filename)
 		Byte data = bus->read(FIO_ERR_FLAGS);
 		data |= 0x80;		// set the "File Not Found" bit
 		bus->write(FIO_ERR_FLAGS, data);
-
-		//perror("filename");
-		//std::string err = "ROM file \"";
-		//err += filename;
-		//err += "\" not found!";
-		////ErrorLogger::Log(err.c_str());
-		//Bus::Err(err.c_str());
-
-
-		return;		// exit(EXIT_FAILURE);
+		return;
 	}
 
 	while (!done) {
@@ -379,10 +364,10 @@ void FileIO::load_hex(const char* filename)
 		if (colon != ':')
 		{
 			printf("Wrong File Type\n");
-			//Bus::Err("Wrong File Type");
 			Byte data = bus->read(FIO_ERR_FLAGS);
 			data |= 0x10;		
 			bus->write(FIO_ERR_FLAGS, data);
+			fclose(fp);
 			return;
 		}
 
@@ -393,17 +378,6 @@ void FileIO::load_hex(const char* filename)
 			while (n--) {
 				b = fio_fread_hex_byte(fp);
 				bus->debug_write(addr, b);
-
-				//if ((addr >= base) && (addr < ((DWord)base + size))) {
-				//	//memory[(Word)(addr - base)] = b;
-				//	bus->debug_write(addr - base, b);
-				//}
-				//else
-				//{
-				//	if (bus == nullptr)
-				//		bus = Bus::getInstance();
-				//	bus->write(addr, b);
-				//}
 				++addr;
 			}
 		}
@@ -414,6 +388,7 @@ void FileIO::load_hex(const char* filename)
 		(void)fio_fread_hex_byte(fp);
 		if (fgetc(fp) == '\r') (void)fgetc(fp);
 	}
+	fclose(fp);
 }
 
 

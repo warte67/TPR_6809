@@ -559,8 +559,8 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lda		#$0e			; $0E = command "CHDIR"
 			sta		FIO_COMMAND
 
-			lda		#$0A
-			jsr		char_out
+;			lda		#$0A
+;			jsr		char_out
 			jsr		ok_prompt	
 
 			rts
