@@ -127,21 +127,24 @@ FIO_HANDLE      equ     $1821   ; (Byte) file handle or ZERO
 FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
 FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
 FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
-FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
-FIO_END equ     $1927   ; end of file i/o hardware registers
+FIO_RET_COUNT   equ     $1827   ; (Byte) number of return entries
+FIO_RET_INDEX   equ     $1828   ; (Byte) command return index
+FIO_RET_BUFFER  equ     $1829   ; (Char Array 256) paged return buffer
+FIO_FILEPATH    equ     $1929   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1a29   ; end of file i/o hardware registers
 
 ;  Keyboard Hardware Registers:
-KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       (Read Only)
-CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
-CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
-XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within edit buffer    (Read/Write)
-EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer    (Read/Write)
-KEY_END equ     $1a3c   ; end of keyboard hardware registers
+KEY_BEGIN       equ     $1a2a   ; start of keyboard hardware registers
+CHAR_Q_LEN      equ     $1a2a   ; (char) # of characters waiting in queue       (Read Only)
+CHAR_SCAN       equ     $1a2b   ; read next character in queue       (not popped when read)
+CHAR_POP        equ     $1a2c   ; (char) next character waiting in queue (popped when read)
+XKEY_BUFFER     equ     $1a2d   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+EDT_BFR_CSR     equ     $1a3d   ; (Byte) cursor position within edit buffer    (Read/Write)
+EDT_BUFFER      equ     $1a3e   ; (256 Bytes) line editing character buffer    (Read/Write)
+KEY_END equ     $1b3e   ; end of keyboard hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1a3d   ; Reserved 1470 bytes ($1A3D - $1FFB)
+RESERVED_HDW    equ     $1b3f   ; Reserved 1212 bytes ($1B3F - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

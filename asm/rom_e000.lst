@@ -173,21 +173,24 @@
 1822                  FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
 1823                  FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
 1825                  FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
-1827                  FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
-1927                  FIO_END equ     $1927   ; end of file i/o hardware registers
+1827                  FIO_RET_COUNT   equ     $1827   ; (Byte) number of return entries
+1828                  FIO_RET_INDEX   equ     $1828   ; (Byte) command return index
+1829                  FIO_RET_BUFFER  equ     $1829   ; (Char Array 256) paged return buffer
+1929                  FIO_FILEPATH    equ     $1929   ; (Char Array 256) file path and argument buffer
+1A29                  FIO_END equ     $1a29   ; end of file i/o hardware registers
                       
                       ;  Keyboard Hardware Registers:
-1928                  KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       (Read Only)
-1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
-192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
-192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within edit buffer    (Read/Write)
-193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer    (Read/Write)
-1A3C                  KEY_END equ     $1a3c   ; end of keyboard hardware registers
+1A2A                  KEY_BEGIN       equ     $1a2a   ; start of keyboard hardware registers
+1A2A                  CHAR_Q_LEN      equ     $1a2a   ; (char) # of characters waiting in queue       (Read Only)
+1A2B                  CHAR_SCAN       equ     $1a2b   ; read next character in queue       (not popped when read)
+1A2C                  CHAR_POP        equ     $1a2c   ; (char) next character waiting in queue (popped when read)
+1A2D                  XKEY_BUFFER     equ     $1a2d   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+1A3D                  EDT_BFR_CSR     equ     $1a3d   ; (Byte) cursor position within edit buffer    (Read/Write)
+1A3E                  EDT_BUFFER      equ     $1a3e   ; (256 Bytes) line editing character buffer    (Read/Write)
+1B3E                  KEY_END equ     $1b3e   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-1A3D                  RESERVED_HDW    equ     $1a3d   ; Reserved 1470 bytes ($1A3D - $1FFB)
+1B3F                  RESERVED_HDW    equ     $1b3f   ; Reserved 1212 bytes ($1B3F - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -300,7 +303,7 @@ E0BF  F60019                                  ldb             TCSR_ANC_COL    ; 
 E0C2  BDE1F8                                  jsr             tcsr_pos_reg    ; X: calculated offset within the video buffer
 E0C5  BF001A                                  stx             TCSR_ANC_ADR
                       
-                      ;; color the anchor character
+                      ; color the anchor character
                       ;                       ldb             #$3B                    ; anchor color attribute
                       ;                       stb             1,X                             ; highlight the anchor character
                       
@@ -312,7 +315,7 @@ E0CD  F60014                                  ldb             TCSR_ATTRIB       
 E0D0  ED84                                    std             0,x                             ; place the cursor onto the screen
                                               
                                               ; check for a key in the queue
-E0D2  B61928                                  lda             CHAR_Q_LEN              ; load the length of the key queue
+E0D2  B61A2A                                  lda             CHAR_Q_LEN              ; load the length of the key queue
 E0D5  27CD                                    beq             main_kernel             ; loop if nothing is queued
                       
                                               ; delete the old cursor
@@ -322,7 +325,7 @@ E0DC  F60015                                  ldb             TEXT_ATTRIB       
 E0DF  ED84                                    std             0,x                             ; store the colored character at X (row/col)
                                               
                                               ; display typed character
-E0E1  B6192A                                  lda             CHAR_POP                ; pop the last typed character  
+E0E1  B61A2C                                  lda             CHAR_POP                ; pop the last typed character  
                       
                                               ; was [ENTER] pressed
 E0E4  810D                                    cmpa    #$0D                    ; check for [ENTER]
@@ -343,7 +346,7 @@ E0F3  BF001C                                  stx             TCSR_EDT_ADR    ; 
                       ;                       blt             99b
                       
                                               ; copy the string to the hardware buffer
-E0F6  108E193C                                ldy             #EDT_BUFFER             ; Y: current hardware edit buffer
+E0F6  108E1A3E                                ldy             #EDT_BUFFER             ; Y: current hardware edit buffer
 E0FA  BE001A                                  ldx             TCSR_ANC_ADR    ; X: anchor or start of the edit string
 E0FD  A681            4                       lda             ,x++                    ; load the character from the screen
 E0FF  A7A0                                    sta             ,y+                             ; store it into the hardware edit buffer
@@ -409,7 +412,7 @@ E14D  8180                                    cmpa    #$80                    ; 
 E14F  2606                                    bne             1f                              ; dont call the sub if it wasnt loaded
                       
                                               ; display, "ERROR: File Not Found!"
-E151  8EE3A0                                  ldx             #strz_nofile_error
+E151  8EE400                                  ldx             #strz_nofile_error
 E154  BDE1DC                                  jsr             text_out
                       
 E157                  1
@@ -578,202 +581,252 @@ E26A  39                                      rts
                       
                       
 E26B                  execute_command ; parse and run the string that is currently in the hardware EDT_BUFFER register
-E26B  B6193C                                  lda             EDT_BUFFER
+E26B  B61A3E                                  lda             EDT_BUFFER
 E26E  8120                                    cmpa    #$20
-E270  102700BE                                lbeq    1000f
+E270  1027011E                                lbeq    1000f
                       
 E274  860A                                    lda             #$0a
 E276  BDE172                                  jsr             char_out
                       
                                       ; parse
-E279  BDE359                                  jsr             lookup_cmd
+E279  BDE3B9                                  jsr             lookup_cmd
                       
                                       ; [L] = test load "test.hex"
 E27C  8100                                    cmpa    #0
-E27E  277E                                    beq             999f                            ; do syntax error
-E280  8101                                    cmpa    #1                              
-E282  271A                                    beq             1f                              ; do "cls"
-E284  8102                                    cmpa    #2                              
-E286  2722                                    beq             2f                              ; do "load"
-E288  8103                                    cmpa    #3
-E28A  2727                                    beq             3f                              ; do "exec"
-E28C  8104                                    cmpa    #4
-E28E  2742                                    beq             4f                              ; do "reset"
-E290  8105                                    cmpa    #5
-E292  2744                                    beq             5f                              ; do "exit"
-E294  8106                                    cmpa    #6
-E296  2746                                    beq             6f                              ; do "text32"
-E298  8107                                    cmpa    #7
-E29A  2752                                    beq             7f                              ; do "text64"
-E29C  2060                                    bra             999f                            ; syntax error
+E27E  102700DC                                lbeq            999f                            ; do syntax error
+E282  8101                                    cmpa    #1                              
+E284  2723                                    beq             1f                              ; do "cls"
+E286  8102                                    cmpa    #2                              
+E288  272B                                    beq             2f                              ; do "load"
+E28A  8103                                    cmpa    #3
+E28C  2730                                    beq             3f                              ; do "exec"
+E28E  8104                                    cmpa    #4
+E290  274B                                    beq             4f                              ; do "reset"
+E292  8105                                    cmpa    #5
+E294  274D                                    beq             5f                              ; do "exit"
+E296  8106                                    cmpa    #6
+E298  274F                                    beq             6f                              ; screen
+E29A  8107                                    cmpa    #7
+E29C  10270092                                lbeq    7f                              ; dir
+E2A0  8108                                    cmpa    #8
+E2A2  102700AA                                lbeq    8f                              ; chdir
+E2A6  1600B5                                  lbra            999f                            ; syntax error
                       
-E29E                  1 ; cls
-E29E  86A2                                    lda             #$a2
-E2A0  B70015                                  sta             TEXT_ATTRIB     
+E2A9                  1 ; cls
+E2A9  86A2                                    lda             #$a2
+E2AB  B70015                                  sta             TEXT_ATTRIB     
                                       ; clear screen
-E2A3  BDE158                                  jsr             clear_text_screen
-E2A6  BDE23E                                  jsr             ok_prompt
-E2A9  39                                      rts             
+E2AE  BDE158                                  jsr             clear_text_screen
+E2B1  BDE23E                                  jsr             ok_prompt
+E2B4  39                                      rts             
                       
-E2AA                  2 ; load
-E2AA  BDE145                                  jsr     load_hex                        
-E2AD  8602                                    lda             #$02                    ; load the default graphics mode
-E2AF  BDE23E                                  jsr             ok_prompt
-E2B2  39                                      rts
+E2B5                  2 ; load <arg>
+E2B5  BDE145                                  jsr     load_hex                        
+E2B8  8602                                    lda             #$02                    ; load the default graphics mode
+E2BA  BDE23E                                  jsr             ok_prompt
+E2BD  39                                      rts
                       
-E2B3                  3 ; exec                        
-E2B3  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
-E2B6  8480                                    anda    #$80                    ; test for bit: file not found?         
-E2B8  4D                                      tsta    
-E2B9  2613                                    bne             31f                             ; dont call the sub if it wasnt loaded
-E2BB  BE0010                                  ldx             EXEC_VECTOR             ; whats in the exec vector?
-E2BE  8CE07F                                  cmpx    #reset                  ; if its set to default
-E2C1  270B                                    beq             31f                             ; then skip to OK prompt
-E2C3  AD9F0010                                jsr             [EXEC_VECTOR]   ; call the loaded subroutine
+E2BE                  3 ; exec                        
+E2BE  B6181F                                  lda             FIO_ERR_FLAGS   ; load the errors flag
+E2C1  8480                                    anda    #$80                    ; test for bit: file not found?         
+E2C3  4D                                      tsta    
+E2C4  2613                                    bne             31f                             ; dont call the sub if it wasnt loaded
+E2C6  BE0010                                  ldx             EXEC_VECTOR             ; whats in the exec vector?
+E2C9  8CE07F                                  cmpx    #reset                  ; if its set to default
+E2CC  270B                                    beq             31f                             ; then skip to OK prompt
+E2CE  AD9F0010                                jsr             [EXEC_VECTOR]   ; call the loaded subroutine
                       
-E2C7  BDE24A                                  jsr             text_screen_reset
-E2CA  BDE23E                                  jsr             ok_prompt               
-E2CD  39                                      rts
-E2CE                  31 ; skip exec
-E2CE  BDE23E                                  jsr             ok_prompt
-                      ;                       ldx             #prompt_ready
-                      ;                       jsr             text_out
-                      ;                       lda             #$0A
-                      ;                       jsr             char_out
-E2D1  39                                      rts
+E2D2  BDE24A                                  jsr             text_screen_reset
+E2D5  BDE23E                                  jsr             ok_prompt               
+E2D8  39                                      rts
+E2D9                  31 ; skip exec
+E2D9  BDE23E                                  jsr             ok_prompt
+E2DC  39                                      rts
                       
-E2D2                  4 ; reset
-E2D2  8600                                    lda             #$00                    ; $00 = Reset/Null
-E2D4  B71820                                  sta             FIO_COMMAND             ; send the command
-E2D7  39                                      rts
+E2DD                  4 ; reset
+E2DD  8600                                    lda             #$00                    ; $00 = Reset/Null
+E2DF  B71820                                  sta             FIO_COMMAND             ; send the command
+E2E2  39                                      rts
                       
                                               ;jmp            reset
                       
-E2D8                  5 ; exit
-E2D8  8617                                    lda             #$17                    ; $17 = SYSTEM: Shutdown
-E2DA  B71820                                  sta             FIO_COMMAND             ; send the command 
-E2DD  39                                      rts
+E2E3                  5 ; exit
+E2E3  8617                                    lda             #$17                    ; $17 = SYSTEM: Shutdown
+E2E5  B71820                                  sta             FIO_COMMAND             ; send the command 
+E2E8  39                                      rts
                       
-E2DE                  6 ; text32
-E2DE  B61800                                  lda             GFX_FLAGS
-E2E1  84FC                                    anda    #$FC                    ; mask out FG mode
-E2E3  8A01                                    ora             #$01                    ; mask in 32 column text mode
-E2E5  B71800                                  sta             GFX_FLAGS               ; update the display mode
-E2E8  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
-E2EB  7EE2D2                                  jmp             4b                              ; system: reset
+E2E9                  6 ; screen <arg>
+                                              ; $30 = 0       32x20
+                                              ; $31 = 1       64x40
+                                              ; $32 = 2       128x80 bitmap mode
+                                              ; check the argument
+E2E9  B61929                                  lda             FIO_FILEPATH
+E2EC  8130                                    cmpa    #'0'                    ; mode 0 = 32x20 
+E2EE  2712                                    beq             60f
+E2F0  8131                                    cmpa    #'1'                    ; mode 0 = 32x20 
+E2F2  271E                                    beq             61f
+E2F4  8132                                    cmpa    #'2'                    ; mode 0 = 32x20 
+E2F6  272A                                    beq             62f
+                                              ; ERROR: Argument out of Range!
+E2F8  8EE418                                  ldx     #strz_range_error
+E2FB  BDE1DC                                  jsr             text_out
+E2FE  BDE23E                                  jsr             ok_prompt       
+E301  39                                      rts
+E302                  60 ; 32x20 text
+E302  B61800                                  lda             GFX_FLAGS
+E305  84FC                                    anda    #$FC                    ; mask out FG mode
+E307  8A01                                    ora             #$01                    ; mask in 32 column text mode
+E309  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E30C  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
+E30F  7EE2DD                                  jmp             4b                              ; system: reset
+E312                  61 ; 64x40 text (default)
+E312  B61800                                  lda             GFX_FLAGS
+E315  84FC                                    anda    #$FC                    ; mask out FG mode
+E317  8A02                                    ora             #$02                    ; mask in 64 column text mode
+E319  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E31C  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
+E31F  7EE2DD                                  jmp             4b                              ; system: reset
                       
-E2EE                  7 ; text64
-E2EE  B61800                                  lda             GFX_FLAGS
-E2F1  84FC                                    anda    #$FC                    ; mask out FG mode
-E2F3  8A02                                    ora             #$02                    ; mask in 64 column text mode
-E2F5  B71800                                  sta             GFX_FLAGS               ; update the display mode
-E2F8  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
-E2FB  7EE2D2                                  jmp             4b                              ; system reset
+E322                  62 ; 128x80 16-color bitmap
+E322  B61800                                  lda             GFX_FLAGS
+E325  84FC                                    anda    #$FC                    ; mask out FG mode
+E327  8A03                                    ora             #$03                    ; mask in 64 column text mode
+E329  B71800                                  sta             GFX_FLAGS               ; update the display mode
+E32C  B7001E                                  sta             DEF_GFX_FLAGS   ; replace the defaults
+E32F  7EE2DD                                  jmp             4b                              ; system: reset
+                      
+E332                  7 ; dir
+E332  860C                                    lda             #$0c                    ; list files
+E334  B71820                                  sta             FIO_COMMAND
+                      
+E337  4F                                      clra
+E338  8E1829                                  ldx             #FIO_RET_BUFFER
+E33B                  71 ; loop
+E33B  B71828                                  sta             FIO_RET_INDEX   ; get the File[A]
+E33E  BDE1DC                                  jsr             text_out                ; send it to the screen
+E341  4C                                      inca    
+E342  B11827                                  cmpa    FIO_RET_COUNT   ; how many entries?
+E345  26F4                                    bne             71b
+                                      
+E347  860A                                    lda             #$0A
+E349  BDE172                                  jsr             char_out
+E34C  BDE23E                                  jsr             ok_prompt       
+E34F  39                                      rts
+                      
+E350                  8 ; chdir
+E350  860E                                    lda             #$0e                    ; $0E = command "CHDIR"
+E352  B71820                                  sta             FIO_COMMAND
+                      
+E355  860A                                    lda             #$0A
+E357  BDE172                                  jsr             char_out
+E35A  BDE23E                                  jsr             ok_prompt       
+                      
+E35D  39                                      rts
                       
                       
-E2FE                  999             ; Report a Syntax Error
+E35E                  999             ; Report a Syntax Error
                       ;                       lda             #$0a
                       ;                       jsr             char_out                
-E2FE  8EE390                                  ldx             #strz_syntax_error
-E301  BDE1DC                                  jsr             text_out
-                      ;                       lda             #$0a
-                      ;                       jsr             char_out                
-E304  BDE23E                                  jsr             ok_prompt       
-E307  39                                      rts
+E35E  8EE3F0                                  ldx             #strz_syntax_error
+E361  BDE1DC                                  jsr             text_out
+E364  BDE23E                                  jsr             ok_prompt       
+E367  39                                      rts
                       
-E308  863A                                    lda             #':'
-E30A  BDE172                                  jsr             char_out
-E30D  8620                                    lda             #' '
-E30F  BDE172                                  jsr             char_out
-E312  8622                                    lda             #$22                    ; "
-E314  BDE172                                  jsr             char_out
-E317  8E193C                                  ldx             #EDT_BUFFER
-E31A  BDE1DC                                  jsr             text_out
-E31D  8622                                    lda             #$22                    ; "
-E31F  BDE172                                  jsr             char_out
-E322  860A                                    lda             #$0a
-E324  BDE172                                  jsr             char_out
-E327  8EE07C                                  ldx             #prompt_ready
-E32A  BDE1DC                                  jsr             text_out
-E32D  860A                                    lda             #$0a
-E32F  BDE172                                  jsr             char_out
-E332                  1000 ; return from subroutine
-E332  39                                      rts
+E368  863A                                    lda             #':'
+E36A  BDE172                                  jsr             char_out
+E36D  8620                                    lda             #' '
+E36F  BDE172                                  jsr             char_out
+E372  8622                                    lda             #$22                    ; "
+E374  BDE172                                  jsr             char_out
+E377  8E1A3E                                  ldx             #EDT_BUFFER
+E37A  BDE1DC                                  jsr             text_out
+E37D  8622                                    lda             #$22                    ; "
+E37F  BDE172                                  jsr             char_out
+E382  860A                                    lda             #$0a
+E384  BDE172                                  jsr             char_out
+E387  8EE07C                                  ldx             #prompt_ready
+E38A  BDE1DC                                  jsr             text_out
+E38D  860A                                    lda             #$0a
+E38F  BDE172                                  jsr             char_out
+E392                  1000 ; return from subroutine
+E392  39                                      rts
                       
-E333                  fetch_cl_argument       ; copy everything past the first space character to FIO_FILEPATH
-E333  3432                                    pshs    A, X, Y
-E335  8E193C                                  ldx             #EDT_BUFFER
-E338  108E1827                                ldy             #FIO_FILEPATH
-E33C                  1 ; look for space
-E33C  A680                                    lda             ,X+
-E33E  8120                                    cmpa    #' '
-E340  2705                                    beq             2f                              ; copy the argument
-E342  8C1A3B                                  cmpx    #EDT_BUFFER+255
-E345  26F5                                    bne             1b
-E347                  2 ; loop through the argument
-E347  6F1F                                    clr             -1,X
-E349  A680                                    lda             ,X+
-E34B  A7A0                                    sta             ,Y+
-E34D  4D                                      tsta
-E34E  2706                                    beq             3f      
-E350  108C1926                                cmpy    #FIO_FILEPATH+255
-E354  26F1                                    bne             2b
-E356                  3 ; done
-E356  3532                                    puls    A, X, Y
-E358  39                                      rts
+E393                  fetch_cl_argument       ; copy everything past the first space character to FIO_FILEPATH
+E393  3432                                    pshs    A, X, Y
+E395  8E1A3E                                  ldx             #EDT_BUFFER
+E398  108E1929                                ldy             #FIO_FILEPATH
+E39C                  1 ; look for space
+E39C  A680                                    lda             ,X+
+E39E  8120                                    cmpa    #' '
+E3A0  2705                                    beq             2f                              ; copy the argument
+E3A2  8C1B3D                                  cmpx    #EDT_BUFFER+255
+E3A5  26F5                                    bne             1b
+E3A7                  2 ; loop through the argument
+E3A7  6F1F                                    clr             -1,X
+E3A9  A680                                    lda             ,X+
+E3AB  A7A0                                    sta             ,Y+
+E3AD  4D                                      tsta
+E3AE  2706                                    beq             3f      
+E3B0  108C1A28                                cmpy    #FIO_FILEPATH+255
+E3B4  26F1                                    bne             2b
+E3B6                  3 ; done
+E3B6  3532                                    puls    A, X, Y
+E3B8  39                                      rts
                       
                       
-E359                  lookup_cmd      ; return in A index of the command
+E3B9                  lookup_cmd      ; return in A index of the command
                                               ; or A = 0 if command not found
-E359  BDE333                                  jsr     fetch_cl_argument
-E35C  3434                                    pshs    B, X, Y
-E35E  8601                                    lda             #1                              ; RET = 1
-E360  3402                                    pshs    A                               ; push local RET onto the stack
-E362  4F                                      clra                                    ; A = Working Accumilator                       
-E363  5F                                      clrb                                    ; B = EDT_BUFFER[B] index
-E364  8E193C                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
-E367  108EE3B8                                ldy             #command_LUT    ; Y points to the position within the lookup table
-E36B                  1 ; loop:       
-E36B  A685                                    lda             B, X                    ; load A from EDT_BUFFER[X]                             
-E36D  8100                                    cmpa    #$00                    ; compare A with NULL-TERMINATION
-E36F  271A                                    beq             4f                              ; branch if EQUAL to success
-E371  8A20                                    ora             #$20                    ; force lower case
-E373  A1A0                                    cmpa    ,Y+                             ; compare A with command_LUT[Y]
-E375  2603                                    bne             2f                              ; branch if NOT equal to next_token
-E377  5C                                      incb                                    ; increment index in EDT_BUFFER[B]
-E378  20F1                                    bra             1b                              ; branch back to loop           
+E3B9  BDE393                                  jsr     fetch_cl_argument
+E3BC  3434                                    pshs    B, X, Y
+E3BE  8601                                    lda             #1                              ; RET = 1
+E3C0  3402                                    pshs    A                               ; push local RET onto the stack
+E3C2  4F                                      clra                                    ; A = Working Accumilator                       
+E3C3  5F                                      clrb                                    ; B = EDT_BUFFER[B] index
+E3C4  8E1A3E                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
+E3C7  108EE437                                ldy             #command_LUT    ; Y points to the position within the lookup table
+E3CB                  1 ; loop:       
+E3CB  A685                                    lda             B, X                    ; load A from EDT_BUFFER[X]                             
+E3CD  8100                                    cmpa    #$00                    ; compare A with NULL-TERMINATION
+E3CF  271A                                    beq             4f                              ; branch if EQUAL to success
+E3D1  8A20                                    ora             #$20                    ; force lower case
+E3D3  A1A0                                    cmpa    ,Y+                             ; compare A with command_LUT[Y]
+E3D5  2603                                    bne             2f                              ; branch if NOT equal to next_token
+E3D7  5C                                      incb                                    ; increment index in EDT_BUFFER[B]
+E3D8  20F1                                    bra             1b                              ; branch back to loop           
                                               
-E37A                  2 ; next_token:
-E37A  6CE4                                    inc             0,S                             ; increment RET
-E37C  5F                                      clrb                                    ; clear EDT_BUFFER[B] index
+E3DA                  2 ; next_token:
+E3DA  6CE4                                    inc             0,S                             ; increment RET
+E3DC  5F                                      clrb                                    ; clear EDT_BUFFER[B] index
                                               ; move Y to the beginning of the next label
-E37D                  5 ; lp_1:
-E37D  A6A0                                    lda             ,Y+                             ; load a with the current character in the LUT
-E37F  81FF                                    cmpa    #$ff                    ; if were at the end of the LUT
-E381  2706                                    beq             3f                              ; branch to failure
-E383  8100                                    cmpa    #$00                    ; end of a token
-E385  26F6                                    bne             5b                              ; keep searching if not
-E387  20E2                                    bra             1b                              ; branch back to loop    
-E389                  3 ; failure:
-E389  6FE4                                    clr             0,S                             ; RET = 0
-E38B                  4 ; success:
-E38B  3502                                    puls    A                               ; recover local RET
-E38D  3534                                    puls    B, X, Y
-E38F  39                                      rts                                             ; return RET                    
+E3DD                  5 ; lp_1:
+E3DD  A6A0                                    lda             ,Y+                             ; load a with the current character in the LUT
+E3DF  81FF                                    cmpa    #$ff                    ; if were at the end of the LUT
+E3E1  2706                                    beq             3f                              ; branch to failure
+E3E3  8100                                    cmpa    #$00                    ; end of a token
+E3E5  26F6                                    bne             5b                              ; keep searching if not
+E3E7  20E2                                    bra             1b                              ; branch back to loop    
+E3E9                  3 ; failure:
+E3E9  6FE4                                    clr             0,S                             ; RET = 0
+E3EB                  4 ; success:
+E3EB  3502                                    puls    A                               ; recover local RET
+E3ED  3534                                    puls    B, X, Y
+E3EF  39                                      rts                                             ; return RET                    
                       
                       
-E390  4552524F523A2053796E746178210A00 strz_syntax_error               fcn             "ERROR: Syntax!\n"
-E3A0  4552524F523A2046696C65204E6F7420466F756E64210A00 strz_nofile_error               fcn             "ERROR: File Not Found!\n"
+E3F0  4552524F523A2053796E746178210A00 strz_syntax_error               fcn             "ERROR: Syntax!\n"
+E400  4552524F523A2046696C65204E6F7420466F756E64210A00 strz_nofile_error               fcn             "ERROR: File Not Found!\n"
+E418  4552524F523A20417267756D656E74206F7574206F662052616E6765210A00 strz_range_error                fcn             "ERROR: Argument out of Range!\n"
                       
-E3B8                  command_LUT 
-E3B8  636C7300                                fcn             "cls"                   ; 1
-E3BC  6C6F616400                              fcn             "load"                  ; 2
-E3C1  6578656300                              fcn             "exec"                  ; 3
-E3C6  726573657400                            fcn             "reset"                 ; 4
-E3CC  6578697400                              fcn             "exit"                  ; 5
-E3D1  6D6F646520333200                         fcn             "mode 32"               ; 6
-E3D9  6D6F646520363400                         fcn             "mode 64"               ; 7
-E3E1  FF                                      fcb             0xFF
+E437                  command_LUT 
+E437  636C7300                                fcn             "cls"                   ; 1
+E43B  6C6F616400                              fcn             "load"                  ; 2
+E440  6578656300                              fcn             "exec"                  ; 3
+E445  726573657400                            fcn             "reset"                 ; 4
+E44B  6578697400                              fcn             "exit"                  ; 5
+E450  73637265656E00                          fcn             "screen"                ; 6     
+E457  64697200                                fcn             "dir"                   ; 7
+E45B  636400                                  fcn             "cd"                    ; 8             change directories
+E45E  FF                                      fcb             0xFF
                       
                       
                       

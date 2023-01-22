@@ -55,7 +55,7 @@ private:
 	void _cmd_get_file_length();	// $09 = Get File Length (FIO_BFRLEN = file length
 	void _cmd_load_binary();		// $0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
 	void _cmd_save_binary();		// $0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
-	void _cmd_list_diry();			// $0C = (not yet designed) List Directory
+	void _cmd_list_dir();			// $0C = (not yet designed) List Directory
 	void _cmd_make_dir();			// $0D = Make Directory
 	void _cmd_change_dir();			// $0E = Change Directory
 	void _cmd_rename_dir();			// $0F = Rename Directory
@@ -78,7 +78,12 @@ private:
 	Word _buffer_offset = 0;
 	Word _buffer_length = 0;
 	Word _seek_offset;
-	char _filepath[256] = {};
+	char _filepath[256] = "./";			// Hardware Register working path
+	
+	Byte _ret_index = 0;
+	std::vector<std::string> _files;
+
+
 };
 
 #endif // __FILEIO_H__

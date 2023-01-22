@@ -6,6 +6,14 @@
 // *		the SDCARD
 // ************************************
 
+#include <stdio.h>
+//#include <string>
+#include <iostream>
+#include <sstream>
+#include <filesystem>
+//#include <format>
+
+
 #include "types.h"
 #include "Bus.h"
 #include "Memory.h"
@@ -46,6 +54,9 @@
 //    FIO_BFROFS = 0x1821,        // (Word) start of I/O buffer
 //    FIO_BFRLEN = 0x1822,        // (Word) length of I/O buffer
 //   FIO_SEEKOFS = 0x1823,        // (Word) seek offset
+//  FIO_RET_COUNT = 0x1827,       // (Byte) number of return entries
+//  FIO_RET_INDEX = 0x1828,       // (Byte) command return index
+//  FIO_RET_BUFFER = 0x1829,      // (Char Array 256) paged return buffer
 //  FIO_FILEPATH = 0x1824,        // (Char Array 256) file path and argument buffer
 //       FIO_END = 0x1924,        // end of file i/o hardware registers
 
@@ -61,28 +72,45 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 		{
 			if (bWasRead)
 			{	// READ FROM
-				if (ofs == FIO_ERR_FLAGS)		data = ptrFile->_err_flags; 
+				if (ofs == FIO_ERR_FLAGS)		data = ptrFile->_err_flags;
 				else if (ofs == FIO_COMMAND)	data = ptrFile->_command;
 				else if (ofs == FIO_HANDLE)		data = ptrFile->_file_handle;
 				else if (ofs == FIO_BFROFS)		data = (ptrFile->_buffer_offset & 0x00FF) | (data << 8);
-				else if (ofs == FIO_BFROFS+1)	data = (ptrFile->_buffer_offset & 0xFF00) | (data << 0);
+				else if (ofs == FIO_BFROFS + 1)	data = (ptrFile->_buffer_offset & 0xFF00) | (data << 0);
 				else if (ofs == FIO_BFRLEN)		data = (ptrFile->_buffer_length & 0x00FF) | (data << 8);
 				else if (ofs == FIO_BFRLEN + 1)	data = (ptrFile->_buffer_length & 0xFF00) | (data << 0);
 				else if (ofs == FIO_SEEKOFS)		data = (ptrFile->_seek_offset & 0x00FF) | (data << 8);
 				else if (ofs == FIO_SEEKOFS + 1)	data = (ptrFile->_seek_offset & 0xFF00) | (data << 0);
 
-				else if (ofs >= FIO_FILEPATH && ofs < FIO_END)
+				else if (ofs == FIO_RET_COUNT)	data = ptrFile->_files.size();
+				else if (ofs == FIO_RET_INDEX)	data = ptrFile->_ret_index;
+
+				else if (ofs >= FIO_RET_BUFFER && ofs < FIO_RET_BUFFER + 256)
 				{
-					Byte i = (ofs - FIO_FILEPATH) % 256;
+					Byte i = (ofs - FIO_RET_BUFFER) % 255;
+					data = 0;
+					if (ptrFile->_files.size()>0)
+					{
+						if (i >= ptrFile->_files[ptrFile->_ret_index].size())
+							data = 0;
+						else
+							data = ptrFile->_files[ptrFile->_ret_index].at(i);
+						//ptrFile->_files[ptrFile->_ret_index].at(256) = 0;	// ensure a trailing null
+					}
+				}
+
+				else if (ofs >= FIO_FILEPATH && ofs < FIO_FILEPATH+256)
+				{
+					Byte i = (ofs - FIO_FILEPATH) % 255;
 					data = ptrFile->_filepath[i];
-					ptrFile->_filepath[255] = 0;	// enforce atleast one NULL terminator
+					//ptrFile->_filepath[255] = 0;	// enforce atleast one NULL terminator
 				}
 
 				bus->debug_write(ofs, data);	// update the memory for debug_reads
 			}
 			else
 			{	// WRITE TO
-				if (ofs == FIO_ERR_FLAGS)	
+				if (ofs == FIO_ERR_FLAGS)
 				{
 					ptrFile->_err_flags = data;
 					bus->debug_write(FIO_ERR_FLAGS, data);
@@ -103,7 +131,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 					case 0x09:	ptrFile->_cmd_get_file_length();		break;
 					case 0x0A:	ptrFile->_cmd_load_binary();			break;
 					case 0x0B:	ptrFile->_cmd_save_binary();			break;
-					case 0x0C:	ptrFile->_cmd_list_diry();				break;
+					case 0x0C:	ptrFile->_cmd_list_dir();				break;
 					case 0x0D:	ptrFile->_cmd_make_dir();				break;
 					case 0x0E:	ptrFile->_cmd_change_dir();				break;
 					case 0x0F:	ptrFile->_cmd_rename_dir();				break;
@@ -120,9 +148,9 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 						break;
 					}
 				}
-				else if (ofs == FIO_BFROFS)		
+				else if (ofs == FIO_BFROFS)
 					ptrFile->_buffer_offset = (ptrFile->_buffer_offset & 0x00FF) | (data << 8);
-				else if (ofs == FIO_BFROFS+1)
+				else if (ofs == FIO_BFROFS + 1)
 					ptrFile->_buffer_offset = (ptrFile->_buffer_offset & 0xFF00) | (data << 0);
 
 				else if (ofs == FIO_BFRLEN)
@@ -135,10 +163,17 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 				else if (ofs == FIO_SEEKOFS + 1)
 					ptrFile->_seek_offset = (ptrFile->_seek_offset & 0xFF00) | (data << 0);
 
-				else if (ofs >= FIO_FILEPATH && ofs <= FIO_END)
+				else if (ofs == FIO_RET_INDEX)
+				{
+					ptrFile->_ret_index = data;
+					bus->debug_write(FIO_RET_INDEX, data);
+				}
+
+
+				else if (ofs >= FIO_FILEPATH && ofs <= FIO_FILEPATH+256)
 				{
 					Word i = (ofs - FIO_FILEPATH);
-					if (i >= FIO_END)   i = FIO_END - 1;
+					if (i >= FIO_FILEPATH + 256)   i = FIO_FILEPATH + 255;
 					ptrFile->_filepath[i] = data;
 				}
 
@@ -211,10 +246,15 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    $16 = Seek End                            " }); offset += 0;
 	memmap->push({ offset, "", ">    $17 = SYSTEM: Shutdown                    " }); offset += 0;
 
-	memmap->push({ offset, "FIO_HANDLE", "(Byte) file handle or ZERO          " }); offset += 1;
-	memmap->push({ offset, "FIO_BFROFS", "(Word) start of I/O buffer          " }); offset += 1;
-	memmap->push({ offset, "FIO_BFRLEN", "(Word) length of I/O buffer         " }); offset += 2;
-	memmap->push({ offset, "FIO_SEEKOFS","(Word) seek offset                  " }); offset += 2;
+	memmap->push({ offset, "FIO_HANDLE",    "(Byte) file handle or ZERO          " }); offset += 1;
+	memmap->push({ offset, "FIO_BFROFS",    "(Word) start of I/O buffer          " }); offset += 1;
+	memmap->push({ offset, "FIO_BFRLEN",    "(Word) length of I/O buffer         " }); offset += 2;
+	memmap->push({ offset, "FIO_SEEKOFS",   "(Word) seek offset                  " }); offset += 2;
+										    
+	memmap->push({ offset, "FIO_RET_COUNT", "(Byte) number of return entries     " }); offset += 1;
+	memmap->push({ offset, "FIO_RET_INDEX", "(Byte) command return index         " }); offset += 1;
+	memmap->push({ offset, "FIO_RET_BUFFER","(Char Array 256) paged return buffer" }); offset += 256;
+
 	memmap->push({ offset, "FIO_FILEPATH", "(Char Array 256) file path and argument buffer    " }); offset += 256;
 	memmap->push({ offset, "FIO_END", "end of file i/o hardware registers     " }); offset += 1;
 	memmap->push({ offset, "", "" });
@@ -443,10 +483,109 @@ void FileIO::_cmd_save_binary()
 	printf("FileIO::_cmd_save_binary()\n");
 }
 
+
 // $0C = (not yet designed) List Directory
-void FileIO::_cmd_list_diry()
+void FileIO::_cmd_list_dir()
 {
-	printf("FileIO::_cmd_list_diry()\n");
+	printf("FileIO::_cmd_list_dir()\n");
+
+	printf("FILEPATH: %s\n", _filepath);
+	
+	// presumptions about _filepath  (*.cpp):
+	//		if first character is a '*' then files are wild
+	//      if last character is a '*' then extensions are wild
+	//
+
+	_files.clear();
+	// std::filesystem::current_path("../");  // change dir
+	std::string path = std::filesystem::current_path().generic_string();
+
+	printf("path: %s\n", path.c_str());
+
+	if (strlen(_filepath)==0)
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(path))
+		{
+			std::stringstream dir;
+			if (entry.is_directory())
+			{
+				dir << "[" << entry.path().filename().generic_string() << "]";
+				std::string stDir = dir.str();
+				while (stDir.size() < 16)
+					stDir = " " + stDir;
+				_files.push_back(stDir);
+			}
+			if (entry.is_regular_file())
+			{
+				dir << entry.path().filename().generic_string();
+				std::string stDir = dir.str();
+				while (stDir.size() < 16)
+					stDir = " " + stDir;
+				_files.push_back(stDir);
+			}
+		}
+	}
+	else
+	{
+		std::string fp = _filepath;
+		std::string file = "";
+		std::string ext = "";
+		int dot = 0;
+		if (fp.at(0) == '*')
+		{
+			printf("WILD FILE\n");
+			dot = fp.find('.');
+			printf("dot: %d\n", dot);
+			ext = "." + fp.substr(dot + 1);
+			printf("EXT: %s\n", ext.c_str());
+			for (const auto& entry : std::filesystem::directory_iterator(path))
+			{
+				std::string strExt = entry.path().extension().filename().string();
+				//printf("ext: %s == %s?\n", ext.c_str(), strExt.c_str());
+				std::stringstream dir;
+				if (entry.is_regular_file() && ext == strExt)
+				{
+					dir << entry.path().filename().generic_string();
+					std::string stDir = dir.str();
+					while (stDir.size() < 16)
+						stDir = " " + stDir;
+					_files.push_back(stDir);
+				}
+			}
+		}
+		if (fp.at(fp.size()-1) == '*')
+		{
+			printf("WILD EXTENSION\n");
+			dot = fp.find('.');
+			printf("dot: %d\n", dot);
+			file = fp.substr(0, dot);
+			printf("FILE: %s\n", file.c_str());
+			for (const auto& entry : std::filesystem::directory_iterator(path))
+			{
+				std::string strFile = entry.path().filename().string();
+				
+				strFile = strFile.substr(0, strFile.find('.'));
+				printf("file: %s == %s?\n", file.c_str(), strFile.c_str());
+				std::stringstream dir;
+				if (entry.is_regular_file() && file == strFile)
+				{
+					dir << entry.path().filename().generic_string();
+					std::string stDir = dir.str();
+					while (stDir.size() < 16)
+						stDir = " " + stDir;
+					_files.push_back(stDir);
+				}
+			}
+		}
+	}
+
+
+
+	
+
+	// output the basic directory structure
+	for (auto& f : _files)
+		printf("%s\n", f.c_str());
 }
 
 // $0D = Make Directory
@@ -459,6 +598,13 @@ void FileIO::_cmd_make_dir()
 void FileIO::_cmd_change_dir()
 {
 	printf("FileIO::_cmd_change_dir()\n");
+
+	printf("FILEPATH: %s\n", _filepath);
+	if (strlen(_filepath) == 0)		return;
+
+	std::string chdir = _filepath;
+	std::filesystem::current_path(chdir);  // change dir
+
 }
 
 // $0F = Rename Directory

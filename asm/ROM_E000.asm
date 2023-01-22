@@ -139,7 +139,7 @@ main_kernel
 			jsr		tcsr_pos_reg	; X: calculated offset within the video buffer
 			stx		TCSR_ANC_ADR
 
-;; color the anchor character
+; color the anchor character
 ;			ldb		#$3B			; anchor color attribute
 ;			stb		1,X				; highlight the anchor character
 
@@ -429,7 +429,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 
 		; [L] = test load "test.hex"
 			cmpa	#0
-			beq		999f				; do syntax error
+			lbeq		999f				; do syntax error
 			cmpa	#1				
 			beq		1f				; do "cls"
 			cmpa	#2				
@@ -441,10 +441,12 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			cmpa	#5
 			beq		5f				; do "exit"
 			cmpa	#6
-			beq		6f				; do "text32"
+			beq		6f				; screen
 			cmpa	#7
-			beq		7f				; do "text64"
-			bra		999f				; syntax error
+			lbeq	7f				; dir
+			cmpa	#8
+			lbeq	8f				; chdir
+			lbra		999f				; syntax error
 
 1 ; cls
 			lda		#$a2
@@ -454,7 +456,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			jsr		ok_prompt
 			rts		
 
-2 ; load
+2 ; load <arg>
 			jsr 	load_hex			
 			lda		#$02			; load the default graphics mode
 			jsr		ok_prompt
@@ -475,10 +477,6 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			rts
 31 ; skip exec
 			jsr		ok_prompt
-;			ldx		#prompt_ready
-;			jsr		text_out
-;			lda		#$0A
-;			jsr		char_out
 			rts
 
 4 ; reset
@@ -493,21 +491,73 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			sta		FIO_COMMAND		; send the command 
 			rts
 
-6 ; text32
+6 ; screen <arg>
+			; $30 = 0	32x20
+			; $31 = 1	64x40
+			; $32 = 2	128x80 bitmap mode
+			; check the argument
+			lda		FIO_FILEPATH
+			cmpa	#'0'			; mode 0 = 32x20 
+			beq		60f
+			cmpa	#'1'			; mode 0 = 32x20 
+			beq		61f
+			cmpa	#'2'			; mode 0 = 32x20 
+			beq		62f
+			; ERROR: Argument out of Range!
+			ldx 	#strz_range_error
+			jsr		text_out
+			jsr		ok_prompt	
+			rts
+60 ; 32x20 text
 			lda		GFX_FLAGS
 			anda	#$FC			; mask out FG mode
 			ora		#$01			; mask in 32 column text mode
 			sta		GFX_FLAGS		; update the display mode
 			sta		DEF_GFX_FLAGS	; replace the defaults
 			jmp		4b				; system: reset
-
-7 ; text64
+61 ; 64x40 text (default)
 			lda		GFX_FLAGS
 			anda	#$FC			; mask out FG mode
 			ora		#$02			; mask in 64 column text mode
 			sta		GFX_FLAGS		; update the display mode
 			sta		DEF_GFX_FLAGS	; replace the defaults
-			jmp		4b				; system reset
+			jmp		4b				; system: reset
+
+62 ; 128x80 16-color bitmap
+			lda		GFX_FLAGS
+			anda	#$FC			; mask out FG mode
+			ora		#$03			; mask in 64 column text mode
+			sta		GFX_FLAGS		; update the display mode
+			sta		DEF_GFX_FLAGS	; replace the defaults
+			jmp		4b				; system: reset
+
+7 ; dir
+			lda		#$0c			; list files
+			sta		FIO_COMMAND
+
+			clra
+			ldx		#FIO_RET_BUFFER
+71 ; loop
+			sta		FIO_RET_INDEX	; get the File[A]
+			jsr		text_out		; send it to the screen
+			inca	
+			cmpa	FIO_RET_COUNT	; how many entries?
+			bne		71b
+		
+			lda		#$0A
+			jsr		char_out
+			jsr		ok_prompt	
+			rts
+
+8 ; chdir
+			lda		#$0e			; $0E = command "CHDIR"
+			sta		FIO_COMMAND
+
+			lda		#$0A
+			jsr		char_out
+			jsr		ok_prompt	
+
+			rts
 
 
 999		; Report a Syntax Error
@@ -515,8 +565,6 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 ;			jsr		char_out		
 			ldx		#strz_syntax_error
 			jsr		text_out
-;			lda		#$0a
-;			jsr		char_out		
 			jsr		ok_prompt	
 			rts
 
@@ -603,6 +651,7 @@ lookup_cmd	; return in A index of the command
 
 strz_syntax_error		fcn		"ERROR: Syntax!\n"
 strz_nofile_error		fcn		"ERROR: File Not Found!\n"
+strz_range_error		fcn		"ERROR: Argument out of Range!\n"
 
 command_LUT 
 			fcn		"cls"			; 1
@@ -610,8 +659,9 @@ command_LUT
 			fcn		"exec"			; 3
 			fcn		"reset"			; 4
 			fcn		"exit"			; 5
-			fcn		"mode 32"		; 6
-			fcn		"mode 64"		; 7
+			fcn		"screen"		; 6	
+			fcn		"dir"			; 7
+			fcn		"cd"			; 8		change directories
 			fcb		0xFF
 
 

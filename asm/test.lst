@@ -137,21 +137,24 @@
 1822                  FIO_BFROFS      equ     $1822   ; (Word) start of I/O buffer
 1823                  FIO_BFRLEN      equ     $1823   ; (Word) length of I/O buffer
 1825                  FIO_SEEKOFS     equ     $1825   ; (Word) seek offset
-1827                  FIO_FILEPATH    equ     $1827   ; (Char Array 256) file path and argument buffer
-1927                  FIO_END equ     $1927   ; end of file i/o hardware registers
+1827                  FIO_RET_COUNT   equ     $1827   ; (Byte) number of return entries
+1828                  FIO_RET_INDEX   equ     $1828   ; (Byte) command return index
+1829                  FIO_RET_BUFFER  equ     $1829   ; (Char Array 256) paged return buffer
+1929                  FIO_FILEPATH    equ     $1929   ; (Char Array 256) file path and argument buffer
+1A29                  FIO_END equ     $1a29   ; end of file i/o hardware registers
                       
                       ;  Keyboard Hardware Registers:
-1928                  KEY_BEGIN       equ     $1928   ; start of keyboard hardware registers
-1928                  CHAR_Q_LEN      equ     $1928   ; (char) # of characters waiting in queue       (Read Only)
-1929                  CHAR_SCAN       equ     $1929   ; read next character in queue       (not popped when read)
-192A                  CHAR_POP        equ     $192a   ; (char) next character waiting in queue (popped when read)
-192B                  XKEY_BUFFER     equ     $192b   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-193B                  EDT_BFR_CSR     equ     $193b   ; (Byte) cursor position within edit buffer    (Read/Write)
-193C                  EDT_BUFFER      equ     $193c   ; (256 Bytes) line editing character buffer    (Read/Write)
-1A3C                  KEY_END equ     $1a3c   ; end of keyboard hardware registers
+1A2A                  KEY_BEGIN       equ     $1a2a   ; start of keyboard hardware registers
+1A2A                  CHAR_Q_LEN      equ     $1a2a   ; (char) # of characters waiting in queue       (Read Only)
+1A2B                  CHAR_SCAN       equ     $1a2b   ; read next character in queue       (not popped when read)
+1A2C                  CHAR_POP        equ     $1a2c   ; (char) next character waiting in queue (popped when read)
+1A2D                  XKEY_BUFFER     equ     $1a2d   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+1A3D                  EDT_BFR_CSR     equ     $1a3d   ; (Byte) cursor position within edit buffer    (Read/Write)
+1A3E                  EDT_BUFFER      equ     $1a3e   ; (256 Bytes) line editing character buffer    (Read/Write)
+1B3E                  KEY_END equ     $1b3e   ; end of keyboard hardware registers
                       
                       ;  Reserved Hardware:
-1A3D                  RESERVED_HDW    equ     $1a3d   ; Reserved 1470 bytes ($1A3D - $1FFB)
+1B3F                  RESERVED_HDW    equ     $1b3f   ; Reserved 1212 bytes ($1B3F - $1FFB)
                       
                       ;  Memory Bank Selects (16MB):
 1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -302,10 +305,10 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20BE  20E0                                    bra             6b
 20C0                  continue
                                               ; WAS [ESCAPE] PRESSED
-20C0  B61928                                  lda             CHAR_Q_LEN
+20C0  B61A2A                                  lda             CHAR_Q_LEN
 20C3  279A                                    beq             2b
                       
-20C5  B6192A                                  lda             CHAR_POP
+20C5  B61A2C                                  lda             CHAR_POP
 20C8  811B                                    cmpa    #$1b            ; [ESCAPE]
 20CA  2693                                    bne             2b
                       

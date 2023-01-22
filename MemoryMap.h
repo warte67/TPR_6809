@@ -178,21 +178,24 @@ enum MEMMAP
     FIO_BFROFS = 0x1822,        // (Word) start of I/O buffer
     FIO_BFRLEN = 0x1823,        // (Word) length of I/O buffer
    FIO_SEEKOFS = 0x1825,        // (Word) seek offset
-  FIO_FILEPATH = 0x1827,        // (Char Array 256) file path and argument buffer
-       FIO_END = 0x1927,        // end of file i/o hardware registers
+  FIO_RET_COUNT = 0x1827,       // (Byte) number of return entries
+  FIO_RET_INDEX = 0x1828,       // (Byte) command return index
+  FIO_RET_BUFFER = 0x1829,      // (Char Array 256) paged return buffer
+  FIO_FILEPATH = 0x1929,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1a29,        // end of file i/o hardware registers
 
 //  Keyboard Hardware Registers:
-     KEY_BEGIN = 0x1928,        // start of keyboard hardware registers
-    CHAR_Q_LEN = 0x1928,        // (char) # of characters waiting in queue       (Read Only)
-     CHAR_SCAN = 0x1929,        // read next character in queue       (not popped when read)
-      CHAR_POP = 0x192a,        // (char) next character waiting in queue (popped when read)
-   XKEY_BUFFER = 0x192b,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-   EDT_BFR_CSR = 0x193b,        // (Byte) cursor position within edit buffer    (Read/Write)
-    EDT_BUFFER = 0x193c,        // (256 Bytes) line editing character buffer    (Read/Write)
-       KEY_END = 0x1a3c,       // end of keyboard hardware registers
+     KEY_BEGIN = 0x1a2a,        // start of keyboard hardware registers
+    CHAR_Q_LEN = 0x1a2a,        // (char) # of characters waiting in queue       (Read Only)
+     CHAR_SCAN = 0x1a2b,        // read next character in queue       (not popped when read)
+      CHAR_POP = 0x1a2c,        // (char) next character waiting in queue (popped when read)
+   XKEY_BUFFER = 0x1a2d,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+   EDT_BFR_CSR = 0x1a3d,        // (Byte) cursor position within edit buffer    (Read/Write)
+    EDT_BUFFER = 0x1a3e,        // (256 Bytes) line editing character buffer    (Read/Write)
+       KEY_END = 0x1b3e,        // end of keyboard hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1a3d,        // Reserved 1470 bytes ($1A3D - $1FFB)
+  RESERVED_HDW = 0x1b3f,        // Reserved 1212 bytes ($1B3F - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -219,8 +222,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
-
 
 
 
