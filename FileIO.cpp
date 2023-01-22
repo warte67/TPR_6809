@@ -337,10 +337,10 @@ void FileIO::load_hex(const char* filename)
 		return;
 	}
 
-	// strip out \" characters and spaces
+	// strip out \" characters
 	std::string strFilename = "";
 	for (int t = 0; t < strlen(filename); t++)
-		if (filename[t] != '\"' && filename[t] != ' ')
+		if (filename[t] != '\"')
 			strFilename += filename[t];
 	FILE* fp;
 	int done = 0;
