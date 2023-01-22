@@ -82,7 +82,11 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 			}
 			else
 			{	// WRITE TO
-				if (ofs == FIO_ERR_FLAGS)	ptrFile->_err_flags = data;
+				if (ofs == FIO_ERR_FLAGS)	
+				{
+					ptrFile->_err_flags = data;
+					bus->debug_write(FIO_ERR_FLAGS, data);
+				}
 				else if (ofs == FIO_COMMAND)
 				{
 					switch (data)
@@ -94,7 +98,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 					case 0x04:	ptrFile->_cmd_close();					break;
 					case 0x05:	ptrFile->_cmd_read_byte();				break;
 					case 0x06:	ptrFile->_cmd_write_byte();				break;
-					case 0x07:	ptrFile->_cmd_load_hex();				break;
+					case 0x07:	ptrFile->_cmd_load_hex();				break;		// load_hex
 					case 0x08:	ptrFile->_cmd_write_hex_line();			break;
 					case 0x09:	ptrFile->_cmd_get_file_length();		break;
 					case 0x0A:	ptrFile->_cmd_load_binary();			break;
@@ -284,17 +288,31 @@ static Word fio_fread_hex_word(FILE* fp)
 }
 void FileIO::load_hex(const char* filename)
 {
+	bus->write(FIO_ERR_FLAGS, 0);
+
 	if (strlen(filename) == 0)
+	{
+		// file not found
+		Byte data = bus->read(FIO_ERR_FLAGS);
+		data |= 0x80;
+		bus->write(FIO_ERR_FLAGS, data);
 		return;
+	}
+
+	// strip out \" characters and spaces
+	std::string strFilename = "";
+	for (int t = 0; t < strlen(filename); t++)
+		if (filename[t] != '\"' && filename[t] != ' ')
+			strFilename += filename[t];
 
 	FILE* fp;
 	int done = 0;
 	//setFilename(filename);
 
 #pragma warning(suppress : 4996)
-	fp = fopen(filename, "r");
+	fp = fopen(strFilename.c_str(), "r");
 	if (!fp) {
-		Byte data = 0;
+		Byte data = bus->read(FIO_ERR_FLAGS);
 		data |= 0x80;		// set the "File Not Found" bit
 		bus->write(FIO_ERR_FLAGS, data);
 

@@ -232,24 +232,24 @@ main_kernel
 
 ; FILE SYSTEM TESTS:
 
-test_load_hex
-			; load "test.hex"
-			ldx		#test_file		; fetch the filename
-			ldy		#FIO_FILEPATH	; fetch the filename hardware register storage
-1
-			lda		,x+				; copy a character from the source filename
-			sta		,y+				; store it in the hardware register
-			bne		1b				; keep looping until null-termination
+load_hex
+;			; load "test.hex"
+;			ldx		#test_file		; fetch the filename
+;			ldy		#FIO_FILEPATH	; fetch the filename hardware register storage
+;1
+;			lda		,x+				; copy a character from the source filename
+;			sta		,y+				; store it in the hardware register
+;			bne		1b				; keep looping until null-termination
 
 			lda		#$07			; command: LoadHex
 			sta		FIO_COMMAND		; executre the command
 			lda		FIO_ERR_FLAGS	; load the errors flag
 			cmpa	#$80			; test for bit: file not found?
-			beq		1f				; dont call the sub if it wasnt loaded
+			bne		1f				; dont call the sub if it wasnt loaded
 
-
-			;jsr		[$0010]			; call the loaded subroutine
-
+			; display, "ERROR: File Not Found!"
+			ldx		#strz_nofile_error
+			jsr		text_out
 
 1
 			rts
@@ -455,7 +455,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			rts		
 
 2 ; load
-			jsr 	test_load_hex			
+			jsr 	load_hex			
 			lda		#$02			; load the default graphics mode
 			jsr		ok_prompt
 			rts
@@ -539,8 +539,32 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 1000 ; return from subroutine
 			rts
 
+fetch_cl_argument	; copy everything past the first space character to FIO_FILEPATH
+			pshs 	A, X, Y
+			ldx		#EDT_BUFFER
+			ldy		#FIO_FILEPATH
+1 ; look for space
+			lda		,X+
+			cmpa	#' '
+			beq		2f				; copy the argument
+			cmpx	#EDT_BUFFER+255
+			bne		1b
+2 ; loop through the argument
+			clr		-1,X
+			lda		,X+
+			sta		,Y+
+			tsta
+			beq		3f	
+			cmpy	#FIO_FILEPATH+255
+			bne		2b
+3 ; done
+			puls    A, X, Y
+			rts
+
+
 lookup_cmd	; return in A index of the command
 			; or A = 0 if command not found
+			jsr 	fetch_cl_argument
 			pshs 	B, X, Y
 			lda		#1				; RET = 1
 			pshs	A				; push local RET onto the stack
@@ -548,10 +572,8 @@ lookup_cmd	; return in A index of the command
 			clrb					; B = EDT_BUFFER[B] index
 			ldx		#EDT_BUFFER		; X = EDT_BUFFER[0]
 			ldy		#command_LUT	; Y points to the position within the lookup table
-1 ; loop:					
-			lda		B, X			; load A from EDT_BUFFER[X]	
-			cmpa	#$ff			; compare A with 0xFF
-			beq		3f				; branch if EQUAL to failure
+1 ; loop:	
+			lda		B, X			; load A from EDT_BUFFER[X]				
 			cmpa	#$00			; compare A with NULL-TERMINATION
 			beq		4f				; branch if EQUAL to success
 			ora		#$20			; force lower case
@@ -559,6 +581,7 @@ lookup_cmd	; return in A index of the command
 			bne		2f				; branch if NOT equal to next_token
 			incb					; increment index in EDT_BUFFER[B]
 			bra		1b				; branch back to loop    	
+			
 2 ; next_token:
 			inc		0,S				; increment RET
 			clrb					; clear EDT_BUFFER[B] index
@@ -578,8 +601,9 @@ lookup_cmd	; return in A index of the command
 			rts						; return RET			
 
 
-strz_syntax_error
-			fcn		"ERROR: Syntax!\n"
+strz_syntax_error		fcn		"ERROR: Syntax!\n"
+strz_nofile_error		fcn		"ERROR: File Not Found!\n"
+
 command_LUT 
 			fcn		"cls"			; 1
 			fcn		"load"			; 2

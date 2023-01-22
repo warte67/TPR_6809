@@ -636,7 +636,7 @@ bool GfxDebug::EditRegister(float fElapsedTime)
 				if (nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_BREAK)
 				{
 					mapBreakpoints[new_breakpoint] = true;
-					nRegisterBeingEdited.reg == EDIT_REGISTER::EDIT_NONE;
+					nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_NONE;
 					bEditingBreakpoint = false;
 				}
 				nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_NONE;
@@ -1183,5 +1183,5 @@ void GfxDebug::cbAddBrk()
 	bEditingBreakpoint = true;
 	//new_breakpoint = cpu->getPC();
 
-	nRegisterBeingEdited.reg == EDIT_REGISTER::EDIT_BREAK;
+	nRegisterBeingEdited.reg = EDIT_REGISTER::EDIT_BREAK;
 }

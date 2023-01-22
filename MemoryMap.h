@@ -162,7 +162,7 @@ enum MEMMAP
                                 //      $09 = Get File Length (FIO_BFRLEN = file length
                                 //      $0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
                                 //      $0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
-                                //      $0C = (not yet designed) List Directory
+                                //      $0C = List Directory
                                 //      $0D = Make Directory
                                 //      $0E = Change Directory
                                 //      $0F = Rename Directory
@@ -189,7 +189,7 @@ enum MEMMAP
    XKEY_BUFFER = 0x192b,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
    EDT_BFR_CSR = 0x193b,        // (Byte) cursor position within edit buffer    (Read/Write)
     EDT_BUFFER = 0x193c,        // (256 Bytes) line editing character buffer    (Read/Write)
-       KEY_END = 0x1a3c,        // end of keyboard hardware registers
+       KEY_END = 0x1a3c,       // end of keyboard hardware registers
 
 //  Reserved Hardware:
   RESERVED_HDW = 0x1a3d,        // Reserved 1470 bytes ($1A3D - $1FFB)
