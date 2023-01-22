@@ -415,11 +415,11 @@ E153  270A                                    beq             2f                
 E155  200E                                    bra             9f
                       
 E157                  1                       ; display, "ERROR: File Not Found!"
-E157  8EE409                                  ldx             #strz_nofile_error
+E157  8EE418                                  ldx             #strz_nofile_error
 E15A  BDE1EA                                  jsr             text_out
 E15D  2006                                    bra             9f
 E15F                  2                       ; display, "ERROR: Wrong File Type"
-E15F  8EE440                                  ldx             #strz_wrongfile_error
+E15F  8EE44F                                  ldx             #strz_wrongfile_error
 E162  BDE1EA                                  jsr             text_out
 E165                  9                       
 E165  39                                      rts
@@ -589,17 +589,17 @@ E278  39                                      rts
 E279                  execute_command ; parse and run the string that is currently in the hardware EDT_BUFFER register
 E279  B61A3E                                  lda             EDT_BUFFER
 E27C  8120                                    cmpa    #$20
-E27E  10270119                                lbeq    1000f
+E27E  10270128                                lbeq    1000f
                       
 E282  860A                                    lda             #$0a
 E284  BDE180                                  jsr             char_out
                       
                                       ; parse
-E287  BDE3C2                                  jsr             lookup_cmd
+E287  BDE3D1                                  jsr             lookup_cmd
                       
                                       ; [L] = test load "test.hex"
 E28A  8100                                    cmpa    #0
-E28C  102700D7                                lbeq            999f                            ; do syntax error
+E28C  102700E6                                lbeq            999f                            ; do syntax error
 E290  8101                                    cmpa    #1                              
 E292  2723                                    beq             1f                              ; do "cls"
 E294  8102                                    cmpa    #2                              
@@ -616,7 +616,7 @@ E2A8  8107                                    cmpa    #7
 E2AA  10270092                                lbeq    7f                              ; dir
 E2AE  8108                                    cmpa    #8
 E2B0  102700AA                                lbeq    8f                              ; chdir
-E2B4  1600B0                                  lbra            999f                            ; syntax error
+E2B4  1600BF                                  lbra            999f                            ; syntax error
                       
 E2B7                  1 ; cls
 E2B7  86A2                                    lda             #$a2
@@ -674,7 +674,7 @@ E300  271E                                    beq             61f
 E302  8132                                    cmpa    #'2'                    ; mode 0 = 32x20 
 E304  272A                                    beq             62f
                                               ; ERROR: Argument out of Range!
-E306  8EE421                                  ldx     #strz_range_error
+E306  8EE430                                  ldx     #strz_range_error
 E309  BDE1EA                                  jsr             text_out
 E30C  BDE24C                                  jsr             ok_prompt       
 E30F  39                                      rts
@@ -723,117 +723,123 @@ E35E                  8 ; chdir
 E35E  860E                                    lda             #$0e                    ; $0E = command "CHDIR"
 E360  B71820                                  sta             FIO_COMMAND
                       
-                      ;                       lda             #$0A
-                      ;                       jsr             char_out
-E363  BDE24C                                  jsr             ok_prompt       
+E363  B6181F                                  lda     FIO_ERR_FLAGS
+E366  8408                                    anda    #$08                    ; directory not found
+E368  8108                                    cmpa    #$08
+E36A  2606                                    bne             81f                             ; nope, just end
+E36C  8EE468                                  ldx             #strz_dirnope_error
+E36F  BDE1EA                                  jsr             text_out
+E372                  81 ; done
+E372  BDE24C                                  jsr             ok_prompt       
                       
-E366  39                                      rts
+E375  39                                      rts
                       
                       
-E367                  999             ; Report a Syntax Error
+E376                  999             ; Report a Syntax Error
                       ;                       lda             #$0a
                       ;                       jsr             char_out                
-E367  8EE3F9                                  ldx             #strz_syntax_error
-E36A  BDE1EA                                  jsr             text_out
-E36D  BDE24C                                  jsr             ok_prompt       
-E370  39                                      rts
+E376  8EE408                                  ldx             #strz_syntax_error
+E379  BDE1EA                                  jsr             text_out
+E37C  BDE24C                                  jsr             ok_prompt       
+E37F  39                                      rts
                       
-E371  863A                                    lda             #':'
-E373  BDE180                                  jsr             char_out
-E376  8620                                    lda             #' '
-E378  BDE180                                  jsr             char_out
-E37B  8622                                    lda             #$22                    ; "
-E37D  BDE180                                  jsr             char_out
-E380  8E1A3E                                  ldx             #EDT_BUFFER
-E383  BDE1EA                                  jsr             text_out
-E386  8622                                    lda             #$22                    ; "
-E388  BDE180                                  jsr             char_out
-E38B  860A                                    lda             #$0a
-E38D  BDE180                                  jsr             char_out
-E390  8EE07C                                  ldx             #prompt_ready
-E393  BDE1EA                                  jsr             text_out
-E396  860A                                    lda             #$0a
-E398  BDE180                                  jsr             char_out
-E39B                  1000 ; return from subroutine
-E39B  39                                      rts
+E380  863A                                    lda             #':'
+E382  BDE180                                  jsr             char_out
+E385  8620                                    lda             #' '
+E387  BDE180                                  jsr             char_out
+E38A  8622                                    lda             #$22                    ; "
+E38C  BDE180                                  jsr             char_out
+E38F  8E1A3E                                  ldx             #EDT_BUFFER
+E392  BDE1EA                                  jsr             text_out
+E395  8622                                    lda             #$22                    ; "
+E397  BDE180                                  jsr             char_out
+E39A  860A                                    lda             #$0a
+E39C  BDE180                                  jsr             char_out
+E39F  8EE07C                                  ldx             #prompt_ready
+E3A2  BDE1EA                                  jsr             text_out
+E3A5  860A                                    lda             #$0a
+E3A7  BDE180                                  jsr             char_out
+E3AA                  1000 ; return from subroutine
+E3AA  39                                      rts
                       
-E39C                  fetch_cl_argument       ; copy everything past the first space character to FIO_FILEPATH
-E39C  3432                                    pshs    A, X, Y
-E39E  8E1A3E                                  ldx             #EDT_BUFFER
-E3A1  108E1929                                ldy             #FIO_FILEPATH
-E3A5                  1 ; look for space
-E3A5  A680                                    lda             ,X+
-E3A7  8120                                    cmpa    #' '
-E3A9  2705                                    beq             2f                              ; copy the argument
-E3AB  8C1B3D                                  cmpx    #EDT_BUFFER+255
-E3AE  26F5                                    bne             1b
-E3B0                  2 ; loop through the argument
-E3B0  6F1F                                    clr             -1,X
-E3B2  A680                                    lda             ,X+
-E3B4  A7A0                                    sta             ,Y+
-E3B6  4D                                      tsta
-E3B7  2706                                    beq             3f      
-E3B9  108C1A28                                cmpy    #FIO_FILEPATH+255
-E3BD  26F1                                    bne             2b
-E3BF                  3 ; done
-E3BF  3532                                    puls    A, X, Y
-E3C1  39                                      rts
+E3AB                  fetch_cl_argument       ; copy everything past the first space character to FIO_FILEPATH
+E3AB  3432                                    pshs    A, X, Y
+E3AD  8E1A3E                                  ldx             #EDT_BUFFER
+E3B0  108E1929                                ldy             #FIO_FILEPATH
+E3B4                  1 ; look for space
+E3B4  A680                                    lda             ,X+
+E3B6  8120                                    cmpa    #' '
+E3B8  2705                                    beq             2f                              ; copy the argument
+E3BA  8C1B3D                                  cmpx    #EDT_BUFFER+255
+E3BD  26F5                                    bne             1b
+E3BF                  2 ; loop through the argument
+E3BF  6F1F                                    clr             -1,X
+E3C1  A680                                    lda             ,X+
+E3C3  A7A0                                    sta             ,Y+
+E3C5  4D                                      tsta
+E3C6  2706                                    beq             3f      
+E3C8  108C1A28                                cmpy    #FIO_FILEPATH+255
+E3CC  26F1                                    bne             2b
+E3CE                  3 ; done
+E3CE  3532                                    puls    A, X, Y
+E3D0  39                                      rts
                       
                       
-E3C2                  lookup_cmd      ; return in A index of the command
+E3D1                  lookup_cmd      ; return in A index of the command
                                               ; or A = 0 if command not found
-E3C2  BDE39C                                  jsr     fetch_cl_argument
-E3C5  3434                                    pshs    B, X, Y
-E3C7  8601                                    lda             #1                              ; RET = 1
-E3C9  3402                                    pshs    A                               ; push local RET onto the stack
-E3CB  4F                                      clra                                    ; A = Working Accumilator                       
-E3CC  5F                                      clrb                                    ; B = EDT_BUFFER[B] index
-E3CD  8E1A3E                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
-E3D0  108EE459                                ldy             #command_LUT    ; Y points to the position within the lookup table
-E3D4                  1 ; loop:       
-E3D4  A685                                    lda             B, X                    ; load A from EDT_BUFFER[X]                             
-E3D6  8100                                    cmpa    #$00                    ; compare A with NULL-TERMINATION
-E3D8  271A                                    beq             4f                              ; branch if EQUAL to success
-E3DA  8A20                                    ora             #$20                    ; force lower case
-E3DC  A1A0                                    cmpa    ,Y+                             ; compare A with command_LUT[Y]
-E3DE  2603                                    bne             2f                              ; branch if NOT equal to next_token
-E3E0  5C                                      incb                                    ; increment index in EDT_BUFFER[B]
-E3E1  20F1                                    bra             1b                              ; branch back to loop           
+E3D1  BDE3AB                                  jsr     fetch_cl_argument
+E3D4  3434                                    pshs    B, X, Y
+E3D6  8601                                    lda             #1                              ; RET = 1
+E3D8  3402                                    pshs    A                               ; push local RET onto the stack
+E3DA  4F                                      clra                                    ; A = Working Accumilator                       
+E3DB  5F                                      clrb                                    ; B = EDT_BUFFER[B] index
+E3DC  8E1A3E                                  ldx             #EDT_BUFFER             ; X = EDT_BUFFER[0]
+E3DF  108EE485                                ldy             #command_LUT    ; Y points to the position within the lookup table
+E3E3                  1 ; loop:       
+E3E3  A685                                    lda             B, X                    ; load A from EDT_BUFFER[X]                             
+E3E5  8100                                    cmpa    #$00                    ; compare A with NULL-TERMINATION
+E3E7  271A                                    beq             4f                              ; branch if EQUAL to success
+E3E9  8A20                                    ora             #$20                    ; force lower case
+E3EB  A1A0                                    cmpa    ,Y+                             ; compare A with command_LUT[Y]
+E3ED  2603                                    bne             2f                              ; branch if NOT equal to next_token
+E3EF  5C                                      incb                                    ; increment index in EDT_BUFFER[B]
+E3F0  20F1                                    bra             1b                              ; branch back to loop           
                                               
-E3E3                  2 ; next_token:
-E3E3  6CE4                                    inc             0,S                             ; increment RET
-E3E5  5F                                      clrb                                    ; clear EDT_BUFFER[B] index
+E3F2                  2 ; next_token:
+E3F2  6CE4                                    inc             0,S                             ; increment RET
+E3F4  5F                                      clrb                                    ; clear EDT_BUFFER[B] index
                                               ; move Y to the beginning of the next label
-E3E6                  5 ; lp_1:
-E3E6  A6A0                                    lda             ,Y+                             ; load a with the current character in the LUT
-E3E8  81FF                                    cmpa    #$ff                    ; if were at the end of the LUT
-E3EA  2706                                    beq             3f                              ; branch to failure
-E3EC  8100                                    cmpa    #$00                    ; end of a token
-E3EE  26F6                                    bne             5b                              ; keep searching if not
-E3F0  20E2                                    bra             1b                              ; branch back to loop    
-E3F2                  3 ; failure:
-E3F2  6FE4                                    clr             0,S                             ; RET = 0
-E3F4                  4 ; success:
-E3F4  3502                                    puls    A                               ; recover local RET
-E3F6  3534                                    puls    B, X, Y
-E3F8  39                                      rts                                             ; return RET                    
+E3F5                  5 ; lp_1:
+E3F5  A6A0                                    lda             ,Y+                             ; load a with the current character in the LUT
+E3F7  81FF                                    cmpa    #$ff                    ; if were at the end of the LUT
+E3F9  2706                                    beq             3f                              ; branch to failure
+E3FB  8100                                    cmpa    #$00                    ; end of a token
+E3FD  26F6                                    bne             5b                              ; keep searching if not
+E3FF  20E2                                    bra             1b                              ; branch back to loop    
+E401                  3 ; failure:
+E401  6FE4                                    clr             0,S                             ; RET = 0
+E403                  4 ; success:
+E403  3502                                    puls    A                               ; recover local RET
+E405  3534                                    puls    B, X, Y
+E407  39                                      rts                                             ; return RET                    
                       
                       
-E3F9  4552524F523A2053796E746178210A00 strz_syntax_error               fcn             "ERROR: Syntax!\n"
-E409  4552524F523A2046696C65204E6F7420466F756E64210A00 strz_nofile_error               fcn             "ERROR: File Not Found!\n"
-E421  4552524F523A20417267756D656E74206F7574206F662052616E6765210A00 strz_range_error                fcn             "ERROR: Argument out of Range!\n"
-E440  4552524F523A2057726F6E672046696C652054797065210A00 strz_wrongfile_error    fcn             "ERROR: Wrong File Type!\n"
+E408  4552524F523A2053796E746178210A00 strz_syntax_error               fcn             "ERROR: Syntax!\n"
+E418  4552524F523A2046696C65204E6F7420466F756E64210A00 strz_nofile_error               fcn             "ERROR: File Not Found!\n"
+E430  4552524F523A20417267756D656E74206F7574206F662052616E6765210A00 strz_range_error                fcn             "ERROR: Argument out of Range!\n"
+E44F  4552524F523A2057726F6E672046696C652054797065210A00 strz_wrongfile_error    fcn             "ERROR: Wrong File Type!\n"
+E468  4552524F523A204469726563746F7279204E6F7420466F756E64210A00 strz_dirnope_error              fcn             "ERROR: Directory Not Found!\n"
                       
-E459                  command_LUT 
-E459  636C7300                                fcn             "cls"                   ; 1
-E45D  6C6F616400                              fcn             "load"                  ; 2
-E462  6578656300                              fcn             "exec"                  ; 3
-E467  726573657400                            fcn             "reset"                 ; 4
-E46D  6578697400                              fcn             "exit"                  ; 5
-E472  73637265656E00                          fcn             "screen"                ; 6     
-E479  64697200                                fcn             "dir"                   ; 7
-E47D  636400                                  fcn             "cd"                    ; 8             change directories
-E480  FF                                      fcb             0xFF
+E485                  command_LUT 
+E485  636C7300                                fcn             "cls"                   ; 1
+E489  6C6F616400                              fcn             "load"                  ; 2
+E48E  6578656300                              fcn             "exec"                  ; 3
+E493  726573657400                            fcn             "reset"                 ; 4
+E499  6578697400                              fcn             "exit"                  ; 5
+E49E  73637265656E00                          fcn             "screen"                ; 6     
+E4A5  64697200                                fcn             "dir"                   ; 7
+E4A9  636400                                  fcn             "cd"                    ; 8             change directories
+E4AC  FF                                      fcb             0xFF
                       
                       
                       

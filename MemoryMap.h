@@ -149,7 +149,8 @@ enum MEMMAP
                                 //      bit 6:  end of file
                                 //      bit 5:  buffer overrun
                                 //      bit 4:  wrong file type
-                                //      bit 0-3: not yet assigned
+                                //      bit 3:  directory not found
+                                //      bit 0-2: not yet assigned
    FIO_COMMAND = 0x1820,        // (Byte) OnWrite - command to execute
                                 //      $00 = Reset/Null
                                 //      $01 = Open/Create Binary File for Reading

@@ -220,7 +220,8 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 6:  end of file                       " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 5:	buffer overrun                     " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 4: wrong file type                    " }); offset += 0;
-	memmap->push({ offset, "", ">    bit 0-3: not yet assigned                 " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 3: directory not found                " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0-2: not yet assigned                 " }); offset += 0;
 
 	memmap->push({ offset, "FIO_COMMAND", "(Byte) OnWrite - command to execute " }); offset += 1;
 	memmap->push({ offset, "", ">    $00 = Reset/Null                          " }); offset += 0;
@@ -489,6 +490,8 @@ void FileIO::_cmd_list_dir()
 	std::string path = std::filesystem::current_path().generic_string();
 
 	printf("path: %s\n", path.c_str());
+	std::string dirof = "Directory of " + path + "\n";
+	_files.push_back(dirof);
 
 	if (strlen(_filepath)==0)
 	{
@@ -566,11 +569,6 @@ void FileIO::_cmd_list_dir()
 			}
 		}
 	}
-
-
-
-	
-
 	// output the basic directory structure
 	for (auto& f : _files)
 		printf("%s\n", f.c_str());
@@ -591,7 +589,23 @@ void FileIO::_cmd_change_dir()
 	if (strlen(_filepath) == 0)		return;
 
 	std::string chdir = _filepath;
-	std::filesystem::current_path(chdir);  // change dir
+	if (std::filesystem::exists(chdir))
+	{
+		//printf("Directory Found\n");
+		Byte data = bus->read(FIO_ERR_FLAGS);
+		data &= ~0x08;
+		bus->write(FIO_ERR_FLAGS, data);
+		_err_flags = data;
+		std::filesystem::current_path(chdir);  // change dir
+	}
+	else
+	{
+		printf("ERROR: Directory Not Found!\n");
+		Byte data = bus->read(FIO_ERR_FLAGS);
+		data |= 0x08;
+		bus->write(FIO_ERR_FLAGS, data);
+		_err_flags = data;
+	}
 
 }
 

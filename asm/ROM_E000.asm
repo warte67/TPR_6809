@@ -559,8 +559,13 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lda		#$0e			; $0E = command "CHDIR"
 			sta		FIO_COMMAND
 
-;			lda		#$0A
-;			jsr		char_out
+			lda 	FIO_ERR_FLAGS
+			anda	#$08			; directory not found
+			cmpa	#$08
+			bne		81f				; nope, just end
+			ldx		#strz_dirnope_error
+			jsr		text_out
+81 ; done
 			jsr		ok_prompt	
 
 			rts
@@ -659,6 +664,7 @@ strz_syntax_error		fcn		"ERROR: Syntax!\n"
 strz_nofile_error		fcn		"ERROR: File Not Found!\n"
 strz_range_error		fcn		"ERROR: Argument out of Range!\n"
 strz_wrongfile_error	fcn		"ERROR: Wrong File Type!\n"
+strz_dirnope_error		fcn		"ERROR: Directory Not Found!\n"
 
 command_LUT 
 			fcn		"cls"			; 1
