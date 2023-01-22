@@ -38,9 +38,9 @@ Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 			if (ofs >= XKEY_BUFFER && ofs < XKEY_BUFFER + 16)
 			{
 				if (bWasRead)
-					return ptrKey->read(ofs);	// reads are allowed from the outside
-				else
-					return data;	// (READ ONLY) no writing allowed from the outside			}
+					return bus->debug_read(ofs);	// reads are allowed from the outside
+				//else
+				//	return data;	// (READ ONLY) no writing allowed from the outside			}
 			}
 			else if (ofs == CHAR_SCAN)
 			{
@@ -404,8 +404,10 @@ void Keyboard::OnInitialize()
 void Keyboard::OnEvent(SDL_Event* evnt)
 {
 	SDL_Keymod km = SDL_GetModState();
-	if ((km & KMOD_ALT) || (km & KMOD_CTRL) || bus->m_gfx->DebugEnabled())
-		return;
+
+	//// don't let key presses pass through the debugger screen
+	//if ((km & KMOD_ALT) || (km & KMOD_CTRL) || bus->m_gfx->DebugEnabled())
+	//	return;
 
 	switch (evnt->type)
 	{
@@ -445,12 +447,18 @@ void Keyboard::OnEvent(SDL_Event* evnt)
 				this->write(XKEY_BUFFER + reg, bit);
 			}
 
-			// push the ascii character into the character queue
-			char key = XKeyToAscii(xkey);
-			// push the ascii key into its queue
-			if (key != 0)
-				charQueue.push(key);
-			break;
+			// don't queue key presses while in the debugger screen
+			if ((km & KMOD_ALT) || (km & KMOD_CTRL) || bus->m_gfx->DebugEnabled())
+				break;
+			else
+			{
+				// push the ascii character into the character queue
+				char key = XKeyToAscii(xkey);
+				// push the ascii key into its queue
+				if (key != 0)
+					charQueue.push(key);
+				break;
+			}
 		}
 		case SDL_KEYUP:
 		{
@@ -462,6 +470,8 @@ void Keyboard::OnEvent(SDL_Event* evnt)
 			Word reg = xkey / 8;
 			Byte bit = this->read(XKEY_BUFFER + reg) & ~(1 << (xkey % 8));
 			this->write(XKEY_BUFFER + reg, bit);
+			bus->debug_write(XKEY_BUFFER + reg, bit);
+
 
 			// handle release of the ALT keys
 			if (xkey == XKey::L_ALT || xkey == XKey::R_ALT)
