@@ -25,7 +25,8 @@
 //                                //      bit 7:  file not found
 //                                //      bit 6:  end of file
 //                                //      bit 5:  buffer overrun
-//                                //      bit 0-4: not yet assigned
+//                                //      bit 4:  wrong file type
+//                                //      bit 0-3: not yet assigned
 //   FIO_COMMAND = 0x181f,        // (Byte) OnWrite - command to execute
 //                                //      $00 = Reset/Null
 //                                //      $01 = Open/Create Binary File for Reading
@@ -218,7 +219,8 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 7:	file not found                     " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 6:  end of file                       " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 5:	buffer overrun                     " }); offset += 0;
-	memmap->push({ offset, "", ">    bit 0-4: not yet assigned                 " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 4: wrong file type                    " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0-3: not yet assigned                 " }); offset += 0;
 
 	memmap->push({ offset, "FIO_COMMAND", "(Byte) OnWrite - command to execute " }); offset += 1;
 	memmap->push({ offset, "", ">    $00 = Reset/Null                          " }); offset += 0;
@@ -372,7 +374,18 @@ void FileIO::load_hex(const char* filename)
 		Word addr;
 		Byte b;
 
-		(void)fgetc(fp);
+		// (void)fgetc(fp);			// is this the : character at the start of the line?
+		int colon = fgetc(fp);			// is this the : character at the start of the line?
+		if (colon != ':')
+		{
+			printf("Wrong File Type\n");
+			//Bus::Err("Wrong File Type");
+			Byte data = bus->read(FIO_ERR_FLAGS);
+			data |= 0x10;		
+			bus->write(FIO_ERR_FLAGS, data);
+			return;
+		}
+
 		n = fio_fread_hex_byte(fp);
 		addr = fio_fread_hex_word(fp);
 		t = fio_fread_hex_byte(fp);

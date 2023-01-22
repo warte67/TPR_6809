@@ -245,13 +245,19 @@ load_hex
 			sta		FIO_COMMAND		; executre the command
 			lda		FIO_ERR_FLAGS	; load the errors flag
 			cmpa	#$80			; test for bit: file not found?
-			bne		1f				; dont call the sub if it wasnt loaded
+			beq		1f				; dont call the sub if it wasnt loaded
+			cmpa	#$10			; test for bit: file not found?
+			beq		2f				; dont call the sub if it wasnt loaded
+			bra		9f
 
-			; display, "ERROR: File Not Found!"
+1			; display, "ERROR: File Not Found!"
 			ldx		#strz_nofile_error
 			jsr		text_out
-
-1
+			bra		9f
+2			; display, "ERROR: Wrong File Type"
+			ldx		#strz_wrongfile_error
+			jsr		text_out
+9			
 			rts
 
 
@@ -652,6 +658,7 @@ lookup_cmd	; return in A index of the command
 strz_syntax_error		fcn		"ERROR: Syntax!\n"
 strz_nofile_error		fcn		"ERROR: File Not Found!\n"
 strz_range_error		fcn		"ERROR: Argument out of Range!\n"
+strz_wrongfile_error	fcn		"ERROR: Wrong File Type!\n"
 
 command_LUT 
 			fcn		"cls"			; 1

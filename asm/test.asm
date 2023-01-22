@@ -18,6 +18,7 @@ var_csr			fcb		$ff
 num_cycles		equ		$20
 var_cycle		fcb		$00
 var_mode_index	fcb		$00
+var_mouse_color	fdb		$0000
 
 start
 
@@ -26,6 +27,12 @@ start
 			
 			lda		#num_cycles		; initially clear the cycle variable
 			sta		var_cycle
+
+			; SAVE THE MOUSE CURSOR COLOR
+			lda		#4
+			sta		CSR_PAL_INDX
+			ldd		CSR_PAL_DATA
+			std		var_mouse_color
 
 ;			; enable backbuffer mode
 ;			lda		GFX_FLAGS
@@ -101,9 +108,6 @@ start
 			cmpx	#640		;#$0800
 			bne		8b
 
-
-
-
 			; TOGGLE THE BACKBUFFER
 			lda		GFX_FLAGS	; load current backbuffer
 			eora	#$20		; toggle it
@@ -144,9 +148,16 @@ continue
 			lda		CHAR_Q_LEN
 			beq		2b
 
+			; check for ESCAPE
 			lda		CHAR_POP
 			cmpa	#$1b		; [ESCAPE]
 			bne		2b
+
+			; RESTORE THE MOUSE CURSOR COLOR
+			lda		#4
+			sta		CSR_PAL_INDX
+			ldd		var_mouse_color
+			std		CSR_PAL_DATA
 
 done		rts
 		

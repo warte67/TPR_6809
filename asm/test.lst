@@ -2,7 +2,7 @@
                                       
 0010                                  org             $0010
                       ; EXEC_VECTOR
-0010  2006            exe_vect        fdb             start
+0010  2008            exe_vect        fdb             start
                       
                       
                       
@@ -182,14 +182,21 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 0020                  num_cycles              equ             $20
 2004  00              var_cycle               fcb             $00
 2005  00              var_mode_index  fcb             $00
+2006  0000            var_mouse_color fdb             $0000
                       
-2006                  start
+2008                  start
                       
                                               ; TESTING: fill the first 256 bytes of screen ram 
                                               ;               with ascending values to display
                                               
-2006  8620                                    lda             #num_cycles             ; initially clear the cycle variable
-2008  B72004                                  sta             var_cycle
+2008  8620                                    lda             #num_cycles             ; initially clear the cycle variable
+200A  B72004                                  sta             var_cycle
+                      
+                                              ; SAVE THE MOUSE CURSOR COLOR
+200D  8604                                    lda             #4
+200F  B71817                                  sta             CSR_PAL_INDX
+2012  FC1818                                  ldd             CSR_PAL_DATA
+2015  FD2006                                  std             var_mouse_color
                       
                       ;                       ; enable backbuffer mode
                       ;                       lda             GFX_FLAGS
@@ -197,26 +204,26 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ;                       sta             GFX_FLAGS
                       
                                               ; set up the initial graphics mode 
-200B  7F2005                                  clr             var_mode_index  ; start with index 0
-200E  8E20CD                                  ldx             #mode_data
-2011  B61800                                  lda             GFX_FLAGS
-2014  84F0                                    anda    #$f0
-2016  AA84                                    ora             ,x
-2018  B71800                                  sta             GFX_FLAGS
+2018  7F2005                                  clr             var_mode_index  ; start with index 0
+201B  8E20E5                                  ldx             #mode_data
+201E  B61800                                  lda             GFX_FLAGS
+2021  84F0                                    anda    #$f0
+2023  AA84                                    ora             ,x
+2025  B71800                                  sta             GFX_FLAGS
                       
                                               ; fill the background buffer with incrementing values
-201B  8E0000                                  ldx             #0
-201E                  1
-201E  BF180B                                  stx             GFX_EXT_ADDR
-2021  B7180D                                  sta             GFX_EXT_DATA
-2024  4C                                      inca
-2025  81FF                                    cmpa    #$ff
-2027  2601                                    bne             2f
-2029  4F                                      clra
-202A                  2
-202A  3001                                    leax    1,x
-202C  8C2800                                  cmpx    #$2800
-202F  26ED                                    bne             1b
+2028  8E0000                                  ldx             #0
+202B                  1
+202B  BF180B                                  stx             GFX_EXT_ADDR
+202E  B7180D                                  sta             GFX_EXT_DATA
+2031  4C                                      inca
+2032  81FF                                    cmpa    #$ff
+2034  2601                                    bne             2f
+2036  4F                                      clra
+2037                  2
+2037  3001                                    leax    1,x
+2039  8C2800                                  cmpx    #$2800
+203C  26ED                                    bne             1b
                       
                       
                       
@@ -225,101 +232,105 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       ; *  the Display Buffer
                       ; ***********************
                       
-2031  7F2000                                  clr             var_ch                  ; character = 0
-2034  7F2001                                  clr             var_at                  ; attribute = 0
-2037  7F2002                                  clr             var_count               ; count = 0
-203A  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-203D                  1
-203D  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-2040  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-2042  B62000                                  lda             var_ch                  ; load the current character
-2045  F62001                                  ldb             var_at                  ; load the current attribute
-2048  ED81                                    std             ,x++                    ; store both character and attribute
-204A  7C2000                                  inc             var_ch                  ; next character
-204D  7C2002                                  inc             var_count               ; increment count
-2050  B62002                                  lda             var_count               ; load the count
-2053  8111                                    cmpa    #17                             ; compare the count with this amount
-2055  2DE6                                    blt             1b                              ; loop if count lower than
-2057  7C2001                                  inc             var_at                  ; next attribute
-205A  7F2002                                  clr             var_count               ; clear the count
-205D  20DE                                    bra             1b                              ; resume the loop
+203E  7F2000                                  clr             var_ch                  ; character = 0
+2041  7F2001                                  clr             var_at                  ; attribute = 0
+2044  7F2002                                  clr             var_count               ; count = 0
+2047  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
+204A                  1
+204A  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
+204D  2C1D                                    bge             2f                              ; yes, skip to the screen updates
+204F  B62000                                  lda             var_ch                  ; load the current character
+2052  F62001                                  ldb             var_at                  ; load the current attribute
+2055  ED81                                    std             ,x++                    ; store both character and attribute
+2057  7C2000                                  inc             var_ch                  ; next character
+205A  7C2002                                  inc             var_count               ; increment count
+205D  B62002                                  lda             var_count               ; load the count
+2060  8111                                    cmpa    #17                             ; compare the count with this amount
+2062  2DE6                                    blt             1b                              ; loop if count lower than
+2064  7C2001                                  inc             var_at                  ; next attribute
+2067  7F2002                                  clr             var_count               ; clear the count
+206A  20DE                                    bra             1b                              ; resume the loop
                       
                                               ; INCREMENT THE SCREEN BUFFER
-205F                  2
-205F  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-2062                  4
-2062  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-2065  2C06                                    bge             3f                              ; restart when past the end
-2067  6C80                                    inc             ,x+                             ; increment character
-2069  6C80                                    inc             ,x+                             ; increment the attribute
-206B  20F5                                    bra             4b                              ; loop until done
-206D                  3
+206C                  2
+206C  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
+206F                  4
+206F  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
+2072  2C06                                    bge             3f                              ; restart when past the end
+2074  6C80                                    inc             ,x+                             ; increment character
+2076  6C80                                    inc             ,x+                             ; increment the attribute
+2078  20F5                                    bra             4b                              ; loop until done
+207A                  3
                       
                       
                                               ; INCREMENT THE EXTENDED SCREEN BUFFER
-206D  8E0000                                  ldx             #0
-2070                  8                       
-2070  BF180B                                  stx             GFX_EXT_ADDR
-2073  7C180D                                  inc             GFX_EXT_DATA
-2076  3001                                    leax    1,x
-2078  8C0280                                  cmpx    #640            ;#$0800
-207B  26F3                                    bne             8b
-                      
-                      
-                      
+207A  8E0000                                  ldx             #0
+207D                  8                       
+207D  BF180B                                  stx             GFX_EXT_ADDR
+2080  7C180D                                  inc             GFX_EXT_DATA
+2083  3001                                    leax    1,x
+2085  8C0280                                  cmpx    #640            ;#$0800
+2088  26F3                                    bne             8b
                       
                                               ; TOGGLE THE BACKBUFFER
-207D  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
-2080  8820                                    eora    #$20            ; toggle it
-2082  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
+208A  B61800                                  lda             GFX_FLAGS       ; load current backbuffer
+208D  8820                                    eora    #$20            ; toggle it
+208F  B71800                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
-2085  8604                                    lda             #4
-2087  B71817                                  sta             CSR_PAL_INDX
-208A  FC1818                                  ldd             CSR_PAL_DATA
-208D  C300A0                                  addd    #$00a0
-2090  FD1818                                  std             CSR_PAL_DATA            
+2092  8604                                    lda             #4
+2094  B71817                                  sta             CSR_PAL_INDX
+2097  FC1818                                  ldd             CSR_PAL_DATA
+209A  C300A0                                  addd    #$00a0
+209D  FD1818                                  std             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
-2093  7C2004                                  inc             var_cycle       ; increment the cycle counter
-2096  B62004                                  lda             var_cycle
-2099  8120                                    cmpa    #num_cycles             ; max cycles yet?
-209B  2323                                    bls             continue        ; nope, continue with the main loop
-209D  7F2004                                  clr             var_cycle       ; reset the cycle count
+20A0  7C2004                                  inc             var_cycle       ; increment the cycle counter
+20A3  B62004                                  lda             var_cycle
+20A6  8120                                    cmpa    #num_cycles             ; max cycles yet?
+20A8  2323                                    bls             continue        ; nope, continue with the main loop
+20AA  7F2004                                  clr             var_cycle       ; reset the cycle count
                       
                                               ; MODE CHANGES
-20A0                  6
-20A0  F62005                                  ldb             var_mode_index
-20A3  7C2005                                  inc             var_mode_index
-20A6  8E20CD                                  ldx             #mode_data
-20A9  A685                                    lda             b,x
-20AB  81FF                                    cmpa    #$ff
-20AD  270C                                    beq             5f
-20AF  B61800                                  lda             GFX_FLAGS
-20B2  84F0                                    anda    #$f0
-20B4  AA85                                    ora             b,x
-20B6  B71800                                  sta             GFX_FLAGS
-20B9  2005                                    bra             continue
-20BB                  5       
-20BB  7F2005                                  clr             var_mode_index
-20BE  20E0                                    bra             6b
-20C0                  continue
+20AD                  6
+20AD  F62005                                  ldb             var_mode_index
+20B0  7C2005                                  inc             var_mode_index
+20B3  8E20E5                                  ldx             #mode_data
+20B6  A685                                    lda             b,x
+20B8  81FF                                    cmpa    #$ff
+20BA  270C                                    beq             5f
+20BC  B61800                                  lda             GFX_FLAGS
+20BF  84F0                                    anda    #$f0
+20C1  AA85                                    ora             b,x
+20C3  B71800                                  sta             GFX_FLAGS
+20C6  2005                                    bra             continue
+20C8                  5       
+20C8  7F2005                                  clr             var_mode_index
+20CB  20E0                                    bra             6b
+20CD                  continue
                                               ; WAS [ESCAPE] PRESSED
-20C0  B61A2A                                  lda             CHAR_Q_LEN
-20C3  279A                                    beq             2b
+20CD  B61A2A                                  lda             CHAR_Q_LEN
+20D0  279A                                    beq             2b
                       
-20C5  B61A2C                                  lda             CHAR_POP
-20C8  811B                                    cmpa    #$1b            ; [ESCAPE]
-20CA  2693                                    bne             2b
+                                              ; check for ESCAPE
+20D2  B61A2C                                  lda             CHAR_POP
+20D5  811B                                    cmpa    #$1b            ; [ESCAPE]
+20D7  2693                                    bne             2b
                       
-20CC  39              done            rts
+                                              ; RESTORE THE MOUSE CURSOR COLOR
+20D9  8604                                    lda             #4
+20DB  B71817                                  sta             CSR_PAL_INDX
+20DE  FC2006                                  ldd             var_mouse_color
+20E1  FD1818                                  std             CSR_PAL_DATA
+                      
+20E4  39              done            rts
                                       
                       ; ////////////////////////////////////////////////////
                       
                       ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
                       
-20CD  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-20D5  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+20E5  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+20ED  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-20DD  FF                                      fcb             $ff
+20F5  FF                                      fcb             $ff
