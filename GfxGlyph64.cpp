@@ -151,12 +151,12 @@ void GfxGlyph64::OnDeactivate()
 
 void GfxGlyph64::OnQuit()
 {
-	//printf("GfxGlyph::OnQuit()\n");
+	//printf("GfxGlyph64::OnQuit()\n");
 }
 
 void GfxGlyph64::OnCreate()
 {
-	printf("GfxGlyph::OnCreate()\n");
+	//printf("GfxGlyph64::OnCreate()\n");
 	// 
 	// create the glyph textures
 	if (glyph_textures.size() == 0)

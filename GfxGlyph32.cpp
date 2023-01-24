@@ -151,7 +151,7 @@ void GfxGlyph32::OnQuit()
 
 void GfxGlyph32::OnCreate()
 {
-	//printf("GfxGlyph::OnCreate()\n");
+	//printf("GfxGlyph32::OnCreate()\n");
 	// 
 	// create the glyph textures
 	if (glyph_textures.size() == 0)

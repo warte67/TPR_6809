@@ -16,11 +16,72 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	if (bWasRead)
 	{	// READ	
-		//printf("GfxRaw::OnCallback() -- READ\n");
+		//printf("GfxIndexed::OnCallback() -- READ\n");
+
+		if (ofs == GFX_BG_ARG1)		
+			data = _arg1;
 	}
 	else
 	{	// WRITE
-		//printf("GfxRaw::OnCallback() -- WRITE\n");
+		//printf("GfxIndexed::OnCallback() -- WRITE\n");
+
+		if (ofs == GFX_BG_ARG1)		_arg1 = data;
+
+		if (ofs == GFX_BG_CMD)
+		{
+			switch (data)
+			{
+				case 0x00:		// undefined or error
+					break;
+
+				case 0x01:		// Clear Screen       (with color index in GFX_BG_ARG1)
+					for ( int a = _buffer_base; a < _buffer_base + 10240; a++)
+						s_mem_64k[a] = _arg1;
+					break;
+
+				case 0x02:		// Set Active Page  (zero or non-zero in GFX_BG_ARG1)
+					_bUsingFirstPage = (data != 0);
+					break;
+
+				case 0x03:		// Swap Pages or flip (simply swaps active video buffers)
+					_bUsingFirstPage = !_bUsingFirstPage;
+					(_bUsingFirstPage) ? _buffer_base : _buffer_base = 10240;
+					break;
+
+				case 0x04:		// Scroll Left      (by pixels x GFX_BG_ARG1)
+					for (int y = 0; y < pixel_height; y++)
+					{
+						// fetch the first pixel
+						Byte f_pix = s_mem_64k[y * pixel_width];
+
+						// scroll the line
+						for (int x = 1; x < pixel_width; x++)
+						{
+							Word a = _buffer_base + (y * pixel_width) + x;
+							Byte pix = s_mem_64k[a];
+							s_mem_64k[a - 1] = pix;
+						}
+						// set the last pixel
+						s_mem_64k[y * pixel_width + (pixel_width - 1)] = f_pix;
+					}
+					break;
+
+				case 0x05:		// Scroll Right     (by pixels x GFX_BG_ARG1)
+					break;
+
+				case 0x06:		// Scroll Up        (by pixels x GFX_BG_ARG1)
+					break;
+
+				case 0x07:		// Scroll Down      (by pixels x GFX_BG_ARG1)
+					break;
+
+				default:		// default (write a 0 to indicate an error)
+					data = 0;
+					break;
+			}
+		}
+		// write to memory
+		bus->debug_write(ofs, data);
 	}
 	return data;
 }

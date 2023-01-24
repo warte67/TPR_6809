@@ -98,6 +98,9 @@ start
 			bra		4b				; loop until done
 3
 
+			; SCROLL THE EXTENDED SCREEN BUFFER
+			lda		#$04			; command: scroll left
+			sta		GFX_BG_CMD		; issue the command
 
 			; INCREMENT THE EXTENDED SCREEN BUFFER
 			ldx		#0
@@ -107,6 +110,8 @@ start
 			leax	1,x
 			cmpx	#640		;#$0800
 			bne		8b
+
+
 
 			; TOGGLE THE BACKBUFFER
 			lda		GFX_FLAGS	; load current backbuffer

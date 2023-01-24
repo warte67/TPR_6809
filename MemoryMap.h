@@ -102,6 +102,8 @@ enum MEMMAP
   GFX_TIMING_H = 0x1805,        // (Word) vertical timing
   GFX_PAL_INDX = 0x1807,        // (Byte) gfx palette index (0-15)
   GFX_PAL_DATA = 0x1808,        // (Word) gfx palette color bits RGBA4444
+  // ^^^^ change GFX_PAL_INDX and GFX_PAL_DATA to GFX_FG_PAL_IDX and GFX_FG_PAL_DAT
+  // add GFX_BG_PAL_IDX and GFX_BG_PAL_DAT
 
 //  Paged Foreground Graphics Mode Hardware Registers:
   GFX_FG_BEGIN = 0x180a,        // start of paged foreground gfxmode registers
@@ -115,29 +117,38 @@ enum MEMMAP
   GFX_BG_BEGIN = 0x1815,        // start of paged background gfxmode registers
   GFX_EXT_ADDR = 0x1815,        // (Word) 20K extended graphics addresses
   GFX_EXT_DATA = 0x1817,        // (Byte) 20K extended graphics RAM data
-    GFX_BG_END = 0x1817,        // end of paged background gfxmode registers
+   GFX_BG_ARG1 = 0x1818,        // (Byte) first read/write argument for the blit commands
+    GFX_BG_CMD = 0x1819,        // (Byte) Blit Commands on the indexed bitmap buffer
+                                //      0x01: Clear Screen     (with color index in GFX_BG_ARG1)
+                                //      0x02: Set Active Page  (0 or 1 in GFX_BG_ARG1)
+                                //      0x03: Swap Pages       (simply swaps video buffers)
+                                //      0x04: Scroll Left      (by pixels x GFX_BG_ARG1)
+                                //      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
+                                //      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)
+                                //      0x07: Scroll Down      (by pixels x GFX_BG_ARG1)
+    GFX_BG_END = 0x1819,        // end of paged background gfxmode registers
 
 //  Mouse Cursor Hardware Registers:
-     CSR_BEGIN = 0x1818,        // start of mouse cursor hardware registers
-      CSR_XPOS = 0x1818,        // (Word) horizontal mouse cursor coordinate
-      CSR_YPOS = 0x181a,        // (Word) vertical mouse cursor coordinate
-      CSR_XOFS = 0x181c,        // (Byte) horizontal mouse cursor offset
-      CSR_YOFS = 0x181d,        // (Byte) vertical mouse cursor offset
-      CSR_SIZE = 0x181e,        // (Byte) cursor size (0-15) 0:off
-    CSR_SCROLL = 0x181f,        // (Signed) MouseWheel Scroll: -1, 0, 1
-     CSR_FLAGS = 0x1820,        // (Byte) mouse button flags:
+     CSR_BEGIN = 0x181a,        // start of mouse cursor hardware registers
+      CSR_XPOS = 0x181a,        // (Word) horizontal mouse cursor coordinate
+      CSR_YPOS = 0x181c,        // (Word) vertical mouse cursor coordinate
+      CSR_XOFS = 0x181e,        // (Byte) horizontal mouse cursor offset
+      CSR_YOFS = 0x181f,        // (Byte) vertical mouse cursor offset
+      CSR_SIZE = 0x1820,        // (Byte) cursor size (0-15) 0:off
+    CSR_SCROLL = 0x1821,        // (Signed) MouseWheel Scroll: -1, 0, 1
+     CSR_FLAGS = 0x1822,        // (Byte) mouse button flags:
                                 //      bits 0-5: button states
                                 //      bits 6-7: number of clicks
-  CSR_PAL_INDX = 0x1821,        // (Byte) mouse cursor color palette index (0-15)
-  CSR_PAL_DATA = 0x1822,        // (Word) mouse cursor color palette data RGBA4444
-  CSR_BMP_INDX = 0x1824,        // (Byte) mouse cursor bitmap pixel offset
-  CSR_BMP_DATA = 0x1825,        // (Byte) mouse cursor bitmap pixel index color
-       CSR_END = 0x1825,        // end of mouse cursor hardware registers
+  CSR_PAL_INDX = 0x1823,        // (Byte) mouse cursor color palette index (0-15)
+  CSR_PAL_DATA = 0x1824,        // (Word) mouse cursor color palette data RGBA4444
+  CSR_BMP_INDX = 0x1826,        // (Byte) mouse cursor bitmap pixel offset
+  CSR_BMP_DATA = 0x1827,        // (Byte) mouse cursor bitmap pixel index color
+       CSR_END = 0x1827,        // end of mouse cursor hardware registers
 
 //  Debugger Hardware Registers:
-     DBG_BEGIN = 0x1826,        // Start of Debugger Hardware Registers
-  DBG_BRK_ADDR = 0x1826,        // (Word) Address of current breakpoint
-     DBG_FLAGS = 0x1828,        // (Byte) Debug Specific Hardware Flags
+     DBG_BEGIN = 0x1828,        // Start of Debugger Hardware Registers
+  DBG_BRK_ADDR = 0x1828,        // (Word) Address of current breakpoint
+     DBG_FLAGS = 0x182a,        // (Byte) Debug Specific Hardware Flags
                                 //      bit 7: Debug Enable
                                 //      bit 6: Single Step Enable
                                 //      bit 5: clear all breakpoints
@@ -146,21 +157,21 @@ enum MEMMAP
                                 //      bit 2: IRQ   (on low to high edge)
                                 //      bit 1: NMI   (on low to high edge)
                                 //      bit 0: RESET (on low to high edge)
-       DBG_END = 0x1828,        // End of the Debugger Hardware Registers
+       DBG_END = 0x182a,        // End of the Debugger Hardware Registers
 
 
-       GFX_END = 0x1829,        // end of the GFX Hardware Registers
+       GFX_END = 0x182b,        // end of the GFX Hardware Registers
 
 //  File I/O Hardware Registers:
-     FIO_BEGIN = 0x1829,        // start of file i/o hardware registers
-  FIO_ERR_FLAGS = 0x1829,       // (Byte) file i/o system flags:
+     FIO_BEGIN = 0x182b,        // start of file i/o hardware registers
+  FIO_ERR_FLAGS = 0x182b,       // (Byte) file i/o system flags:
                                 //      bit 7:  file not found
                                 //      bit 6:  end of file
                                 //      bit 5:  buffer overrun
                                 //      bit 4: wrong file type
                                 //      bit 3: directory not found
                                 //      bit 0-2: not yet assigned
-   FIO_COMMAND = 0x182a,        // (Byte) OnWrite - command to execute
+   FIO_COMMAND = 0x182c,        // (Byte) OnWrite - command to execute
                                 //      $00 = Reset/Null
                                 //      $01 = Open/Create Binary File for Reading
                                 //      $02 = Open/Create Binary File for Writing
@@ -185,28 +196,28 @@ enum MEMMAP
                                 //      $15 = Seek Current
                                 //      $16 = Seek End
                                 //      $17 = SYSTEM: Shutdown
-    FIO_HANDLE = 0x182b,        // (Byte) file handle or ZERO
-    FIO_BFROFS = 0x182c,        // (Word) start of I/O buffer
-    FIO_BFRLEN = 0x182d,        // (Word) length of I/O buffer
-   FIO_SEEKOFS = 0x182f,        // (Word) seek offset
-  FIO_RET_COUNT = 0x1831,       // (Byte) number of return entries
-  FIO_RET_INDEX = 0x1832,       // (Byte) command return index
-  FIO_RET_BUFFER = 0x1833,      // (Char Array 256) paged return buffer
-  FIO_FILEPATH = 0x1933,        // (Char Array 256) file path and argument buffer
-       FIO_END = 0x1a33,        // end of file i/o hardware registers
+    FIO_HANDLE = 0x182d,        // (Byte) file handle or ZERO
+    FIO_BFROFS = 0x182e,        // (Word) start of I/O buffer
+    FIO_BFRLEN = 0x182f,        // (Word) length of I/O buffer
+   FIO_SEEKOFS = 0x1831,        // (Word) seek offset
+  FIO_RET_COUNT = 0x1833,       // (Byte) number of return entries
+  FIO_RET_INDEX = 0x1834,       // (Byte) command return index
+  FIO_RET_BUFFER = 0x1835,      // (Char Array 256) paged return buffer
+  FIO_FILEPATH = 0x1935,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1a35,        // end of file i/o hardware registers
 
 //  Keyboard Hardware Registers:
-     KEY_BEGIN = 0x1a34,        // start of keyboard hardware registers
-    CHAR_Q_LEN = 0x1a34,        // (char) # of characters waiting in queue       (Read Only)
-     CHAR_SCAN = 0x1a35,        // read next character in queue       (not popped when read)
-      CHAR_POP = 0x1a36,        // (char) next character waiting in queue (popped when read)
-   XKEY_BUFFER = 0x1a37,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-   EDT_BFR_CSR = 0x1a47,        // (Byte) cursor position within edit buffer    (Read/Write)
-    EDT_BUFFER = 0x1a48,        // (256 Bytes) line editing character buffer    (Read/Write)
-       KEY_END = 0x1b48,        // end of keyboard hardware registers
+     KEY_BEGIN = 0x1a36,        // start of keyboard hardware registers
+    CHAR_Q_LEN = 0x1a36,        // (char) # of characters waiting in queue       (Read Only)
+     CHAR_SCAN = 0x1a37,        // read next character in queue       (not popped when read)
+      CHAR_POP = 0x1a38,        // (char) next character waiting in queue (popped when read)
+   XKEY_BUFFER = 0x1a39,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+   EDT_BFR_CSR = 0x1a49,        // (Byte) cursor position within edit buffer    (Read/Write)
+    EDT_BUFFER = 0x1a4a,        // (256 Bytes) line editing character buffer    (Read/Write)
+       KEY_END = 0x1b4a,        // end of keyboard hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1b49,        // Reserved 1202 bytes ($1B49 - $1FFB)
+  RESERVED_HDW = 0x1b4b,        // Reserved 1200 bytes ($1B4B - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -233,6 +244,5 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
 
 #endif // __MEMORY_MAP__
