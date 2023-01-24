@@ -55,6 +55,11 @@ void GfxGlyph64::OnInitialize()
 	bus->debug_write(GFX_FG_WDTH, 63);
 	bus->debug_write(GFX_FG_HGHT, 39);
 
+	//OnActivate();
+}
+
+void GfxGlyph64::OnActivate()
+{
 	// load the default palette
 	if (default_palette.size() == 0)
 	{
@@ -76,14 +81,10 @@ void GfxGlyph64::OnInitialize()
 			{ 0xFF0F },	// 1111 1111.0000 1111		e
 			{ 0xFFFF },	// 1111 1111.1111 1111		f
 		};
-
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
 	}
-}
 
-void GfxGlyph64::OnActivate()
-{
 	// load the palette from the defaults
 	for (int t = 0; t < 16; t++)
 	{

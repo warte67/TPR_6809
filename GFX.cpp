@@ -176,21 +176,44 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			// write PALETTE index 
 			if (ofs == GFX_PAL_INDX)
 			{ 
-				ptrGfx->debug_write(ofs, data); 
-				m_palette_index = data; 
-				bus->debug_write(GFX_PAL_DATA, ptrGfx->palette[m_palette_index].color);
+				if (data < ptrGfx->palette.size())
+				{
+					ptrGfx->debug_write(ofs, data);
+					m_palette_index = data;
+					bus->debug_write(GFX_PAL_DATA, ptrGfx->palette[m_palette_index].color);
+				}
 			}
 			if (ofs == GFX_PAL_DATA)
 			{
 				bus->debug_write(ofs, data);
 				ptrGfx->palette[m_palette_index].color = 
 					(ptrGfx->palette[m_palette_index].color & 0x00FF) | (data << 8);
+				ptrGfx->bRebuildTextures = true;
+
+				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
+				//	ptrGfx->m_bg_gmodes[t]->OnDestroy();
+				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
+				//	ptrGfx->m_fg_gmodes[t]->OnDestroy();
+				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
+				//	ptrGfx->m_bg_gmodes[t]->OnCreate();
+				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
+				//	ptrGfx->m_fg_gmodes[t]->OnCreate();
 			}
 			if (ofs == GFX_PAL_DATA+1)
 			{
 				bus->debug_write(ofs, data);
 				ptrGfx->palette[m_palette_index].color =
 					(ptrGfx->palette[m_palette_index].color & 0xFF00) | (data << 0);
+				ptrGfx->bRebuildTextures = true;
+
+				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
+				//	ptrGfx->m_bg_gmodes[t]->OnDestroy();
+				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
+				//	ptrGfx->m_fg_gmodes[t]->OnDestroy();
+				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
+				//	ptrGfx->m_bg_gmodes[t]->OnCreate();
+				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
+				//	ptrGfx->m_fg_gmodes[t]->OnCreate();
 			}
 		}
 
@@ -768,6 +791,30 @@ void GFX::OnUpdate(float fElapsedTime)
 	// clear the screen
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
+
+	if (bRebuildTextures)
+	{
+		const float _texDelay = 0.010;
+		static float _texAcc = fElapsedTime;
+		_texAcc += fElapsedTime;
+		if (_texAcc > fElapsedTime + _texDelay)
+		{
+			_texAcc -= _texDelay;
+			for (int t = 0; t < m_bg_gmodes.size(); t++)
+			{
+				m_bg_gmodes[t]->OnDestroy();
+				m_bg_gmodes[t]->OnCreate();
+			}
+			for (int t = 0; t < m_fg_gmodes.size(); t++)
+			{
+				m_fg_gmodes[t]->OnDestroy();
+				m_fg_gmodes[t]->OnCreate();
+			}
+			bRebuildTextures = false;
+		}
+	}
+
+
 
 	// render the graphics mode
 	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);

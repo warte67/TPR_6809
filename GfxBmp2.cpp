@@ -52,6 +52,11 @@ GfxBmp2::~GfxBmp2()
 
 void GfxBmp2::OnInitialize()
 {
+}
+
+
+void GfxBmp2::OnActivate()
+{
 	// load the default palette
 	if (default_palette.size() == 0)
 	{
@@ -66,11 +71,8 @@ void GfxBmp2::OnInitialize()
 			bus->write_word(GFX_PAL_DATA, default_palette[t].color);
 		}
 	}
-}
 
 
-void GfxBmp2::OnActivate()
-{
 	// load the palette from the defaults
 	for (int t = 0; t < 2; t++)
 	{

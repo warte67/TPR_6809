@@ -53,7 +53,10 @@ void GfxGlyph32::OnInitialize()
 {
 	bus->debug_write(GFX_FG_WDTH, 31);
 	bus->debug_write(GFX_FG_HGHT, 19);
+}
 
+void GfxGlyph32::OnActivate()
+{
 	// load the default palette
 	if (default_palette.size() == 0)
 	{
@@ -78,10 +81,7 @@ void GfxGlyph32::OnInitialize()
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
 	}
-}
 
-void GfxGlyph32::OnActivate()
-{
 	// load the palette from the defaults
 	for (int t = 0; t < 16; t++)
 	{
@@ -179,7 +179,7 @@ void GfxGlyph32::OnUpdate(float fElapsedTime)
 
 		for (int ofs = VIDEO_START; ofs < VIDEO_START + 1280; ofs += 2)	// <= VIDEO_END; ofs += 2)
 		{
-
+			// attribute bites:   FFFF BBBB
 			Word index = ofs - VIDEO_START;
 			Byte glyph = bus->read(ofs);
 			Byte attr = bus->read(ofs + 1);

@@ -109,6 +109,7 @@ protected:
     // internal state
     //bool bWasInit = false;
     bool bIsDirty = true;
+    bool bRebuildTextures = false;      // true when the gmode textures need redrawn
 
     // graphics modes    
 	//std::vector<GfxMode*> m_gmodes;

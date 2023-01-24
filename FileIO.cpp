@@ -492,8 +492,8 @@ void FileIO::_cmd_list_dir()
 	// std::filesystem::current_path("../");  // change dir
 	std::string path = std::filesystem::current_path().generic_string();
 
-	printf("path: %s\n", path.c_str());
-	std::string dirof = "Directory of " + path + "\n";
+	printf("path: %26s\n", path.c_str());
+	std::string dirof = "DIR: " + path + "\n";
 	_files.push_back(dirof);
 
 	if (strlen(_filepath)==0)
@@ -506,7 +506,7 @@ void FileIO::_cmd_list_dir()
 				dir << "[" << entry.path().filename().generic_string() << "]";
 				std::string stDir = dir.str();
 				while (stDir.size() < 16)
-					stDir = " " + stDir;
+					stDir = stDir + " ";
 				_files.push_back(stDir);
 			}
 			if (entry.is_regular_file())
@@ -514,7 +514,7 @@ void FileIO::_cmd_list_dir()
 				dir << entry.path().filename().generic_string();
 				std::string stDir = dir.str();
 				while (stDir.size() < 16)
-					stDir = " " + stDir;
+					stDir = stDir + " ";
 				_files.push_back(stDir);
 			}
 		}
@@ -542,7 +542,7 @@ void FileIO::_cmd_list_dir()
 					dir << entry.path().filename().generic_string();
 					std::string stDir = dir.str();
 					while (stDir.size() < 16)
-						stDir = " " + stDir;
+						stDir = stDir + " ";
 					_files.push_back(stDir);
 				}
 			}
@@ -566,7 +566,7 @@ void FileIO::_cmd_list_dir()
 					dir << entry.path().filename().generic_string();
 					std::string stDir = dir.str();
 					while (stDir.size() < 16)
-						stDir = " " + stDir;
+						stDir = stDir + " ";
 					_files.push_back(stDir);
 				}
 			}

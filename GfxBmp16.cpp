@@ -48,9 +48,11 @@ GfxBmp16::~GfxBmp16()
 
 void GfxBmp16::OnInitialize()
 {
-	//printf("GfxGlyph::OnInitialize()\n");
-	// 
-   // load the default palette
+}
+
+void GfxBmp16::OnActivate()
+{
+	// load the default palette
 	if (default_palette.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
@@ -74,10 +76,7 @@ void GfxBmp16::OnInitialize()
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
 	}
-}
 
-void GfxBmp16::OnActivate()
-{
 	// load the palette from the defaults
 	for (int t = 0; t < 16; t++)
 	{

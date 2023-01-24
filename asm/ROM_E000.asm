@@ -36,12 +36,15 @@ TCSR_ROW		fcb		0				; current text cursor row
 TCSR_COL		fcb		0				; current text cursor column
 TCSR_ATTRIB		fcb		$10				; current cursor attribute
 TEXT_ATTRIB		fcb		$a2				; current text attribute
-TCSR_DECAY		fdb		$0000			; counter delay for the cursor
 TCSR_ANC_ROW	fcb		0				; beginning row of line currently being edited
 TCSR_ANC_COL	fcb		0				; beginning column of line currently being edited
 TCSR_ANC_ADR	fdb		0				; anchor address
 TCSR_EDT_ADR	fdb		0				; address when enter was pressed during line edit
 DEF_GFX_FLAGS	fcb		$02				; default graphics flags	($02)
+
+;TCSR_DECAY		fdb		$0000			; counter delay for the cursor
+TCSR_DECAY		fcb		$00				; counter delay for the cursor
+
 
 			INCLUDE "mem_map.asm"
 
@@ -116,22 +119,31 @@ reset
 			clr		TCSR_ANC_ADR
 			clr		TCSR_ANC_ADR+1			
 
-		; main KERNEL loop
-			ldb		#$10
-			stb		TCSR_ATTRIB
-			ldd		#0
-			std		TCSR_DECAY
 
+			clr		TCSR_DECAY
+
+;			ldb		#$10
+;			stb		TCSR_ATTRIB
+;			ldd		#0
+;			std		TCSR_DECAY
+
+; **** main KERNEL loop **********************************************
 main_kernel
 			; rotate the cursor attributes
-			ldd		TCSR_DECAY		; load the cursor delay
-			addd	#1				; increment it
-			std		TCSR_DECAY		; store it	
-			cmpd	#$200			; check if delay has expired
-			blt		1f				; skip past the color update
-			inc		TCSR_ATTRIB		; increment the color attribute
-			ldd		#0				; reset the cursor delay
-			std		TCSR_DECAY		; store the reset delay
+
+			lda		GFX_CLK_DIV		; load the clock divisions
+			anda	#%00001000		; mask out the 0.5 hz bit
+			cmpa	TCSR_DECAY		; compare with the previous clock state
+			beq		1f				; skip when no change			
+			sta		TCSR_DECAY		; store the new clock state
+			ldb		TCSR_ATTRIB		; B: current cursor attribute
+			lda		TCSR_ATTRIB		; A: current cursor attribute
+			anda	#$F0			; mask out the background bits
+			sta		TCSR_ATTRIB		; store masked attribute			
+			incb					; increment the background color
+			andb	#$0F			; mask out the foreground color bits
+			orb		TCSR_ATTRIB		; update with the background color bits
+			stb		TCSR_ATTRIB		; store the new cursor attribute
 
 			; mark the anchor
 			lda 	TCSR_ANC_ROW	; A: text cursor row
@@ -435,19 +447,19 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 
 		; [L] = test load "test.hex"
 			cmpa	#0
-			lbeq		999f				; do syntax error
+			lbeq	999f			; do syntax error
 			cmpa	#1				
-			beq		1f				; do "cls"
+			lbeq	1f				; do "cls"
 			cmpa	#2				
-			beq		2f				; do "load"
+			lbeq	2f				; do "load"
 			cmpa	#3
-			beq		3f				; do "exec"
+			lbeq	3f				; do "exec"
 			cmpa	#4
-			beq		4f				; do "reset"
+			lbeq	4f				; do "reset"
 			cmpa	#5
-			beq		5f				; do "exit"
+			lbeq	5f				; do "exit"
 			cmpa	#6
-			beq		6f				; screen
+			lbeq	6f				; screen
 			cmpa	#7
 			lbeq	7f				; dir
 			cmpa	#8
@@ -455,9 +467,52 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lbra		999f				; syntax error
 
 1 ; cls
+			tst		FIO_FILEPATH
+			lbeq		11f
+
+			lda		FIO_FILEPATH
+			ora		#$20			; force lower case
+			cmpa	#'a'
+			blt		101f
+			cmpa	#'f'
+			bgt		101f
+			suba	#'a'
+			adda	#10
+			bra		102f
+101			cmpa	#'0'
+			blt		11f				; invalid, just use defaults
+			cmpa	#'9'
+			bgt		11f				; also invalid
+			suba	#'0'
+102;
+			ldb		FIO_FILEPATH+1
+			orb		#$20			; force lower case
+			cmpb	#'a'
+			blt		103f
+			cmpb	#'f'
+			bgt		103f
+			subb	#'a'
+			addb	#10
+			bra		104f
+103			cmpb	#'0'
+			blt		11f				; invalid, just use defaults
+			cmpb	#'9'
+			bgt		11f				; also invalid
+			subb	#'0'
+104
+			lsla
+			lsla
+			lsla
+			lsla
+			sta		TEXT_ATTRIB
+			orb		TEXT_ATTRIB
+			stb		TEXT_ATTRIB
+
+			bra 	12f
+11		; default color
 			lda		#$a2
 			sta		TEXT_ATTRIB	
-		; clear screen
+12		; clear screen
 			jsr		clear_text_screen
 			jsr		ok_prompt
 			rts		
