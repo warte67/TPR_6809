@@ -17,27 +17,68 @@ extern Byte font8x8_system[256][8];
 // Graphics Mode Unique Callback Function:
 Byte GfxGlyph64::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
-	if (bWasRead)
-	{	// READ	
+	if (ofs >= GFX_FG_BEGIN && ofs <= GFX_FG_END)
+	{
 		if (bWasRead)
 		{	// READ	
-			// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
-			if (ofs >= GFX_FG_BEGIN && ofs <= GFX_FG_END)
+			if (bWasRead)
+			{	// READ	
+				if (ofs >= GFX_FG_WDTH && ofs <= GFX_FG_HGHT)
+				{
+					// GFX_FG_WDTH and GFX_FG_HGHT  (read only)
+					Word fg_Width = 63;
+					Word fg_Height = 39;
+					if (ofs == GFX_FG_WDTH)		data = fg_Width;
+					if (ofs == GFX_FG_HGHT)		data = fg_Height;
+					bus->debug_write(ofs, data);
+				}
+			}
+			// read the font index
+			if (ofs == GFX_FONT_IDX)
 			{
-				Word fg_Width = 63;
-				Word fg_Height = 39;
-				if (ofs == GFX_FG_WDTH)		data = fg_Width;
-				if (ofs == GFX_FG_HGHT)		data = fg_Height;
+				data = font_index;
 				bus->debug_write(ofs, data);
 			}
+			// read character font data from the buffer
+			if (ofs >= GFX_FONT_DAT && ofs <= GFX_FONT_DAT + 8)
+			{
+				data = glyph_data[ofs - GFX_FONT_DAT][font_index];
+				//bus->debug_write(ofs, data);
+			}
 		}
-		// read character font data from the buffer
-		// ...
-	}
-	else
-	{	// WRITE
-		// write character font data to buffer and to texture
-		// ...
+		else
+		{	// WRITE
+
+			// write the font index
+			if (ofs == GFX_FONT_IDX)
+			{
+				font_index = data;
+				bus->debug_write(ofs, data);
+			}
+			// write character font data to buffer and to texture
+			if (ofs >= GFX_FONT_DAT && ofs <= GFX_FONT_DAT + 8)
+			{
+				glyph_data[ofs - GFX_FONT_DAT][font_index] = data;
+				bus->debug_write(ofs, data);
+				// write the new pixel data
+				SDL_BlendMode old_blendmode;
+				SDL_GetRenderDrawBlendMode(gfx->Renderer(), &old_blendmode);
+				SDL_Texture* glyph = glyph_textures[font_index];
+				SDL_SetRenderTarget(gfx->Renderer(), glyph);
+				SDL_SetRenderDrawBlendMode(gfx->Renderer(), SDL_BLENDMODE_NONE);	//SDL_BLENDMODE_NONE
+				int y = ofs - GFX_FONT_DAT;
+				for (int x = 0; x < 8; x++)
+				{
+					Byte bitMask = 1 << (7 - x);
+					if (data & bitMask)
+						SDL_SetRenderDrawColor(gfx->Renderer(), 255, 255, 255, 255);
+					else
+						SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0);
+					SDL_RenderDrawPoint(gfx->Renderer(), x, y);
+				}
+				SDL_SetRenderDrawBlendMode(gfx->Renderer(), old_blendmode);
+			}
+		}
 	}
 	return data;
 }
@@ -52,8 +93,14 @@ GfxGlyph64::GfxGlyph64()
 
 void GfxGlyph64::OnInitialize()
 {	 
+	// set the initial character dimensions
 	bus->debug_write(GFX_FG_WDTH, 63);
 	bus->debug_write(GFX_FG_HGHT, 39);
+
+	// setup initial font defaults
+	for (int i = 0; i < 256; i++)
+		for (int b = 0; b < 8; b++)
+			glyph_data[i][b] = font8x8_system[i][b];
 
 	//OnActivate();
 }
@@ -109,7 +156,7 @@ void GfxGlyph64::OnQuit()
 
 void GfxGlyph64::OnCreate()
 {
-	//printf("GfxGlyph::OnCreate()\n");
+	printf("GfxGlyph::OnCreate()\n");
 	// 
 	// create the glyph textures
 	if (glyph_textures.size() == 0)
@@ -127,7 +174,8 @@ void GfxGlyph64::OnCreate()
 				for (int x = 0; x < 8; x++)
 				{
 					Byte bitMask = 1 << (7 - x);
-					if (font8x8_system[t][y] & bitMask)
+					//if (font8x8_system[t][y] & bitMask)
+					if (glyph_data[t][y] & bitMask)
 					{
 						SDL_SetRenderDrawColor(gfx->Renderer(), 255, 255, 255, 255);
 						SDL_RenderDrawPoint(gfx->Renderer(), x, y);

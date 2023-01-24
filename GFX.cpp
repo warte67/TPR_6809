@@ -189,15 +189,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->palette[m_palette_index].color = 
 					(ptrGfx->palette[m_palette_index].color & 0x00FF) | (data << 8);
 				ptrGfx->bRebuildTextures = true;
-
-				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
-				//	ptrGfx->m_bg_gmodes[t]->OnDestroy();
-				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
-				//	ptrGfx->m_fg_gmodes[t]->OnDestroy();
-				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
-				//	ptrGfx->m_bg_gmodes[t]->OnCreate();
-				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
-				//	ptrGfx->m_fg_gmodes[t]->OnCreate();
 			}
 			if (ofs == GFX_PAL_DATA+1)
 			{
@@ -205,18 +196,8 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->palette[m_palette_index].color =
 					(ptrGfx->palette[m_palette_index].color & 0xFF00) | (data << 0);
 				ptrGfx->bRebuildTextures = true;
-
-				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
-				//	ptrGfx->m_bg_gmodes[t]->OnDestroy();
-				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
-				//	ptrGfx->m_fg_gmodes[t]->OnDestroy();
-				//for (int t = 0; t < ptrGfx->m_bg_gmodes.size(); t++)
-				//	ptrGfx->m_bg_gmodes[t]->OnCreate();
-				//for (int t = 0; t < ptrGfx->m_fg_gmodes.size(); t++)
-				//	ptrGfx->m_fg_gmodes[t]->OnCreate();
 			}
 		}
-
 
 		// write non-paged BG graphics Hardware Registers
 		if (ofs == GFX_EXT_ADDR)		
@@ -378,7 +359,8 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_FG_BEGIN", "start of paged foreground gfxmode registers" }); offset += 0;
 	memmap->push({ offset, "GFX_FG_WDTH", "(Byte) Foreground Unit Width-1" }); offset += 1;
 	memmap->push({ offset, "GFX_FG_HGHT", "(Byte) Foreground Unit Height-1" }); offset += 1;
-
+	memmap->push({ offset, "GFX_FONT_IDX", "(Byte) Font Glyph Index" }); offset += 1;
+	memmap->push({ offset, "GFX_FONT_DAT", "(8-Bytes) Font Glyph Data Buffer" }); offset += 8;
 	memmap->push({ --offset, "GFX_FG_END", "end of paged foreground gfxmode registers" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
@@ -792,9 +774,11 @@ void GFX::OnUpdate(float fElapsedTime)
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
+
+
 	if (bRebuildTextures)
 	{
-		const float _texDelay = 0.010;
+		const float _texDelay = 0.010f;
 		static float _texAcc = fElapsedTime;
 		_texAcc += fElapsedTime;
 		if (_texAcc > fElapsedTime + _texDelay)

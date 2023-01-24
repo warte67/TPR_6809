@@ -58,35 +58,37 @@ GFX_PAL_DATA    equ     $1808   ; (Word) gfx palette color bits RGBA4444
 GFX_FG_BEGIN    equ     $180a   ; start of paged foreground gfxmode registers
 GFX_FG_WDTH     equ     $180a   ; (Byte) Foreground Unit Width-1
 GFX_FG_HGHT     equ     $180b   ; (Byte) Foreground Unit Height-1
-GFX_FG_END      equ     $180b   ; end of paged foreground gfxmode registers
+GFX_FONT_IDX    equ     $180c   ; (Byte) Font Glyph Index
+GFX_FONT_DAT    equ     $180d   ; (8-Bytes) Font Glyph Data Buffer
+GFX_FG_END      equ     $1814   ; end of paged foreground gfxmode registers
 
 ;  Paged Background Graphics Mode Hardware Registers:
-GFX_BG_BEGIN    equ     $180c   ; start of paged background gfxmode registers
-GFX_EXT_ADDR    equ     $180c   ; (Word) 20K extended graphics addresses
-GFX_EXT_DATA    equ     $180e   ; (Byte) 20K extended graphics RAM data
-GFX_BG_END      equ     $180e   ; end of paged background gfxmode registers
+GFX_BG_BEGIN    equ     $1815   ; start of paged background gfxmode registers
+GFX_EXT_ADDR    equ     $1815   ; (Word) 20K extended graphics addresses
+GFX_EXT_DATA    equ     $1817   ; (Byte) 20K extended graphics RAM data
+GFX_BG_END      equ     $1817   ; end of paged background gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
-CSR_BEGIN       equ     $180f   ; start of mouse cursor hardware registers
-CSR_XPOS        equ     $180f   ; (Word) horizontal mouse cursor coordinate
-CSR_YPOS        equ     $1811   ; (Word) vertical mouse cursor coordinate
-CSR_XOFS        equ     $1813   ; (Byte) horizontal mouse cursor offset
-CSR_YOFS        equ     $1814   ; (Byte) vertical mouse cursor offset
-CSR_SIZE        equ     $1815   ; (Byte) cursor size (0-15) 0:off
-CSR_SCROLL      equ     $1816   ; (Signed) MouseWheel Scroll: -1, 0, 1
-CSR_FLAGS       equ     $1817   ; (Byte) mouse button flags:
+CSR_BEGIN       equ     $1818   ; start of mouse cursor hardware registers
+CSR_XPOS        equ     $1818   ; (Word) horizontal mouse cursor coordinate
+CSR_YPOS        equ     $181a   ; (Word) vertical mouse cursor coordinate
+CSR_XOFS        equ     $181c   ; (Byte) horizontal mouse cursor offset
+CSR_YOFS        equ     $181d   ; (Byte) vertical mouse cursor offset
+CSR_SIZE        equ     $181e   ; (Byte) cursor size (0-15) 0:off
+CSR_SCROLL      equ     $181f   ; (Signed) MouseWheel Scroll: -1, 0, 1
+CSR_FLAGS       equ     $1820   ; (Byte) mouse button flags:
                                 ;      bits 0-5: button states
                                 ;      bits 6-7: number of clicks
-CSR_PAL_INDX    equ     $1818   ; (Byte) mouse cursor color palette index (0-15)
-CSR_PAL_DATA    equ     $1819   ; (Word) mouse cursor color palette data RGBA4444
-CSR_BMP_INDX    equ     $181b   ; (Byte) mouse cursor bitmap pixel offset
-CSR_BMP_DATA    equ     $181c   ; (Byte) mouse cursor bitmap pixel index color
-CSR_END equ     $181c   ; end of mouse cursor hardware registers
+CSR_PAL_INDX    equ     $1821   ; (Byte) mouse cursor color palette index (0-15)
+CSR_PAL_DATA    equ     $1822   ; (Word) mouse cursor color palette data RGBA4444
+CSR_BMP_INDX    equ     $1824   ; (Byte) mouse cursor bitmap pixel offset
+CSR_BMP_DATA    equ     $1825   ; (Byte) mouse cursor bitmap pixel index color
+CSR_END equ     $1825   ; end of mouse cursor hardware registers
 
 ;  Debugger Hardware Registers:
-DBG_BEGIN       equ     $181d   ; Start of Debugger Hardware Registers
-DBG_BRK_ADDR    equ     $181d   ; (Word) Address of current breakpoint
-DBG_FLAGS       equ     $181f   ; (Byte) Debug Specific Hardware Flags
+DBG_BEGIN       equ     $1826   ; Start of Debugger Hardware Registers
+DBG_BRK_ADDR    equ     $1826   ; (Word) Address of current breakpoint
+DBG_FLAGS       equ     $1828   ; (Byte) Debug Specific Hardware Flags
                                 ;      bit 7: Debug Enable
                                 ;      bit 6: Single Step Enable
                                 ;      bit 5: clear all breakpoints
@@ -95,21 +97,21 @@ DBG_FLAGS       equ     $181f   ; (Byte) Debug Specific Hardware Flags
                                 ;      bit 2: IRQ   (on low to high edge)
                                 ;      bit 1: NMI   (on low to high edge)
                                 ;      bit 0: RESET (on low to high edge)
-DBG_END equ     $181f   ; End of the Debugger Hardware Registers
+DBG_END equ     $1828   ; End of the Debugger Hardware Registers
 
 
-GFX_END equ     $1820   ; end of the GFX Hardware Registers
+GFX_END equ     $1829   ; end of the GFX Hardware Registers
 
 ;  File I/O Hardware Registers:
-FIO_BEGIN       equ     $1820   ; start of file i/o hardware registers
-FIO_ERR_FLAGS   equ     $1820   ; (Byte) file i/o system flags:
+FIO_BEGIN       equ     $1829   ; start of file i/o hardware registers
+FIO_ERR_FLAGS   equ     $1829   ; (Byte) file i/o system flags:
                                 ;      bit 7:   file not found
                                 ;      bit 6:  end of file
                                 ;      bit 5:   buffer overrun
                                 ;      bit 4: wrong file type
                                 ;      bit 3: directory not found
                                 ;      bit 0-2: not yet assigned
-FIO_COMMAND     equ     $1821   ; (Byte) OnWrite - command to execute
+FIO_COMMAND     equ     $182a   ; (Byte) OnWrite - command to execute
                                 ;      $00 = Reset/Null
                                 ;      $01 = Open/Create Binary File for Reading
                                 ;      $02 = Open/Create Binary File for Writing
@@ -134,28 +136,28 @@ FIO_COMMAND     equ     $1821   ; (Byte) OnWrite - command to execute
                                 ;      $15 = Seek Current
                                 ;      $16 = Seek End
                                 ;      $17 = SYSTEM: Shutdown
-FIO_HANDLE      equ     $1822   ; (Byte) file handle or ZERO
-FIO_BFROFS      equ     $1823   ; (Word) start of I/O buffer
-FIO_BFRLEN      equ     $1824   ; (Word) length of I/O buffer
-FIO_SEEKOFS     equ     $1826   ; (Word) seek offset
-FIO_RET_COUNT   equ     $1828   ; (Byte) number of return entries
-FIO_RET_INDEX   equ     $1829   ; (Byte) command return index
-FIO_RET_BUFFER  equ     $182a   ; (Char Array 256) paged return buffer
-FIO_FILEPATH    equ     $192a   ; (Char Array 256) file path and argument buffer
-FIO_END equ     $1a2a   ; end of file i/o hardware registers
+FIO_HANDLE      equ     $182b   ; (Byte) file handle or ZERO
+FIO_BFROFS      equ     $182c   ; (Word) start of I/O buffer
+FIO_BFRLEN      equ     $182d   ; (Word) length of I/O buffer
+FIO_SEEKOFS     equ     $182f   ; (Word) seek offset
+FIO_RET_COUNT   equ     $1831   ; (Byte) number of return entries
+FIO_RET_INDEX   equ     $1832   ; (Byte) command return index
+FIO_RET_BUFFER  equ     $1833   ; (Char Array 256) paged return buffer
+FIO_FILEPATH    equ     $1933   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1a33   ; end of file i/o hardware registers
 
 ;  Keyboard Hardware Registers:
-KEY_BEGIN       equ     $1a2b   ; start of keyboard hardware registers
-CHAR_Q_LEN      equ     $1a2b   ; (char) # of characters waiting in queue       (Read Only)
-CHAR_SCAN       equ     $1a2c   ; read next character in queue       (not popped when read)
-CHAR_POP        equ     $1a2d   ; (char) next character waiting in queue (popped when read)
-XKEY_BUFFER     equ     $1a2e   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-EDT_BFR_CSR     equ     $1a3e   ; (Byte) cursor position within edit buffer    (Read/Write)
-EDT_BUFFER      equ     $1a3f   ; (256 Bytes) line editing character buffer    (Read/Write)
-KEY_END equ     $1b3f   ; end of keyboard hardware registers
+KEY_BEGIN       equ     $1a34   ; start of keyboard hardware registers
+CHAR_Q_LEN      equ     $1a34   ; (char) # of characters waiting in queue       (Read Only)
+CHAR_SCAN       equ     $1a35   ; read next character in queue       (not popped when read)
+CHAR_POP        equ     $1a36   ; (char) next character waiting in queue (popped when read)
+XKEY_BUFFER     equ     $1a37   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+EDT_BFR_CSR     equ     $1a47   ; (Byte) cursor position within edit buffer    (Read/Write)
+EDT_BUFFER      equ     $1a48   ; (256 Bytes) line editing character buffer    (Read/Write)
+KEY_END equ     $1b48   ; end of keyboard hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1b40   ; Reserved 1211 bytes ($1B40 - $1FFB)
+RESERVED_HDW    equ     $1b49   ; Reserved 1202 bytes ($1B49 - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
@@ -171,3 +173,5 @@ RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
 
 ;  Bios Kernal ROM:
 BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
+
+
