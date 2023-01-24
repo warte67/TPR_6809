@@ -41,3 +41,34 @@ private:
 
 #endif // __GFXINDEXED_H__
 
+
+/**** NOTES: *****************************************
+
+There are two indexed buffer pages that should be swapped manually.
+
+Already Implemented:
+	GFX_EXT_ADDR		// (Word) 20K extended graphics addresses (doesnt consider buffer page)
+	GFX_EXT_DATA		// (Byte) 20K extended graphics RAM data  (doesnt consider buffer page)
+
+Future Implementation:
+	GFX_BG_ADDR		// (Word) 10K active graphics address (0 based)
+	GFX_BG_DATA		// (Byte) 10K active graphics RAM data
+
+	GFX_BG_ARG1			// (Byte) first read/write argument for the blit commands
+
+	GFX_BG_CMD			// (Byte) Commands to be issued on the 20k indexed bitmap buffer
+		// 0x01: Clear Screen	(with color index in GFX_BG_ARG1)
+		// 0x02: Set Active Page	(0 or 1 in GFX_BG_ARG1)
+		// 0x03: Swap Pages		(simply swaps video buffers)
+		// 0x04: Scroll Left		(by pixels x GFX_BG_ARG1)
+		// 0x05: Scroll Right	(by pixels x GFX_BG_ARG1)
+		// 0x06: Scroll Up		(by pixels x GFX_BG_ARG1)
+		// 0x07: Scroll Down		(by pixels x GFX_BG_ARG1)
+					
+		potential future commands:
+
+		// 0x05 blit from ram to v20_buffer (need x, y, width, height, and buffer address)
+		// 0x06 blit from v20_buffer to ram (need x, y, width, height, and buffer address)
+
+
+*******************************************************/

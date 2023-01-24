@@ -368,6 +368,17 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "GFX_BG_BEGIN", "start of paged background gfxmode registers" }); offset += 0;
 	memmap->push({ offset, "GFX_EXT_ADDR", "(Word) 20K extended graphics addresses" }); offset += 2;
 	memmap->push({ offset, "GFX_EXT_DATA", "(Byte) 20K extended graphics RAM data" }); offset += 1;
+
+	memmap->push({ offset, "GFX_BG_ARG1", "(Byte) first read/write argument for the blit commands" }); offset += 1;
+	memmap->push({ offset, "GFX_BG_CMD", "(Byte) Blit Commands on the indexed bitmap buffer" }); offset += 1;
+	memmap->push({ offset, "", ">    0x01: Clear Screen     (with color index in GFX_BG_ARG1)" }); offset += 0;
+	memmap->push({ offset, "", ">    0x02: Set Active Page  (0 or 1 in GFX_BG_ARG1)          " }); offset += 0;
+	memmap->push({ offset, "", ">    0x03: Swap Pages       (simply swaps video buffers)     " }); offset += 0;
+	memmap->push({ offset, "", ">    0x04: Scroll Left      (by pixels x GFX_BG_ARG1)        " }); offset += 0;
+	memmap->push({ offset, "", ">    0x05: Scroll Right     (by pixels x GFX_BG_ARG1)        " }); offset += 0;
+	memmap->push({ offset, "", ">    0x06: Scroll Up        (by pixels x GFX_BG_ARG1)        " }); offset += 0;
+	memmap->push({ offset, "", ">    0x07: Scroll Down      (by pixels x GFX_BG_ARG1)        " }); offset += 0;
+
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
 	//memmap->push({ offset, "", "" }); offset -= 1;
