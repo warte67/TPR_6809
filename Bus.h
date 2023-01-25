@@ -38,6 +38,7 @@ class GFX;
 class Memory;
 class FileIO;
 class Keyboard;
+class Gamepad;
 class C6809;
 
 class Bus
@@ -101,6 +102,7 @@ public:
     GfxDebug* gfxdebug = nullptr;    
     FileIO* m_file = nullptr;
     Keyboard* m_keyboard = nullptr;
+    Gamepad* m_gamepad = nullptr;
 };
 
 #endif // __BUS_H__

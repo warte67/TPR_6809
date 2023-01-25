@@ -80,16 +80,20 @@ Byte Keyboard::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 					return data;
 				} 
 			}
-			else if (ofs >= EDT_BUFFER && ofs <= KEY_END)
+			else if (ofs >= EDT_BUFFER && ofs <= EDT_BUFFER+256)
 			{
 				if (bWasRead) // read a byte within the editBuffer[] array
 				{
-					data = ptrKey->editBuffer[ofs - EDT_BUFFER];
+					Word index = ofs - EDT_BUFFER;
+					if (index > 255)	index = 255;
+					data = ptrKey->editBuffer[index];
 					return data;
 				}
 				else
 				{
-					ptrKey->editBuffer[ofs - EDT_BUFFER] = data;
+					Word index = ofs - EDT_BUFFER;
+					if (index > 255)	index = 255;
+					ptrKey->editBuffer[index] = data;
 					bus->debug_write(ofs, data);
 				}
 			}
@@ -103,21 +107,17 @@ Keyboard* Keyboard::Assign_Keyboard(MemoryMap* memmap, DWord& offset)
 {
 	Bus* bus = Bus::getInstance();
 	Keyboard* ret = nullptr;
-	// attach a FileIO device:
+	// attach a Keyboard device:
 	int fSize = Keyboard::MapDevice(memmap, offset);
 	ret = new Keyboard(offset, fSize);
 	ret->bus = bus;
 	ret->memory = bus->m_memory;
 	bus->AttachDevice(ret);		// bus->_devices.push_back(ret);
 	bus->m_memory->ReassignReg(offset, ret, "KEYBOARD_HDW", fSize, Keyboard::OnCallback);
-
 	ret->Base(offset);
 	ret->Size(fSize);
-
 	bus->m_memory->NextAddress(offset + fSize);
-
 	offset += fSize;
-
 	return ret;
 }
 

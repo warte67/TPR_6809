@@ -104,8 +104,6 @@ enum MEMMAP
   GFX_TIMING_H = 0x1805,        // (Word) vertical timing
   GFX_PAL_INDX = 0x1807,        // (Byte) gfx palette index (0-15)
   GFX_PAL_DATA = 0x1808,        // (Word) gfx palette color bits RGBA4444
-  // ^^^^ change GFX_PAL_INDX and GFX_PAL_DATA to GFX_FG_PAL_IDX and GFX_FG_PAL_DAT
-  // add GFX_BG_PAL_IDX and GFX_BG_PAL_DAT
 
 //  Paged Foreground Graphics Mode Hardware Registers:
   GFX_FG_BEGIN = 0x180a,        // start of paged foreground gfxmode registers
@@ -218,8 +216,29 @@ enum MEMMAP
     EDT_BUFFER = 0x1a4a,        // (256 Bytes) line editing character buffer    (Read/Write)
        KEY_END = 0x1b4a,        // end of keyboard hardware registers
 
+//  Gamepad Hardware Registers:
+     GPD_BEGIN = 0x1b4b,        // start of keyboard hardware registers
+    JOYS_1_BTN = 0x1b4b,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_1_DBND = 0x1b4d,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
+    JOYS_1_LTX = 0x1b4e,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_LTY = 0x1b4f,        // (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_1_RTX = 0x1b50,        // (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_RTY = 0x1b51,        // (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_1_Z1 = 0x1b52,        // (char) PAD 1 left trigger        (0 - 127)     (realtime)
+     JOYS_1_Z2 = 0x1b53,        // (char) PAD 1 right trigger       (0 - 127)     (realtime)
+
+    JOYS_2_BTN = 0x1b54,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_2_DBND = 0x1b56,        // (Byte) PAD 2 analog deadband; default is 5   (read/write)
+    JOYS_2_LTX = 0x1b57,        // (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_LTY = 0x1b58,        // (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_2_RTX = 0x1b59,        // (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_RTY = 0x1b5a,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_2_Z1 = 0x1b5b,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
+     JOYS_2_Z2 = 0x1b5c,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
+       GPD_END = 0x1b5d,        // end of keyboard hardware registers
+
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1b4b,        // Reserved 1200 bytes ($1B4B - $1FFB)
+  RESERVED_HDW = 0x1b5e,        // Reserved 1181 bytes ($1B5E - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -227,7 +246,7 @@ enum MEMMAP
 
 //  Standard Usable (from FAST static 32KB) RAM:
      RAM_START = 0x2000,        // Begin System RAM (32k)
-       RAM_END = 0x9fff,        // End System RAM
+       RAM_END = 0x9fff,        // End System RAM3
 
 //  Switchable RAM Banks (from SLOW external serial 16MB RAM chip):
     RAM_BANK_1 = 0xa000,        // switched 8KB ram bank 1

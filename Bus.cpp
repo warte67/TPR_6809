@@ -34,6 +34,7 @@
 #include "GFX.h"
 #include "MemoryMap.h"      // move this to the Memory.h when available
 #include "Memory.h"
+#include "Gamepad.h"
 #include "Keyboard.h"
 #include "FileIO.h"
 #include "C6809.h"
@@ -120,6 +121,9 @@ Bus::Bus()
 
     // attach a keyboard device:
     m_keyboard = Keyboard::Assign_Keyboard(memmap, mem_offset);
+
+    // attach a keyboard device:
+    m_gamepad = Gamepad::Assign_Gamepad(memmap, mem_offset);
 
     // add more hardware devices here:
     // ...
