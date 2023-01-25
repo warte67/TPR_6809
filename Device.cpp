@@ -2,6 +2,8 @@
  * Device.cpp
  *
  * Base Device class
+ *
+ * Copyright (C) 2023 by Jay Faries
  ******************************/
 
 #include "Bus.h"

@@ -1,8 +1,9 @@
-// * GfxMouse.cpp ***************************************
-// *
-// *  The Debugger
-// ************************************
-
+/* GfxDebug.cpp ***************************************
+ *
+ *  The Debugger
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #include <map>
 #include <list>
 #include "types.h"

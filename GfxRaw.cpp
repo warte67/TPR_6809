@@ -1,9 +1,9 @@
-// * GfxRaw.cpp ***************************************
-// *
-// * 256x160 x 64-Colors
-// *		Requires a 40KB Buffer
-// ************************************
-
+/**** GfxRaw.cpp ***************************************
+ *
+ * 128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "bus.h"

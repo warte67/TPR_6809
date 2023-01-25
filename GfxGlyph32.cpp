@@ -1,8 +1,10 @@
-// * GfxGlyph32.cpp ***************************************
-// *
-// *  32x20 Text Glyph Mode 
-// *        include FOUR layers of overlayed text
-// ************************************
+/**** GfxGlyph32.cpp ***************************************
+ *
+ *  32x20 Text Glyph Mode
+ *        include FOUR layers of overlayed text
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "C6809.h"

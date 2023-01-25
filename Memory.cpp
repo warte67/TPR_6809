@@ -1,8 +1,10 @@
-// * Memory.cpp ***************************************
-// *
-// * Implements the RAM, ROM, and REG (register) type
-// *    memory devices.
-// ************************************
+/**** Memory.cpp ***************************************
+ *
+ * Implements the RAM, ROM, and REG (register) type
+ *    memory devices.
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "Bus.h"
 #include "Device.h"

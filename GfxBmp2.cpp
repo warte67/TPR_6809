@@ -1,7 +1,9 @@
-// * GfxBmp2.h ***************************************
-// *
-// *  256x160 x 2-Color BMP Graphics Mode 
-// ************************************
+/* GfxBmp2.cpp ***************************************
+ *
+ *  256x160 x 2-Color BMP Graphics Mode
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "bus.h"

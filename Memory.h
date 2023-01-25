@@ -1,8 +1,10 @@
-// * Memory.h ***************************************
-// *
-// * Implements the RAM, ROM, and REG (register) type
-// *    memory devices.
-// ************************************
+/**** Memory.h ***************************************
+ *
+ * Implements the RAM, ROM, and REG (register) type
+ *    memory devices.
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __MEMORY_H__
 #define __MEMORY_H__

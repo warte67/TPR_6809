@@ -1,10 +1,9 @@
-// * GfxTile32.h ***************************************
-// *
-// *  16x16 Tile Mode
-// * 
-// *   This could be a very simple override of GfxTile16() rather
-// *		than a whole new class.
-// ************************************
+/**** GfxTile32.cpp ***************************************
+ *
+ *  16x16 Overscan Tile Mode
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "C6809.h"

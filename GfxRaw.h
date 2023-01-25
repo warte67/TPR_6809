@@ -1,7 +1,9 @@
-// * GfxRaw.h ***************************************
-// *
-// * 128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
-// ************************************
+/**** GfxRaw.h ***************************************
+ *
+ * 128x80 x 4096-Color (16 bpp 20KB) - Serial Buffer / FPGA
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #ifndef __GFXRAW_H__
 #define __GFXRAW_H__
 #pragma once

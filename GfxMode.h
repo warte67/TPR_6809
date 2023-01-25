@@ -1,7 +1,9 @@
-// * GfxMode.h ***************************************
-// *
-// *  Base graphics Mode.  
-// ************************************
+/**** GfxMode.h ***************************************
+ *
+ *  Base graphics Mode.  
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __GFXMODE_H__
 #define __GFXMODE_H__

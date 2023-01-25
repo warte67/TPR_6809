@@ -1,7 +1,9 @@
-// * GfxMouse.h ***************************************
-// *
-// *  Handles the mouse cursor.
-// ************************************
+/**** GfxMouse.h ***************************************
+ *
+ *  Handles the mouse cursor.
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __GFXMOUSE_H__
 #define __GFXMOUSE_H__

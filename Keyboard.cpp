@@ -1,9 +1,11 @@
-// * Keyboard.cpp ***************************************
-// *
-// *   Acts to emulate a Raspberry PI Pico #2
-// *		Dispatches Keyboard Events to PICO #1
-// *		Emulates the Keyboard Hardware Registers
-// ************************************
+/**** Keyboard.cpp ***************************************
+ *
+ *   Acts to emulate a Raspberry PI Pico #2
+ *		Dispatches Keyboard Events to PICO #1
+ *		Emulates the Keyboard Hardware Registers
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include <map>
 #include <queue>

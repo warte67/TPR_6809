@@ -1,9 +1,11 @@
-// * Keyboard.h ***************************************
-// *
-// *   Acts to emulate a Raspberry PI Pico #2
-// *		Dispatches Keyboard Events to PICO #1
-// *		Emulates the Keyboard Hardware Registers
-// ************************************
+/**** Keyboard.h ***************************************
+ *
+ *   Acts to emulate a Raspberry PI Pico #2
+ *		Dispatches Keyboard Events to PICO #1
+ *		Emulates the Keyboard Hardware Registers
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__

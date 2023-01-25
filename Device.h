@@ -2,6 +2,8 @@
  * Device.h
  * 
  * Base Device class
+ * 
+ * Copyright (C) 2023 by Jay Faries
  ******************************/
 #pragma once
 #ifndef __DEVICE_H__

@@ -1,8 +1,10 @@
-// * GfxGlyph32.h ***************************************
-// *
-// *  32x20 Text Glyph Mode 
-// *        include FOUR layers of overlayed text
-// ************************************
+/**** GfxGlyph32.h ***************************************
+ *
+ *  32x20 Text Glyph Mode 
+ *        include FOUR layers of overlayed text
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #ifndef __GFXGLYPH32_H__
 #define __GFXGLYPH32_H__

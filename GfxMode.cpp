@@ -1,7 +1,9 @@
-// * GfxMode.cpp ***************************************
-// *
-// *  Base graphics node.
-// ************************************
+/**** GfxMode.cpp ***************************************
+ *
+ *  Base graphics Mode.
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include <array>
 #include "types.h"

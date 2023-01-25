@@ -1,7 +1,9 @@
-// * GfxDebug.h ***************************************
-// *
-// *  The Debugger
-// ************************************
+/* GfxDebug.h ***************************************
+ *
+ *  The Debugger
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __GFXDEBUG_H__
 #define __GFXDEBUG_H__

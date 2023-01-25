@@ -1,10 +1,11 @@
-// * Gfx.h ***************************************
-// *
-// *   Acts to emulate a Raspberry PI Pico
-// *		running an R4G4B4 VGA resistor ladder DAC
-// *		circuit for graphic display.
-// ************************************
-
+/**** GFX.h ***************************************
+ *
+ *   Acts to emulate a Raspberry PI Pico
+ *		running an R4G4B4 VGA resistor ladder DAC
+ *		circuit for graphic display.
+ *
+ * Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __GFX_H__
 #define __GFX_H__

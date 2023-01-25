@@ -1,7 +1,9 @@
-// * GfxBmp16.cpp ***************************************
-// *
-// *  128x80 x 16-Color BMP Graphics Mode 
-// ************************************
+/**** GfxBmp16.cpp ***************************************
+ *
+ *  128x80 x 16-Color BMP Graphics Mode
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "bus.h"

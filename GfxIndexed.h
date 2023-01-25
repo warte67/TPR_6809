@@ -1,7 +1,9 @@
-// * GfxIndexed.h ***************************************
-// *
-// * 128x80 x 256-Color Indexed (10KB) - Serial Buffer
-// ************************************
+/**** GfxIndexed.h ***************************************
+ *
+ * 128x80 x 256-Color Indexed (10KB) - Serial Buffer
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #ifndef __GFXINDEXED_H__
 #define __GFXINDEXED_H__
 #pragma once

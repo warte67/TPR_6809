@@ -1,8 +1,10 @@
-// * MemoryMap.h ***************************************
-// *
-// * Provides the memory map symbols for both/either
-// * the C++ "Hardware" or 6809 ASM "Softere" systems.
-// ************************************
+/**** MemoryMap.h ***************************************
+ *
+ * Provides the memory map symbols for both/either
+ * the C++ "Hardware" or 6809 ASM "Softere" systems.
+ *
+ * Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #pragma once
 #ifndef __MEMORY_MAP__

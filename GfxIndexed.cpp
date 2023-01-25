@@ -2,6 +2,8 @@
 // *
 // * 256x160 x 64-Colors
 // *		Requires a 40KB Buffer
+// *
+// * Copyright (C) 2023 by Jay Faries
 // ************************************
 
 

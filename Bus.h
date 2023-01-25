@@ -22,7 +22,8 @@
  *
  *	Also included here is support for error logging
  *	and system shut down events.
- *
+ * 
+ * Copyright (C) 2023 by Jay Faries 
  ************************************/
 #pragma once
 #ifndef __BUS_H__

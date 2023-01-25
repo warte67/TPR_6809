@@ -1,8 +1,10 @@
-// * GFX.cpp ***************************************
+// **** GFX.cpp ***************************************
 // *
 // *   Acts to emulate a Raspberry PI Pico
 // *		running an R4G4B4 VGA resistor ladder DAC
 // *		circuit for graphic display.
+// *
+// * Copyright (C) 2023 by Jay Faries
 // ************************************
 
 #include <array>

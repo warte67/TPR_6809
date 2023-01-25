@@ -1,7 +1,9 @@
-// * GfxBmp2.h ***************************************
-// *
-// *  256x160 x 2-Color BMP Graphics Mode 
-// ************************************
+/* GfxBmp2.h ***************************************
+ *
+ *  256x160 x 2-Color BMP Graphics Mode 
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #ifndef __GFXBMP2_H__
 #define __GFXBMP2_H__
 #pragma once

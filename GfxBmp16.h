@@ -1,7 +1,9 @@
-// * GfxBmp16.h ***************************************
-// *
-// *  128x80 x 16-Color BMP Graphics Mode 
-// ************************************
+/**** GfxBmp16.h ***************************************
+ *
+ *  128x80 x 16-Color BMP Graphics Mode 
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #ifndef __GFXBMP16_H__
 #define __GFXBMP16_H__
 #pragma once

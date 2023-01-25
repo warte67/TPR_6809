@@ -1,8 +1,9 @@
 /**************************
-* C6809.cpp
+* C6809.CPP
 *
 * MC6809 Central Processing Unit Emulation object
 *
+* Copyright (C) 2023 by Jay Faries
 **************************************/
 
 #include <map>

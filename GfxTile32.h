@@ -1,7 +1,9 @@
-// * GfxTile32.h ***************************************
-// *
-// *  16x16 Overscan Tile Mode
-// ************************************
+/**** GfxTile32.h ***************************************
+ *
+ *  16x16 Overscan Tile Mode
+ * 
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 #pragma once
 #ifndef __GFXTILE32_H__
 #define __GFXTILE32_H__

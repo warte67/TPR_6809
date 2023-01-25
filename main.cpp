@@ -13,6 +13,9 @@
 //
 // git pull:
 //		git pull 
+//
+// Copyright (C) 2023 by Jay Faries
+
 
 #include "types.h"
 #include "Bus.h"

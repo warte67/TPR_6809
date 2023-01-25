@@ -1,7 +1,9 @@
-// * GfxMouse.cpp ***************************************
-// *
-// *  Handles the mouse cursor.
-// ************************************
+/**** GfxMouse.cpp ***************************************
+ *
+ *  Handles the mouse cursor.
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include "types.h"
 #include "Bus.h"

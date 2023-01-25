@@ -1,5 +1,30 @@
-// Bus.cpp
-//
+/*********************************************************
+ *  Bus.CPP (SINGLETON)
+ *
+ * Codename: TONI
+ *
+ *	"TONI" PICO #1 -- CORE ONE:	(6809 CPU Emulation / Debugger)
+ *		- 6809 CPU emulation
+ *			- Integrated Debugger
+ *		- Main 64KB Memory Map
+ *			- Receives Memory Event Dispatches from the other PICO as paged memory banks
+ *			- Updates Hardware Registers via UART, SPI, or I2C @ 115200 baud
+ *				as master with "KIMI" PICO #2 acting as slave.
+ *
+ *	use: getInstance() to retrieve a static bus device pointer.
+ *		call release() to destroy the Bus device.
+ *
+ *	This is the foundational container for every
+ *	device in work in the system. It serves as a
+ *  central event dispatcher to and from all of the
+ *  attached devices. Every device attached to the
+ *	Bus shall inherit from the Device class.
+ *
+ *	Also included here is support for error logging
+ *	and system shut down events.
+ *
+ * Copyright (C) 2023 by Jay Faries
+ ************************************/
 #include "types.h"
 #include <chrono>
 #include <thread>

@@ -3,6 +3,7 @@
 //  Include the correct SDL2/SDL.h file according to machine type.
 //	Define unsigned 8-bit Byte and 16-bit Word types.
 //
+// * Copyright (C) 2023 by Jay Faries
 #pragma once
 #ifndef __DEP_SDL_H__
 #define __DEP_SDL_H__

@@ -2,7 +2,8 @@
 * C6809.h
 *
 * MC6809 Central Processing Unit Emulation object
-*
+* 
+* Copyright (C) 2023 by Jay Faries
 **************************************/
 #pragma once
 #ifndef __C6809_H__

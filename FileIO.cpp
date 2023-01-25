@@ -1,10 +1,12 @@
-// * FileIO.cpp ***************************************
-// *
-// *   Acts to emulate a Raspberry PI Pico
-// *		Implementing File Input / Output
-// *		with the onboad flash ram and
-// *		the SDCARD
-// ************************************
+/* FileIO.h ***************************************
+ *
+ *   Acts to emulate a Raspberry PI Pico
+ *		Implementing File Input / Output
+ *		with the onboad flash ram and
+ *		the SDCARD
+ *
+ * Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 #include <stdio.h>
 //#include <string>
