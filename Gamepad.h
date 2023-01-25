@@ -91,6 +91,8 @@ private:
 	Bus* bus = nullptr;
 	Memory* memory = nullptr;
 
+	bool bGamepadWasInit = false;
+
 	STATE state[2];
 	std::map<Word, Byte> joysBtnMap;
 	std::map<Word, Byte> gpadBtnMap;

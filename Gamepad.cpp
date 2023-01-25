@@ -111,24 +111,11 @@ Gamepad::~Gamepad()
 void Gamepad::OnInitialize() 
 {
 	InitButtonStates();
-
-	int ret = SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-	if (ret < 0)
-	{
-		std::string msg = "SDL could not initialize gamepads and/or joysticks! SDL_Error: ";
-		msg += SDL_GetError();
-		Bus::Err(msg.c_str());
-		return;
-	}
-	// set the default analog dead band (dead zone)
-	bus->debug_write(JOYS_1_DBND, 5);
-	bus->debug_write(JOYS_2_DBND, 5);
-	OpenControllers();
+	OnCreate();
 }
 void Gamepad::OnQuit()
 {
-	CloseControllers();
-	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+	OnDestroy();
 }
 
 void Gamepad::OnEvent(SDL_Event* evnt) 
@@ -147,10 +134,31 @@ void Gamepad::OnEvent(SDL_Event* evnt)
 }
 void Gamepad::OnCreate() 
 {
-
+	if (!bGamepadWasInit)
+	{
+		int ret = SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+		if (ret < 0)
+		{
+			std::string msg = "SDL could not initialize gamepads and/or joysticks! SDL_Error: ";
+			msg += SDL_GetError();
+			Bus::Err(msg.c_str());
+			return;
+		}
+		// set the default analog dead band (dead zone)
+		bus->debug_write(JOYS_1_DBND, 5);
+		bus->debug_write(JOYS_2_DBND, 5);
+		OpenControllers();
+		bGamepadWasInit = true;
+	}
 }
 void Gamepad::OnDestroy() 
 {
+	if (bGamepadWasInit)
+	{
+		CloseControllers();
+		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+		bGamepadWasInit = false;
+	}
 }
 void Gamepad::OnUpdate(float fElapsedTime) 
 {
