@@ -225,7 +225,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                                               ; set up the initial graphics mode 
 2018  7F2005                                  clr             var_mode_index  ; start with index 0
-201B  8E20EA                                  ldx             #mode_data
+201B  8E20EF                                  ldx             #mode_data
 201E  B61801                                  lda             GFX_FLAGS
 2021  84F0                                    anda    #$f0
 2023  AA84                                    ora             ,x
@@ -283,79 +283,80 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 207A                  3
                       
                                               ; SCROLL THE EXTENDED SCREEN BUFFER
-207A  8604                                    lda             #$04                    ; command: scroll left
-207C  B71819                                  sta             GFX_BG_CMD              ; issue the command
+207A  8601                                    lda             #1                              ; delta value = scroll by this many pixels
+207C  B71818                                  sta             GFX_BG_ARG1             ; arg1 holds the delta value for the scroll
+207F  8604                                    lda             #$04                    ; command: scroll 
+2081  B71819                                  sta             GFX_BG_CMD              ; issue the command
                       
                                               ; INCREMENT THE EXTENDED SCREEN BUFFER
-207F  8E0000                                  ldx             #0
-2082                  8                       
-2082  BF1815                                  stx             GFX_EXT_ADDR
-2085  7C1817                                  inc             GFX_EXT_DATA
-2088  3001                                    leax    1,x
-208A  8C0280                                  cmpx    #640            ;#$0800
-208D  26F3                                    bne             8b
-                      
+2084  8E0000                                  ldx             #0
+2087                  8                       
+2087  BF1815                                  stx             GFX_EXT_ADDR
+208A  7C1817                                  inc             GFX_EXT_DATA
+208D  3001                                    leax    1,x
+208F  8C0280                                  cmpx    #640            ;#$0800
+2092  26F3                                    bne             8b
                       
                       
                                               ; TOGGLE THE BACKBUFFER
-208F  B61801                                  lda             GFX_FLAGS       ; load current backbuffer
-2092  8820                                    eora    #$20            ; toggle it
-2094  B71801                                  sta             GFX_FLAGS       ; save the backbuffer
+2094  B61801                                  lda             GFX_FLAGS       ; load current backbuffer
+2097  8820                                    eora    #$20            ; toggle it
+2099  B71801                                  sta             GFX_FLAGS       ; save the backbuffer
                       
                                               ; COLOR CYCLE THE MOUSE CURSOR
-2097  8604                                    lda             #4
-2099  B71823                                  sta             CSR_PAL_INDX
-209C  FC1824                                  ldd             CSR_PAL_DATA
-209F  C300A0                                  addd    #$00a0
-20A2  FD1824                                  std             CSR_PAL_DATA            
+209C  8604                                    lda             #4
+209E  B71823                                  sta             CSR_PAL_INDX
+20A1  FC1824                                  ldd             CSR_PAL_DATA
+20A4  C300A0                                  addd    #$00a0
+20A7  FD1824                                  std             CSR_PAL_DATA            
                       
                                               ; INCREMENT THE CYCLE COUNTER
-20A5  7C2004                                  inc             var_cycle       ; increment the cycle counter
-20A8  B62004                                  lda             var_cycle
-20AB  8120                                    cmpa    #num_cycles             ; max cycles yet?
-20AD  2323                                    bls             continue        ; nope, continue with the main loop
-20AF  7F2004                                  clr             var_cycle       ; reset the cycle count
+20AA  7C2004                                  inc             var_cycle       ; increment the cycle counter
+20AD  B62004                                  lda             var_cycle
+20B0  8120                                    cmpa    #num_cycles             ; max cycles yet?
+20B2  2323                                    bls             continue        ; nope, continue with the main loop
+20B4  7F2004                                  clr             var_cycle       ; reset the cycle count
                       
                                               ; MODE CHANGES
-20B2                  6
-20B2  F62005                                  ldb             var_mode_index
-20B5  7C2005                                  inc             var_mode_index
-20B8  8E20EA                                  ldx             #mode_data
-20BB  A685                                    lda             b,x
-20BD  81FF                                    cmpa    #$ff
-20BF  270C                                    beq             5f
-20C1  B61801                                  lda             GFX_FLAGS
-20C4  84F0                                    anda    #$f0
-20C6  AA85                                    ora             b,x
-20C8  B71801                                  sta             GFX_FLAGS
-20CB  2005                                    bra             continue
-20CD                  5       
-20CD  7F2005                                  clr             var_mode_index
-20D0  20E0                                    bra             6b
-20D2                  continue
+20B7                  6
+20B7  F62005                                  ldb             var_mode_index
+20BA  7C2005                                  inc             var_mode_index
+20BD  8E20EF                                  ldx             #mode_data
+20C0  A685                                    lda             b,x
+20C2  81FF                                    cmpa    #$ff
+20C4  270C                                    beq             5f
+20C6  B61801                                  lda             GFX_FLAGS
+20C9  84F0                                    anda    #$f0
+20CB  AA85                                    ora             b,x
+20CD  B71801                                  sta             GFX_FLAGS
+20D0  2005                                    bra             continue
+20D2                  5       
+20D2  7F2005                                  clr             var_mode_index
+20D5  20E0                                    bra             6b
+20D7                  continue
                                               ; WAS [ESCAPE] PRESSED
-20D2  B61A36                                  lda             CHAR_Q_LEN
-20D5  2795                                    beq             2b
+20D7  B61A36                                  lda             CHAR_Q_LEN
+20DA  2790                                    beq             2b
                       
                                               ; check for ESCAPE
-20D7  B61A38                                  lda             CHAR_POP
-20DA  811B                                    cmpa    #$1b            ; [ESCAPE]
-20DC  268E                                    bne             2b
+20DC  B61A38                                  lda             CHAR_POP
+20DF  811B                                    cmpa    #$1b            ; [ESCAPE]
+20E1  2689                                    bne             2b
                       
                                               ; RESTORE THE MOUSE CURSOR COLOR
-20DE  8604                                    lda             #4
-20E0  B71823                                  sta             CSR_PAL_INDX
-20E3  FC2006                                  ldd             var_mouse_color
-20E6  FD1824                                  std             CSR_PAL_DATA
+20E3  8604                                    lda             #4
+20E5  B71823                                  sta             CSR_PAL_INDX
+20E8  FC2006                                  ldd             var_mouse_color
+20EB  FD1824                                  std             CSR_PAL_DATA
                       
-20E9  39              done            rts
+20EE  39              done            rts
                                       
                       ; ////////////////////////////////////////////////////
                       
-                      ;mode_data      fcb             $08, $08, $08, $08, $08, $08, $08, $08
-                      ;                       fcb             $08, $08, $08, $08, $08, $08, $08, $08
+                      ;mode_data      fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
+                      ;                       fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
                       
-20EA  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-20F2  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+20EF  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+20F7  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-20FA  FF                                      fcb             $ff
+20FF  FF                                      fcb             $ff

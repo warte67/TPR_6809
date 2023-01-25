@@ -99,7 +99,9 @@ start
 3
 
 			; SCROLL THE EXTENDED SCREEN BUFFER
-			lda		#$04			; command: scroll left
+			lda		#1				; delta value = scroll by this many pixels
+			sta		GFX_BG_ARG1		; arg1 holds the delta value for the scroll
+			lda		#$04			; command: scroll 
 			sta		GFX_BG_CMD		; issue the command
 
 			; INCREMENT THE EXTENDED SCREEN BUFFER
@@ -110,7 +112,6 @@ start
 			leax	1,x
 			cmpx	#640		;#$0800
 			bne		8b
-
 
 
 			; TOGGLE THE BACKBUFFER
@@ -168,8 +169,8 @@ done		rts
 		
 ; ////////////////////////////////////////////////////
 
-;mode_data	fcb		$08, $08, $08, $08, $08, $08, $08, $08
-;			fcb		$08, $08, $08, $08, $08, $08, $08, $08
+;mode_data	fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
+;			fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
 
 mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
 			fcb		$08, $09, $0a, $0b, $0c, $0d, $0e, $0f

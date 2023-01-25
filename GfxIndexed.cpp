@@ -49,30 +49,19 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 					break;
 
 				case 0x04:		// Scroll Left      (by pixels x GFX_BG_ARG1)
-					for (int y = 0; y < pixel_height; y++)
-					{
-						// fetch the first pixel
-						Byte f_pix = s_mem_64k[y * pixel_width];
-
-						// scroll the line
-						for (int x = 1; x < pixel_width; x++)
-						{
-							Word a = _buffer_base + (y * pixel_width) + x;
-							Byte pix = s_mem_64k[a];
-							s_mem_64k[a - 1] = pix;
-						}
-						// set the last pixel
-						s_mem_64k[y * pixel_width + (pixel_width - 1)] = f_pix;
-					}
+					cmd_scroll_left();
 					break;
 
 				case 0x05:		// Scroll Right     (by pixels x GFX_BG_ARG1)
+					cmd_scroll_right();
 					break;
 
 				case 0x06:		// Scroll Up        (by pixels x GFX_BG_ARG1)
+					cmd_scroll_up();
 					break;
 
 				case 0x07:		// Scroll Down      (by pixels x GFX_BG_ARG1)
+					cmd_scroll_down();
 					break;
 
 				default:		// default (write a 0 to indicate an error)
@@ -84,6 +73,93 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 		bus->debug_write(ofs, data);
 	}
 	return data;
+}
+
+void GfxIndexed::cmd_scroll_left()
+{
+	if (_arg1 > 16)	_arg1 = 16;
+	for (int t = 0; t < _arg1; t++)		// brute force method? optimize later
+	{
+		for (int y = 0; y < pixel_height; y++)
+		{
+			// fetch the first pixel
+			Byte f_pix = s_mem_64k[_buffer_base + y * pixel_width];
+			// scroll the line
+			for (int x = 1; x < pixel_width; x++)
+			{
+				Word a = _buffer_base + (y * pixel_width) + x;				
+				s_mem_64k[a - 1] = s_mem_64k[a];
+			}
+			// set the last pixel
+			s_mem_64k[y * pixel_width + (pixel_width - 1)] = f_pix;
+		}
+	}
+}
+
+void GfxIndexed::cmd_scroll_right()
+{
+	if (_arg1 > 16)	_arg1 = 16;
+	for (int t = 0; t < _arg1; t++)		// brute force method? optimize later
+	{
+		for (int y = 0; y < pixel_height; y++)
+		{
+			// fetch the first pixel
+			Byte f_pix = s_mem_64k[_buffer_base + y * pixel_width + (pixel_width-1)];
+			// scroll the line
+			for (int x = pixel_width - 2; x >= 0; x--)
+			{
+				Word a = _buffer_base + (y * pixel_width) + x;
+				s_mem_64k[a + 1] = s_mem_64k[a];
+			}
+			// set the last pixel
+			s_mem_64k[y * pixel_width] = f_pix;
+		}
+	}
+}
+void GfxIndexed::cmd_scroll_up()
+{
+	if (_arg1 > 16)	_arg1 = 16;
+	for (int t = 0; t < _arg1; t++)		// brute force method? optimize later
+	{
+		for (int x = 0; x < pixel_width; x++)
+		{
+			// fetch the first pixel
+			Byte f_pix = s_mem_64k[_buffer_base + x];
+			// scroll the line
+			for (int y = 1; y < pixel_height; y++)
+			{
+				Word adr1 = _buffer_base + ((y-1) * pixel_width) + x;
+				Word adr2 = _buffer_base + ((y+0) * pixel_width) + x;
+				s_mem_64k[adr1] = s_mem_64k[adr2];
+			}
+			// store the pixel
+			Word adr1 = _buffer_base + ((pixel_height - 1) * pixel_width) + x;
+			s_mem_64k[adr1] = f_pix;
+		}
+	}
+}
+void GfxIndexed::cmd_scroll_down()
+{
+	if (_arg1 > 16)	_arg1 = 16;
+	for (int t = 0; t < _arg1; t++)		// brute force method? optimize later
+	{
+		for (int x = 0; x < pixel_width; x++)
+		{
+			// fetch the first pixel
+			Word adr1 = _buffer_base + ((pixel_height - 1) * pixel_width) + x;
+			Byte f_pix = s_mem_64k[adr1];
+			// scroll the line
+			for (int y = pixel_height-1; y > 0; y--)
+			{
+				Word adr1 = _buffer_base + ((y - 1) * pixel_width) + x;
+				Word adr2 = _buffer_base + ((y + 0) * pixel_width) + x;
+				s_mem_64k[adr2] = s_mem_64k[adr1];
+			}
+			// store the pixel
+			adr1 = _buffer_base + x;
+			s_mem_64k[adr1] = f_pix;
+		}
+	}
 }
 
 // constructor
@@ -245,15 +321,6 @@ void GfxIndexed::OnCreate()
 		SDL_SetTextureBlendMode(bitmap_texture, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
-		// TESTING: ********************************
-			//Byte d = 0;
-			//for (int t = 0; t < 0x2800; t++)
-			//{
-			//	bus->write_word(GFX_EXT_ADDR, t);
-			//	if (d == 0xff)	d = 0;
-			//	bus->write(GFX_EXT_DATA, d++);
-			//}
-		// TESTING: ********************************
 	}
 }
 
@@ -277,25 +344,13 @@ void GfxIndexed::OnUpdate(float fElapsedTime)
 		delayAcc -= delay;
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
-
-		// TESTING: ********************************
-			//for (int t = 0; t < 0x5000; t++)
-			//{
-			//	bus->write_word(GFX_EXT_ADDR, t);
-			//	Byte data = bus->read(GFX_EXT_DATA);
-			//	data++;
-			//	bus->write(GFX_EXT_DATA, data);
-			//}
-		// TESTING: ********************************
-
-
 		Word addr = 0;
 		for (int y = 0; y < pixel_height; y++)
 		{
 			for (int x = 0; x < pixel_width; x++)
 			{
-				//bus->write_word(GFX_EXT_ADDR, addr++);
-				//Byte data = bus->read(GFX_EXT_DATA);
+				// TODO: read data according to the active page
+				// ...		bool _bUsingFirstPage
 				Byte data = GfxMode::s_mem_64k[addr++];
 				Byte r = red(data);
 				Byte g = grn(data);

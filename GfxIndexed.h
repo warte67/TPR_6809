@@ -25,6 +25,13 @@ public:
 	virtual void OnDestroy() override;
 	virtual void OnUpdate(float fElapsedTime) override;
 	virtual void OnRender() override;
+
+private:
+	void cmd_scroll_left();
+	void cmd_scroll_right();
+	void cmd_scroll_up();
+	void cmd_scroll_down();
+
 private:
 
 	SDL_Texture* bitmap_texture = nullptr;
