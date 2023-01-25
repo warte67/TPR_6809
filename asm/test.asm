@@ -99,7 +99,7 @@ start
 3
 
 			; SCROLL THE EXTENDED SCREEN BUFFER
-			lda		#1				; delta value = scroll by this many pixels
+			lda		#2				; delta value = scroll by this many pixels
 			sta		GFX_BG_ARG1		; arg1 holds the delta value for the scroll
 			lda		#$04			; command: scroll 
 			sta		GFX_BG_CMD		; issue the command

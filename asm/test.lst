@@ -283,7 +283,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 207A                  3
                       
                                               ; SCROLL THE EXTENDED SCREEN BUFFER
-207A  8601                                    lda             #1                              ; delta value = scroll by this many pixels
+207A  8602                                    lda             #2                              ; delta value = scroll by this many pixels
 207C  B71818                                  sta             GFX_BG_ARG1             ; arg1 holds the delta value for the scroll
 207F  8604                                    lda             #$04                    ; command: scroll 
 2081  B71819                                  sta             GFX_BG_CMD              ; issue the command
