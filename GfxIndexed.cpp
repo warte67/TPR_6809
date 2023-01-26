@@ -317,7 +317,56 @@ void GfxIndexed::OnInitialize()
 
 void GfxIndexed::OnActivate()
 {
+	printf("GfxIndexed::OnActivate()\n");
+
 	//bus->write_word(GFX_EXT_ADDR, 0);
+
+	// ******  TESTING  **************************
+					const char* image_path = "resources/TPR_6809.bmp";
+					SDL_Surface* image = SDL_LoadBMP(image_path);
+					/* Let the user know if the file failed to load */
+					if (!image) {
+						printf("Failed to load image at %s: %s\n", image_path, SDL_GetError());
+						return;
+					}
+					// copy the image to the s_mem_64k buffer	
+					Word addr = 0;
+					SDL_LockSurface(image);
+					for (int y = 0; y < 80; y++)
+					{
+						for (int x = 0; x < 128; x++)
+						{
+							int bpp = image->format->BytesPerPixel;
+							Byte* p = (Byte*)image->pixels + (int)y * image->pitch + (int)x * bpp;
+							Byte index = *(Uint32*)p;
+							s_mem_64k[addr++] = index;
+						}
+					}
+					SDL_UnlockSurface(image);
+					// load the palette
+
+					int ncolors = image->format->palette->ncolors;
+					printf("ncolors: %d\n", ncolors);
+					for (int index = 0; index <= ncolors;  index++)
+					{
+						Byte r = image->format->palette->colors[index].r;
+						Byte g = image->format->palette->colors[index].g;
+						Byte b = image->format->palette->colors[index].b;
+						Byte a = image->format->palette->colors[index].a;
+
+						//printf("R:$%02X  G:$%02X  B:$%02X  A:$%02X\n", r, g, b, a);
+						palette256[index].r = r >> 4;
+						palette256[index].g = g >> 4;
+						palette256[index].b = b >> 4;
+						palette256[index].a = a >> 4;
+					}
+
+
+					/* Make sure to eventually release the surface resource */
+					SDL_FreeSurface(image);
+	// ******  TESTING  **************************
+
+
 }
 
 void GfxIndexed::OnDeactivate()
@@ -336,7 +385,6 @@ void GfxIndexed::OnCreate()
 			SDL_TEXTUREACCESS_TARGET, pixel_width, pixel_height);
 		SDL_SetTextureBlendMode(bitmap_texture, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
-
 	}
 }
 

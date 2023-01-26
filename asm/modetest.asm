@@ -105,13 +105,21 @@ start
 			sta		GFX_BG_CMD		; issue the command
 
 			; INCREMENT THE EXTENDED SCREEN BUFFER
+			lda		GFX_FLAGS
+			anda	#$0F
+			cmpa	#$0C
+			bge		81f
+
 			ldx		#0
-8			
-			stx		GFX_EXT_ADDR
+8			stx		GFX_EXT_ADDR
 			inc		GFX_EXT_DATA
 			leax	1,x
 			cmpx	#640		;#$0800
 			bne		8b
+81
+
+
+
 
 			; TOGGLE THE BACKBUFFERS
 			;lda		#$08		; cmd: copy buffer front to back
