@@ -1,11 +1,10 @@
-                      ; BUILD:        asm6809 -H -9 test.asm -o test.hex              
-                                      
+                      ; **** filetest.asm *********************************************
+                      
 0010                                  org             $0010
                       ; EXEC_VECTOR
-0010  2008            exe_vect        fdb             start
+0010  2001            exe_vect        fdb             start
                       
-                      
-                      
+                      ; **** ***********************************************************
                       
 0012                                  INCLUDE "mem_map.asm"
                       ;  **********************************************
@@ -218,174 +217,110 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                       
                       
+                      ; **** ***********************************************************
+                      
 2000                                  ORG             $2000
                       
-2000  00              var_ch                  fcb             $00
-2001  00              var_at                  fcb             $00
-2002  00              var_count               fcb             $00
-2003  FF              var_csr                 fcb             $ff
-0020                  num_cycles              equ             $20
-2004  00              var_cycle               fcb             $00
-2005  00              var_mode_index  fcb             $00
-2006  0000            var_mouse_color fdb             $0000
+2000  00              file_handle     fcb     $00     ; file handle
                       
-2008                  start
+2001                  start   ; execution entry point
                       
-                                              ; TESTING: fill the first 256 bytes of screen ram 
-                                              ;               with ascending values to display
-                                              
-2008  8620                                    lda             #num_cycles             ; initially clear the cycle variable
-200A  B72004                                  sta             var_cycle
+                              ;lda     #$C0
+                              ;sta     DBG_FLAGS
+                              ;ldx     #brk_here   ; set a breakpoint
+                              ;stx     DBG_BRK_ADDR
                       
-                                              ; SAVE THE MOUSE CURSOR COLOR
-200D  8604                                    lda             #4
-200F  B71823                                  sta             CSR_PAL_INDX
-2012  FC1824                                  ldd             CSR_PAL_DATA
-2015  FD2006                                  std             var_mouse_color
+                      ; **** TEST: Write file ****************************************************        
                       
-                      ;                       ; enable backbuffer mode
-                      ;                       lda             GFX_FLAGS
-                      ;                       ora             #$40
-                      ;                       sta             GFX_FLAGS
+2001                  brk_here
+2001  8D7B                    bsr     copy_filename
                       
-                                              ; set up the initial graphics mode 
-2018  7F2005                                  clr             var_mode_index  ; start with index 0
-201B  8E20F1                                  ldx             #mode_data
-201E  B61801                                  lda             GFX_FLAGS
-2021  84F0                                    anda    #$f0
-2023  AA84                                    ora             ,x
-2025  B71801                                  sta             GFX_FLAGS
+                              ; CMD: open a file for writing (binary)
+2003  8602                    lda     #$02        
+2005  B7182C                  sta     FIO_COMMAND
                       
-                                              ; fill the background buffer with incrementing values
-2028  8E0000                                  ldx             #0
-202B                  1
-202B  BF1815                                  stx             GFX_EXT_ADDR
-202E  B71817                                  sta             GFX_EXT_DATA
-2031  4C                                      inca
-2032  81FF                                    cmpa    #$ff
-2034  2601                                    bne             2f
-2036  4F                                      clra
-2037                  2
-2037  3001                                    leax    1,x
-2039  8C2800                                  cmpx    #$2800
-203C  26ED                                    bne             1b
+                              ; save the handle from the last file operation
+2008  B6182D                  lda     FIO_HANDLE  
+200B  B72000                  sta     file_handle 
+                      
+                              ; output the string to the file
+200E  8E209E                  ldx     #test_file
+2011  A680            1       lda     ,x+
+2013  270A                    beq     2f
+2015  B71831                  sta     FIO_IODATA
+2018  C606                    ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+201A  F7182C                  stb     FIO_COMMAND
+201D  20F2                    bra     1b
+201F                  2
+                              ; CMD: close a file
+201F  B62000                  lda     file_handle
+2022  B7182D                  sta     FIO_HANDLE
+2025  8604                    lda     #$04        
+2027  B7182C                  sta     FIO_COMMAND
+                      
+                      ; **** TEST: Append file ****************************************************
+202A  8D52                    bsr     copy_filename
+                              ; CMD: open a file for appending (binary)
+202C  8603                    lda     #$03        
+202E  B7182C                  sta     FIO_COMMAND
+                              ; save the handle from the last file operation
+2031  B6182D                  lda     FIO_HANDLE  
+2034  B72000                  sta     file_handle 
+                              ; output the string to the file
+2037  8E2106                  ldx     #append_file
+203A  A680            1       lda     ,x+
+203C  270A                    beq     2f
+203E  B71831                  sta     FIO_IODATA
+2041  C606                    ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+2043  F7182C                  stb     FIO_COMMAND
+2046  20F2                    bra     1b
+2048                  2
+                              ; CMD: close a file
+2048  B62000                  lda     file_handle
+204B  B7182D                  sta     FIO_HANDLE
+204E  8604                    lda     #$04        
+2050  B7182C                  sta     FIO_COMMAND
+                      
+                      ; **** TEST: Read file ****************************************************
+                      
+2053  8D29                    bsr     copy_filename
+                              ; CMD: open a file for reading (binary)
+2055  8601                    lda     #$01        
+2057  B7182C                  sta     FIO_COMMAND
+                              ; save the handle from the last file operation
+205A  B6182D                  lda     FIO_HANDLE  
+205D  B72000                  sta     file_handle 
+                      ; read characters out to the screen
+                              ; read a character from the file
+2060  8605            1       lda     #$05
+2062  B7182C                  sta     FIO_COMMAND
+2065  B6182B                  lda     FIO_ERR_FLAGS
+2068  2608                    bne     2f              ; EOF is an "error"
+206A  B61831                  lda     FIO_IODATA
+206D  BDE181                  jsr     $E181       ; ROM CALL: char_out
+2070  20EE                    bra     1b
+                      
+2072                  2
+                              ; CMD: close a file
+2072  B62000                  lda     file_handle
+2075  B7182D                  sta     FIO_HANDLE
+2078  8604                    lda     #$04        
+207A  B7182C                  sta     FIO_COMMAND
                       
                       
+207D  39                      rts
                       
-                      ; ***********************
-                      ; *  Pre-Fill and Cycle 
-                      ; *  the Display Buffer
-                      ; ***********************
+207E                  copy_filename
+207E  8E208C                  ldx     #filename
+2081  108E1934                ldy     #FIO_FILEPATH
+2085  A680            1       lda     ,x+
+2087  A7A0                    sta     ,y+
+2089  26FA                    bne     1b
+208B  39                      rts
                       
-203E  7F2000                                  clr             var_ch                  ; character = 0
-2041  7F2001                                  clr             var_at                  ; attribute = 0
-2044  7F2002                                  clr             var_count               ; count = 0
-2047  8E0400                                  ldx             #VIDEO_START    ; start of display buffer
-204A                  1
-204A  8C17FF                                  cmpx    #VIDEO_END              ; at the end of the buffer?
-204D  2C1D                                    bge             2f                              ; yes, skip to the screen updates
-204F  B62000                                  lda             var_ch                  ; load the current character
-2052  F62001                                  ldb             var_at                  ; load the current attribute
-2055  ED81                                    std             ,x++                    ; store both character and attribute
-2057  7C2000                                  inc             var_ch                  ; next character
-205A  7C2002                                  inc             var_count               ; increment count
-205D  B62002                                  lda             var_count               ; load the count
-2060  8111                                    cmpa    #17                             ; compare the count with this amount
-2062  2DE6                                    blt             1b                              ; loop if count lower than
-2064  7C2001                                  inc             var_at                  ; next attribute
-2067  7F2002                                  clr             var_count               ; clear the count
-206A  20DE                                    bra             1b                              ; resume the loop
                       
-                                              ; INCREMENT THE SCREEN BUFFER
-206C                  2
-206C  8E0400                                  ldx             #VIDEO_START    ; start beginning of video buffer
-206F                  4
-206F  8C17FF                                  cmpx    #VIDEO_END              ; until the end of the video buffer
-2072  2C06                                    bge             3f                              ; restart when past the end
-2074  6C80                                    inc             ,x+                             ; increment character
-2076  6C80                                    inc             ,x+                             ; increment the attribute
-2078  20F5                                    bra             4b                              ; loop until done
-207A                  3
+208C  61736D2F746573742F746573742E74787400 filename    fcn     "asm/test/test.txt"
+209E  546869732066696C65207761732067656E65726174656420627920746865202766696C65746573742E686578272070726F6772616D2E0A test_file   fcc     "This file was generated by the 'filetest.hex' program.\n"
+20D5  486F706566756C6C792074686973206D6574686F642077696C6C20776F726B20696E20746865206675747572652E0A0A00             fcn     "Hopefully this method will work in the future.\n\n"
                       
-                                              ; SCROLL THE EXTENDED SCREEN BUFFER
-207A  8602                                    lda             #2                              ; delta value = scroll by this many pixels
-207C  B71818                                  sta             GFX_BG_ARG1             ; arg1 holds the delta value for the scroll
-207F  8604                                    lda             #$04                    ; command: scroll 
-2081  B71819                                  sta             GFX_BG_CMD              ; issue the command
-                      
-                                              ; INCREMENT THE EXTENDED SCREEN BUFFER
-2084  8E0000                                  ldx             #0
-2087                  8                       
-2087  BF1815                                  stx             GFX_EXT_ADDR
-208A  7C1817                                  inc             GFX_EXT_DATA
-208D  3001                                    leax    1,x
-208F  8C0280                                  cmpx    #640            ;#$0800
-2092  26F3                                    bne             8b
-                      
-                                              ; TOGGLE THE BACKBUFFERS
-                                              ;lda            #$08            ; cmd: copy buffer front to back
-                                              ;sta            GFX_BG_CMD                      
-                                              ;lda            #$03            ; cmd: swap backbuffers
-                                              ;sta            GFX_BG_CMD      ; send the command
-                      
-2094  B61801                                  lda             GFX_FLAGS       ; load current backbuffer
-2097  8820                                    eora    #$20            ; toggle it
-2099  B71801                                  sta             GFX_FLAGS       ; save the backbuffer
-                      
-                                              ; COLOR CYCLE THE MOUSE CURSOR
-209C  8604                                    lda             #4
-209E  B71823                                  sta             CSR_PAL_INDX
-20A1  FC1824                                  ldd             CSR_PAL_DATA
-20A4  C300A0                                  addd    #$00a0
-20A7  FD1824                                  std             CSR_PAL_DATA            
-                      
-                                              ; INCREMENT THE CYCLE COUNTER
-20AA  7C2004                                  inc             var_cycle       ; increment the cycle counter
-20AD  B62004                                  lda             var_cycle
-20B0  8120                                    cmpa    #num_cycles             ; max cycles yet?
-20B2  2323                                    bls             continue        ; nope, continue with the main loop
-20B4  7F2004                                  clr             var_cycle       ; reset the cycle count
-                      
-                                              ; MODE CHANGES
-20B7                  6
-20B7  F62005                                  ldb             var_mode_index
-20BA  7C2005                                  inc             var_mode_index
-20BD  8E20F1                                  ldx             #mode_data
-20C0  A685                                    lda             b,x
-20C2  81FF                                    cmpa    #$ff
-20C4  270C                                    beq             5f
-20C6  B61801                                  lda             GFX_FLAGS
-20C9  84F0                                    anda    #$f0
-20CB  AA85                                    ora             b,x
-20CD  B71801                                  sta             GFX_FLAGS
-20D0  2005                                    bra             continue
-20D2                  5       
-20D2  7F2005                                  clr             var_mode_index
-20D5  20E0                                    bra             6b
-20D7                  continue
-                                              ; WAS [ESCAPE] PRESSED
-20D7  B61A35                                  lda             CHAR_Q_LEN
-20DA  2790                                    beq             2b
-                      
-                                              ; check for ESCAPE
-20DC  B61A37                                  lda             CHAR_POP
-20DF  811B                                    cmpa    #$1b            ; [ESCAPE]
-20E1  1026FF87                                lbne    2b
-                      
-                                              ; RESTORE THE MOUSE CURSOR COLOR
-20E5  8604                                    lda             #4
-20E7  B71823                                  sta             CSR_PAL_INDX
-20EA  FC2006                                  ldd             var_mouse_color
-20ED  FD1824                                  std             CSR_PAL_DATA
-                      
-20F0  39              done            rts
-                                      
-                      ; ////////////////////////////////////////////////////
-                      
-                      ;mode_data      fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
-                      ;                       fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
-                      
-20F1  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-20F9  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
-                      
-2101  FF                                      fcb             $ff
+2106  54686973206C696E652077617320617070656E6465642E0A00 append_file fcn     "This line was appended.\n"

@@ -75,6 +75,7 @@ GFX_BG_CMD      equ     $1819   ; (Byte) Blit Commands on the indexed bitmap buf
                                 ;      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
                                 ;      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)
                                 ;      0x07: Scroll Down      (by pixels x GFX_BG_ARG1)
+                                ;      0x08: Copy Buffer      (From Active to Inactive)
 GFX_BG_END      equ     $1819   ; end of paged background gfxmode registers
 
 ;  Mouse Cursor Hardware Registers:
@@ -119,7 +120,8 @@ FIO_ERR_FLAGS   equ     $182b   ; (Byte) file i/o system flags:
                                 ;      bit 5:   buffer overrun
                                 ;      bit 4: wrong file type
                                 ;      bit 3: directory not found
-                                ;      bit 0-2: not yet assigned
+                                ;      bit 2: too many file handles
+                                ;      bit 0-1: not yet assigned
 FIO_COMMAND     equ     $182c   ; (Byte) OnWrite - command to execute
                                 ;      $00 = Reset/Null
                                 ;      $01 = Open/Create Binary File for Reading
@@ -148,46 +150,46 @@ FIO_COMMAND     equ     $182c   ; (Byte) OnWrite - command to execute
 FIO_HANDLE      equ     $182d   ; (Byte) file handle or ZERO
 FIO_BFROFS      equ     $182e   ; (Word) start of I/O buffer
 FIO_BFRLEN      equ     $182f   ; (Word) length of I/O buffer
-FIO_SEEKOFS     equ     $1831   ; (Word) seek offset
-FIO_RET_COUNT   equ     $1833   ; (Byte) number of return entries
-FIO_RET_INDEX   equ     $1834   ; (Byte) command return index
-FIO_RET_BUFFER  equ     $1835   ; (Char Array 256) paged return buffer
-FIO_FILEPATH    equ     $1935   ; (Char Array 256) file path and argument buffer
-FIO_END equ     $1a35   ; end of file i/o hardware registers
+FIO_IODATA      equ     $1831   ; (Byte) input / output character
+FIO_RET_COUNT   equ     $1832   ; (Byte) number of return entries
+FIO_RET_INDEX   equ     $1833   ; (Byte) command return index
+FIO_RET_BUFFER  equ     $1834   ; (Char Array 256) paged return buffer
+FIO_FILEPATH    equ     $1934   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1a34   ; end of file i/o hardware registers
 
 ;  Keyboard Hardware Registers:
-KEY_BEGIN       equ     $1a36   ; start of keyboard hardware registers
-CHAR_Q_LEN      equ     $1a36   ; (char) # of characters waiting in queue       (Read Only)
-CHAR_SCAN       equ     $1a37   ; read next character in queue       (not popped when read)
-CHAR_POP        equ     $1a38   ; (char) next character waiting in queue (popped when read)
-XKEY_BUFFER     equ     $1a39   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-EDT_BFR_CSR     equ     $1a49   ; (Byte) cursor position within edit buffer    (Read/Write)
-EDT_BUFFER      equ     $1a4a   ; (256 Bytes) line editing character buffer    (Read/Write)
-KEY_END equ     $1b4a   ; end of keyboard hardware registers
+KEY_BEGIN       equ     $1a35   ; start of keyboard hardware registers
+CHAR_Q_LEN      equ     $1a35   ; (char) # of characters waiting in queue       (Read Only)
+CHAR_SCAN       equ     $1a36   ; read next character in queue       (not popped when read)
+CHAR_POP        equ     $1a37   ; (char) next character waiting in queue (popped when read)
+XKEY_BUFFER     equ     $1a38   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+EDT_BFR_CSR     equ     $1a48   ; (Byte) cursor position within edit buffer    (Read/Write)
+EDT_BUFFER      equ     $1a49   ; (256 Bytes) line editing character buffer    (Read/Write)
+KEY_END equ     $1b49   ; end of keyboard hardware registers
 
 ;  Gamepad Hardware Registers:
-GPD_BEGIN       equ     $1b4b   ; start of keyboard hardware registers
-JOYS_1_BTN      equ     $1b4b   ; (Word) button bits: room for up to 16 buttons  (realtime)
-JOYS_1_DBND     equ     $1b4d   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
-JOYS_1_LTX      equ     $1b4e   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
-JOYS_1_LTY      equ     $1b4f   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
-JOYS_1_RTX      equ     $1b50   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
-JOYS_1_RTY      equ     $1b51   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
-JOYS_1_Z1       equ     $1b52   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
-JOYS_1_Z2       equ     $1b53   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
+JOYS_BEGIN      equ     $1b4a   ; start of gamepad hardware registers
+JOYS_1_BTN      equ     $1b4a   ; (Word) button bits: room for up to 16 buttons  (realtime)
+JOYS_1_DBND     equ     $1b4c   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
+JOYS_1_LTX      equ     $1b4d   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+JOYS_1_LTY      equ     $1b4e   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+JOYS_1_RTX      equ     $1b4f   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+JOYS_1_RTY      equ     $1b50   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+JOYS_1_Z1       equ     $1b51   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
+JOYS_1_Z2       equ     $1b52   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
 
-JOYS_2_BTN      equ     $1b54   ; (Word) button bits: room for up to 16 buttons  (realtime)
-JOYS_2_DBND     equ     $1b56   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
-JOYS_2_LTX      equ     $1b57   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
-JOYS_2_LTY      equ     $1b58   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
-JOYS_2_RTX      equ     $1b59   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
-JOYS_2_RTY      equ     $1b5a   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
-JOYS_2_Z1       equ     $1b5b   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
-JOYS_2_Z2       equ     $1b5c   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
-GPD_END equ     $1b5d   ; end of keyboard hardware registers
+JOYS_2_BTN      equ     $1b53   ; (Word) button bits: room for up to 16 buttons  (realtime)
+JOYS_2_DBND     equ     $1b55   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
+JOYS_2_LTX      equ     $1b56   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+JOYS_2_LTY      equ     $1b57   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+JOYS_2_RTX      equ     $1b58   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+JOYS_2_RTY      equ     $1b59   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+JOYS_2_Z1       equ     $1b5a   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
+JOYS_2_Z2       equ     $1b5b   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
+JOYS_END        equ     $1b5c   ; end of gamepad hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1b5e   ; Reserved 1181 bytes ($1B5E - $1FFB)
+RESERVED_HDW    equ     $1b5d   ; Reserved 1182 bytes ($1B5D - $1FFB)
 
 ;  Memory Bank Selects (16MB):
 RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks

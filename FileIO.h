@@ -44,6 +44,9 @@ private:
 	void load_hex(const char* filename);
 
 private:
+	// helper functions
+	int _FindOpenFileSlot();
+
 	// file system commands
 	void _cmd_reset();				// $00 = Reset/Null
 	void _cmd_open_read();			// $01 = Open/Create Binary File for Reading
@@ -76,11 +79,14 @@ private:
 
 	Byte _err_flags = 0;
 	Byte _command = 0;
-	Byte _file_handle = 0;	// index into an array of FILE entries
+	Byte _file_handle = 0;					// index into an array of FILE entries
 	Word _buffer_offset = 0;
 	Word _buffer_length = 0;
-	Word _seek_offset;
-	char _filepath[256] = "./";			// Hardware Register working path
+	char _filepath[256] = "./";				// Hardware Register working path
+	Byte _io_data = 0;						// read / write character
+
+	const int _FILESTREAMMAX = 16;			// max number of file streams
+	std::vector<FILE*> _vecFileStream;		// FILE*[16];
 	
 	Byte _ret_index = 0;
 	std::vector<std::string> _files;
@@ -92,82 +98,5 @@ private:
 
 
 /*******
-
-Hardware Registers:
-
-
-		
-	FIO_ERR_FLAGS:
-		bit 7:	file not found
-		bit 6:  end of file
-		bit 5:	buffer overrun
-		bit 0-4: reserved
-	FIO_COMMAND		(Byte) OnWrite - command to execute
-		$00 = Reset/Null                          
-		$01 = Open/Create Binary File for Reading 
-		$02 = Open/Create Binary File for Writing 
-		$03 = Open/Create Binary File for Append  
-		$04 = Close File                          
-		$05 = Read Byte                           
-		$06 = Write Byte                          
-		$07 = Load Hex Format File        
-		$08 = Write Hex Format Line
-		$09 = Get File Length (FIO_BFRLEN = byte length of the file)
-		$0A = Load Binary File (read into FIO_BFROFS - FIO_BFROFS+FIO_BFRLEN)
-		$0B = Save Binary File (wrote from FIO_BFROFS to FIO_BFROFS+FIO_BFRLEN)
-		$0C = (not yet designed) List Directory
-		$0D = Make Directory
-		$0E = Change Directory
-		$0F = Rename Directory
-		$10 = Remove Directory
-		$11 = Delete File		
-		$12 = Rename file
-		$13 = Copy File
-		$14 = Seek Start
-		$15 = Seek Current
-		$16 = Seek End
-
-
-	FIO_HANDLE		(Byte) file handle or ZERO          
-	FIO_BFROFS		(Word) start of I/O buffer
-	FIO_BFRLEN		(Word) length of I/O buffer
-	FIO_SEEKOFS		(Word) seek offset
-	FIO_FILEPATH	(Char Array 256) fixed file path buffer   
-
-
-
-
- **** NOTES: ***********************************************************
-
-Base File Operating System Commands:
-	- List Directory
-	- Make Directory
-	- Change Directory
-	- Rename Directory
-	- Remove Directory
-	- Delete File		
-	- Rename file
-	- Read File			; open for reading or error if not found
-	- Write File		; append if pre-existing or create for write if not
-	- Close File		; be sure to close files to avoid corruption
-	- Copy File
-	- LoadBin			; load a binary file to a specified memory buffer (size)
-	- LoadHex			; load an IntelHex format file (with/without EXEC vector)
-	- EXEC <address>	; cpu.PC = address (or EXEC vector if non-zero)
-
-Basic FILE I/O:
-
-	- FP = (Word)file_pointer - internal to FileIO (no bin files larger than 64k)
-	- FH = (Byte) file_handle
-	- FH = fopen(string::filename, string::mode)	// mode = read, write, or append
-	- data = fread(FH)
-	- fwrite(FH, data)
-	- fseek(FH, (signed)offset, whence) where whence = SEEK_START, SEEK_CUR, and SEEK_END
-		; SEEK_START	= move the file_pointer to 0 + offset
-		; SEEK_CUR		= move the file_pointer to file_pinter + offset
-		; SEEK_END		= move the file_pointer to eof + offset (negative offset assumed)
-	- fclose(FH)
-
-
 
 *******/

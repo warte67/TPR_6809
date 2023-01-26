@@ -23,12 +23,14 @@
 #include "FileIO.h"
 
 //     FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
+// 
 //  FIO_ERR_FLAGS = 0x181e,       // (Byte) file i/o system flags:
 //                                //      bit 7:  file not found
 //                                //      bit 6:  end of file
 //                                //      bit 5:  buffer overrun
 //                                //      bit 4:  wrong file type
 //                                //      bit 0-3: not yet assigned
+// 
 //   FIO_COMMAND = 0x181f,        // (Byte) OnWrite - command to execute
 //                                //      $00 = Reset/Null
 //                                //      $01 = Open/Create Binary File for Reading
@@ -53,6 +55,7 @@
 //                                //      $14 = Seek Start
 //                                //      $15 = Seek Current
 //                                //      $16 = Seek End
+// 
 //    FIO_HANDLE = 0x1820,        // (Byte) file handle or ZERO
 //    FIO_BFROFS = 0x1821,        // (Word) start of I/O buffer
 //    FIO_BFRLEN = 0x1822,        // (Word) length of I/O buffer
@@ -61,6 +64,7 @@
 //  FIO_RET_INDEX = 0x1828,       // (Byte) command return index
 //  FIO_RET_BUFFER = 0x1829,      // (Char Array 256) paged return buffer
 //  FIO_FILEPATH = 0x1824,        // (Char Array 256) file path and argument buffer
+// 
 //       FIO_END = 0x1924,        // end of file i/o hardware registers
 
 
@@ -82,9 +86,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 				else if (ofs == FIO_BFROFS + 1)	data = (ptrFile->_buffer_offset & 0xFF00) | (data << 0);
 				else if (ofs == FIO_BFRLEN)		data = (ptrFile->_buffer_length & 0x00FF) | (data << 8);
 				else if (ofs == FIO_BFRLEN + 1)	data = (ptrFile->_buffer_length & 0xFF00) | (data << 0);
-				else if (ofs == FIO_SEEKOFS)		data = (ptrFile->_seek_offset & 0x00FF) | (data << 8);
-				else if (ofs == FIO_SEEKOFS + 1)	data = (ptrFile->_seek_offset & 0xFF00) | (data << 0);
-
+				else if (ofs == FIO_IODATA)		data = ptrFile->_io_data;
 				else if (ofs == FIO_RET_COUNT)	data = ptrFile->_files.size();
 				else if (ofs == FIO_RET_INDEX)	data = ptrFile->_ret_index;
 
@@ -151,6 +153,14 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 						break;
 					}
 				}
+				else if (ofs == FIO_HANDLE)
+				{
+					if (data >= ptrFile->_FILESTREAMMAX)	
+						data = ptrFile->_FILESTREAMMAX - 1;
+					ptrFile->_file_handle = data;
+					bus->debug_write(FIO_HANDLE, data);
+				}
+
 				else if (ofs == FIO_BFROFS)
 					ptrFile->_buffer_offset = (ptrFile->_buffer_offset & 0x00FF) | (data << 8);
 				else if (ofs == FIO_BFROFS + 1)
@@ -161,17 +171,13 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 				else if (ofs == FIO_BFRLEN + 1)
 					ptrFile->_buffer_length = (ptrFile->_buffer_length & 0xFF00) | (data << 0);
 
-				else if (ofs == FIO_SEEKOFS)
-					ptrFile->_seek_offset = (ptrFile->_seek_offset & 0x00FF) | (data << 8);
-				else if (ofs == FIO_SEEKOFS + 1)
-					ptrFile->_seek_offset = (ptrFile->_seek_offset & 0xFF00) | (data << 0);
+				else if (ofs == FIO_IODATA)		ptrFile->_io_data = data;
 
 				else if (ofs == FIO_RET_INDEX)
 				{
 					ptrFile->_ret_index = data;
 					bus->debug_write(FIO_RET_INDEX, data);
 				}
-
 
 				else if (ofs >= FIO_FILEPATH && ofs <= FIO_FILEPATH+256)
 				{
@@ -223,7 +229,9 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    bit 5:	buffer overrun                     " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 4: wrong file type                    " }); offset += 0;
 	memmap->push({ offset, "", ">    bit 3: directory not found                " }); offset += 0;
-	memmap->push({ offset, "", ">    bit 0-2: not yet assigned                 " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 2: too many file handles              " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 1: incorrect file handle              " }); offset += 0;
+	memmap->push({ offset, "", ">    bit 0: not yet assigned                   " }); offset += 0;
 
 	memmap->push({ offset, "FIO_COMMAND", "(Byte) OnWrite - command to execute " }); offset += 1;
 	memmap->push({ offset, "", ">    $00 = Reset/Null                          " }); offset += 0;
@@ -251,10 +259,10 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    $16 = Seek End                            " }); offset += 0;
 	memmap->push({ offset, "", ">    $17 = SYSTEM: Shutdown                    " }); offset += 0;
 
-	memmap->push({ offset, "FIO_HANDLE",    "(Byte) file handle or ZERO          " }); offset += 1;
-	memmap->push({ offset, "FIO_BFROFS",    "(Word) start of I/O buffer          " }); offset += 1;
-	memmap->push({ offset, "FIO_BFRLEN",    "(Word) length of I/O buffer         " }); offset += 2;
-	memmap->push({ offset, "FIO_SEEKOFS",   "(Word) seek offset                  " }); offset += 2;
+	memmap->push({ offset, "FIO_HANDLE", "(Byte) file handle or ZERO          " }); offset += 1;
+	memmap->push({ offset, "FIO_BFROFS", "(Word) start of I/O buffer          " }); offset += 1;
+	memmap->push({ offset, "FIO_BFRLEN", "(Word) length of I/O buffer         " }); offset += 2;
+	memmap->push({ offset, "FIO_IODATA", "(Byte) input / output character     " }); offset += 1;
 										    
 	memmap->push({ offset, "FIO_RET_COUNT", "(Byte) number of return entries     " }); offset += 1;
 	memmap->push({ offset, "FIO_RET_INDEX", "(Byte) command return index         " }); offset += 1;
@@ -299,6 +307,10 @@ void FileIO::OnInitialize()
 	// null out the _filepath[] array
 	for (auto& a : _filepath)
 		a = 0;
+	// prepare the FILE* vector
+	_vecFileStream.clear();
+	for (int t = 0; t < _FILESTREAMMAX; t++)
+		_vecFileStream.push_back(nullptr);
 }
 
 void FileIO::OnEvent(SDL_Event* evnt) {}
@@ -308,7 +320,14 @@ void FileIO::OnUpdate(float fElapsedTime)
 {
 	//	printf("CPU_CLK_DIV: $%02X\n", bus->read(CPU_CLK_DIV));
 }
-void FileIO::OnQuit() {}
+void FileIO::OnQuit() 
+{
+	// close out any files that are still open
+	for (auto f : _vecFileStream)
+		if (f)
+			fclose(f);
+				
+}
 
 
 ////  Intel Hex Load //////////////////////////////
@@ -408,40 +427,155 @@ void FileIO::_cmd_reset()
 	bus->m_cpu->reset();
 }
 
+// helper
+int FileIO::_FindOpenFileSlot()
+{
+	// find an empty slot
+	int found = 0;
+	for (int t = 1; t < _FILESTREAMMAX; t++)
+	{
+		if (_vecFileStream[t] == nullptr)
+		{
+			found = t;
+			break;
+		}
+	}
+	// reset the file error flags
+	bus->write(FIO_ERR_FLAGS, 0);
+	// too many file handles?
+	if (found == 0)
+	{
+
+		bus->write(FIO_ERR_FLAGS, 0x02);	// incorrect file handle
+		bus->debug_write(FIO_HANDLE, 0);
+		return 0;
+	}
+	bus->write(FIO_HANDLE, found);
+	return found;
+}
+
 // $01 = Open/Create Binary File for Reading
 void FileIO::_cmd_open_read()
 {
 	printf("FileIO::_cmd_open_read()\n");
+
+	int found = _FindOpenFileSlot();
+	// open a file for reading
+	FILE* fp = nullptr;
+	errno_t err = fopen_s(&fp, _filepath, "rb");
+	if (fp == nullptr)
+	{
+		bus->debug_write(FIO_HANDLE, 0);
+		bus->debug_write(FIO_ERR_FLAGS, 0x80);	// file not found
+		return;
+	}
+	// stash this filestream pointer into the array
+	_vecFileStream[found] = fp;
+	//bus->write(FIO_HANDLE, found);
 }
 
 // $02 = Open/Create Binary File for Writing
 void FileIO::_cmd_open_write()
 {
 	printf("FileIO::_cmd_open_write()\n");
+
+	int found = _FindOpenFileSlot();
+	// open a file for writing
+	FILE* fp = nullptr;
+	errno_t err = fopen_s(&fp, _filepath, "wb");
+	if (fp == nullptr)
+	{
+		bus->debug_write(FIO_HANDLE, 0);
+		bus->debug_write(FIO_ERR_FLAGS, 0x80);	// file not found
+		return;
+	}
+	// stash this filestream pointer into the array
+	_vecFileStream[found] = fp;
+	//bus->write(FIO_HANDLE, found);
 }
 
 // $03 = Open/Create Binary File for Append
 void FileIO::_cmd_open_append()
 {
 	printf("FileIO::_cmd_open_append()\n");
+
+	int found = _FindOpenFileSlot();
+	// open a file for appending
+	FILE* fp = nullptr;
+	errno_t err = fopen_s(&fp, _filepath, "ab");
+	if (fp == nullptr)
+	{
+		bus->debug_write(FIO_HANDLE, 0);
+		bus->debug_write(FIO_ERR_FLAGS, 0x80);	// file not found
+		return;
+	}
+	// stash this filestream pointer into the array
+	_vecFileStream[found] = fp;
+	//bus->write(FIO_HANDLE, found);
 }
 
 // $04 = Close File
 void FileIO::_cmd_close()
 {
 	printf("FileIO::_cmd_close()\n");
+	
+	bus->debug_write(FIO_ERR_FLAGS, 0);
+	Byte handle = bus->read(FIO_HANDLE);
+	// null handle, error: file not found
+	if (handle == 0)
+	{
+		bus->debug_write(FIO_ERR_FLAGS, 0x80);
+		return;
+	}
+	if (handle >= _FILESTREAMMAX) handle = _FILESTREAMMAX - 1;
+	fclose(_vecFileStream[handle]);
 }
 
 // $05 = Read Byte
 void FileIO::_cmd_read_byte()
 {
 	printf("FileIO::_cmd_read_byte()\n");
+
+	// verify the file handle
+	bus->write(FIO_ERR_FLAGS, 0);	// clear file errors
+	if (_file_handle == 0 || _file_handle >= _FILESTREAMMAX)
+	{
+		bus->write(FIO_ERR_FLAGS, 0x02);	// incorrect file handle
+		return;
+	}
+	// read a character
+	if (feof(_vecFileStream[_file_handle]))
+		bus->write(FIO_ERR_FLAGS, 0x40);	// end of file
+	else
+	{
+		Byte inp = (Byte)fgetc(_vecFileStream[_file_handle]);
+		if (inp != EOF)
+		{
+			//_io_data = inp;
+			bus->write(FIO_IODATA, inp);
+		}
+	}
 }
 
 // $06 = Write Byte
 void FileIO::_cmd_write_byte()
 {
 	printf("FileIO::_cmd_write_byte()\n");
+
+	// verify the file handle
+	bus->write(FIO_ERR_FLAGS, 0);	// clear file errors
+	if (_file_handle == 0 || _file_handle >= _FILESTREAMMAX)
+	{
+		bus->write(FIO_ERR_FLAGS, 0x02);	// incorrect file handle
+		return;
+	}
+	// BUG: This throws an exception if attempts are made to write into a folder that doesn't exist
+	// TODO:  Fix it!
+	// 
+	// write a character
+	int ret = fputc(_io_data, _vecFileStream[_file_handle]);
+	if (ret == EOF)
+		bus->write(FIO_ERR_FLAGS, 0x40);	// end of file
 }
 
 // $07 = Load Hex Format File

@@ -171,7 +171,9 @@ enum MEMMAP
                                 //      bit 5:  buffer overrun
                                 //      bit 4: wrong file type
                                 //      bit 3: directory not found
-                                //      bit 0-2: not yet assigned
+                                //      bit 2: too many file handles
+                                //      bit 1: incorrect file handle
+                                //      bit 0: not yet assigned
    FIO_COMMAND = 0x182c,        // (Byte) OnWrite - command to execute
                                 //      $00 = Reset/Null
                                 //      $01 = Open/Create Binary File for Reading
@@ -200,46 +202,46 @@ enum MEMMAP
     FIO_HANDLE = 0x182d,        // (Byte) file handle or ZERO
     FIO_BFROFS = 0x182e,        // (Word) start of I/O buffer
     FIO_BFRLEN = 0x182f,        // (Word) length of I/O buffer
-   FIO_SEEKOFS = 0x1831,        // (Word) seek offset
-  FIO_RET_COUNT = 0x1833,       // (Byte) number of return entries
-  FIO_RET_INDEX = 0x1834,       // (Byte) command return index
-  FIO_RET_BUFFER = 0x1835,      // (Char Array 256) paged return buffer
-  FIO_FILEPATH = 0x1935,        // (Char Array 256) file path and argument buffer
-       FIO_END = 0x1a35,        // end of file i/o hardware registers
+    FIO_IODATA = 0x1831,        // (Byte) input / output character
+  FIO_RET_COUNT = 0x1832,       // (Byte) number of return entries
+  FIO_RET_INDEX = 0x1833,       // (Byte) command return index
+  FIO_RET_BUFFER = 0x1834,      // (Char Array 256) paged return buffer
+  FIO_FILEPATH = 0x1934,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1a34,        // end of file i/o hardware registers
 
 //  Keyboard Hardware Registers:
-     KEY_BEGIN = 0x1a36,        // start of keyboard hardware registers
-    CHAR_Q_LEN = 0x1a36,        // (char) # of characters waiting in queue       (Read Only)
-     CHAR_SCAN = 0x1a37,        // read next character in queue       (not popped when read)
-      CHAR_POP = 0x1a38,        // (char) next character waiting in queue (popped when read)
-   XKEY_BUFFER = 0x1a39,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-   EDT_BFR_CSR = 0x1a49,        // (Byte) cursor position within edit buffer    (Read/Write)
-    EDT_BUFFER = 0x1a4a,        // (256 Bytes) line editing character buffer    (Read/Write)
-       KEY_END = 0x1b4a,        // end of keyboard hardware registers
+     KEY_BEGIN = 0x1a35,        // start of keyboard hardware registers
+    CHAR_Q_LEN = 0x1a35,        // (char) # of characters waiting in queue       (Read Only)
+     CHAR_SCAN = 0x1a36,        // read next character in queue       (not popped when read)
+      CHAR_POP = 0x1a37,        // (char) next character waiting in queue (popped when read)
+   XKEY_BUFFER = 0x1a38,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+   EDT_BFR_CSR = 0x1a48,        // (Byte) cursor position within edit buffer    (Read/Write)
+    EDT_BUFFER = 0x1a49,        // (256 Bytes) line editing character buffer    (Read/Write)
+       KEY_END = 0x1b49,        // end of keyboard hardware registers
 
 //  Gamepad Hardware Registers:
-    JOYS_BEGIN = 0x1b4b,        // start of gamepad hardware registers
-    JOYS_1_BTN = 0x1b4b,        // (Word) button bits: room for up to 16 buttons  (realtime)
-   JOYS_1_DBND = 0x1b4d,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
-    JOYS_1_LTX = 0x1b4e,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
-    JOYS_1_LTY = 0x1b4f,        // (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
-    JOYS_1_RTX = 0x1b50,        // (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
-    JOYS_1_RTY = 0x1b51,        // (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
-     JOYS_1_Z1 = 0x1b52,        // (char) PAD 1 left trigger        (0 - 127)     (realtime)
-     JOYS_1_Z2 = 0x1b53,        // (char) PAD 1 right trigger       (0 - 127)     (realtime)
+    JOYS_BEGIN = 0x1b4a,        // start of gamepad hardware registers
+    JOYS_1_BTN = 0x1b4a,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_1_DBND = 0x1b4c,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
+    JOYS_1_LTX = 0x1b4d,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_LTY = 0x1b4e,        // (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_1_RTX = 0x1b4f,        // (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_RTY = 0x1b50,        // (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_1_Z1 = 0x1b51,        // (char) PAD 1 left trigger        (0 - 127)     (realtime)
+     JOYS_1_Z2 = 0x1b52,        // (char) PAD 1 right trigger       (0 - 127)     (realtime)
 
-    JOYS_2_BTN = 0x1b54,        // (Word) button bits: room for up to 16 buttons  (realtime)
-   JOYS_2_DBND = 0x1b56,        // (Byte) PAD 2 analog deadband; default is 5   (read/write)
-    JOYS_2_LTX = 0x1b57,        // (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
-    JOYS_2_LTY = 0x1b58,        // (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
-    JOYS_2_RTX = 0x1b59,        // (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
-    JOYS_2_RTY = 0x1b5a,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
-     JOYS_2_Z1 = 0x1b5b,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
-     JOYS_2_Z2 = 0x1b5c,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
-      JOYS_END = 0x1b5d,        // end of gamepad hardware registers
+    JOYS_2_BTN = 0x1b53,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_2_DBND = 0x1b55,        // (Byte) PAD 2 analog deadband; default is 5   (read/write)
+    JOYS_2_LTX = 0x1b56,        // (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_LTY = 0x1b57,        // (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_2_RTX = 0x1b58,        // (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_RTY = 0x1b59,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_2_Z1 = 0x1b5a,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
+     JOYS_2_Z2 = 0x1b5b,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
+      JOYS_END = 0x1b5c,        // end of gamepad hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1b5e,        // Reserved 1181 bytes ($1B5E - $1FFB)
+  RESERVED_HDW = 0x1b5d,        // Reserved 1182 bytes ($1B5D - $1FFB)
 
 //  Memory Bank Selects (16MB):
   RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
@@ -247,7 +249,7 @@ enum MEMMAP
 
 //  Standard Usable (from FAST static 32KB) RAM:
      RAM_START = 0x2000,        // Begin System RAM (32k)
-       RAM_END = 0x9fff,        // End System RAM3
+       RAM_END = 0x9fff,        // End System RAM
 
 //  Switchable RAM Banks (from SLOW external serial 16MB RAM chip):
     RAM_BANK_1 = 0xa000,        // switched 8KB ram bank 1
@@ -266,5 +268,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
 
 #endif // __MEMORY_MAP__

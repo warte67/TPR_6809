@@ -520,7 +520,11 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			beq		31f				; then skip to OK prompt
 			jsr		[EXEC_VECTOR]	; call the loaded subroutine
 
+			lda		GFX_FLAGS		; check video mode
+			cmpa	DEF_GFX_FLAGS	; compare against defaults
+			beq		32f				; skip the CLS if the mode hasnt changed
 			jsr		text_screen_reset
+32 ; skip cls
 			jsr		ok_prompt		
 			rts
 31 ; skip exec
