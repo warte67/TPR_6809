@@ -11,6 +11,7 @@
 #include "C6809.h"
 #include "GfxMode.h"
 #include "GfxDebug.h"
+#include "Keyboard.h"
 
 #include "font8x8_system.h"
 
@@ -138,52 +139,73 @@ void GfxDebug::OnQuit()
 
 void GfxDebug::OnEvent(SDL_Event* evnt) 
 { 
-	//printf("GfxDebug::OnEvent()\n"); 
-	if (evnt->type == SDL_KEYDOWN) 
+	// printf("GfxDebug::OnEvent()\n"); 
+
+
+	// always enabled debug specific events	
+	if (evnt->type == SDL_KEYDOWN)
 	{
-		if (evnt->key.keysym.sym == SDLK_ESCAPE) 
+		SDL_Keymod km = SDL_GetModState();
+		if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
-			bIsCursorVisible = false;
-		}
-		if (bIsCursorVisible)
-		{
-			if (evnt->key.keysym.sym == SDLK_LEFT || evnt->key.keysym.sym == SDLK_BACKSPACE)
-				if (csr_x > 1)
-					while (!CoordIsValid(--csr_x, csr_y));
-			if (evnt->key.keysym.sym == SDLK_RIGHT)
-				if (csr_x < 28)
-					while (!CoordIsValid(++csr_x, csr_y));
-			if (evnt->key.keysym.sym == SDLK_UP)
+			if (evnt->key.keysym.sym == SDLK_d)
 			{
-				if (csr_y == 1)			mem_bank[0] -= 8;
-				else if (csr_y == 11)	mem_bank[1] -= 8;
-				else if (csr_y == 21)	mem_bank[2] -= 8;
-				else if (csr_y > 1)		while (!CoordIsValid(csr_x, --csr_y));
+				Byte data = bus->read(DBG_FLAGS);
+				data ^= 0x80;
+				//if (data & 0x80)
+				//	gfx_debug->SetSingleStep(true);
+				bus->write(DBG_FLAGS, data);
+				// clear the keyboard buffer
+				bus->m_keyboard->Clear();
+				bMouseWheelActive = false;
 			}
-			if (evnt->key.keysym.sym == SDLK_DOWN)
-			{
-				if (csr_y == 9)			mem_bank[0] += 8;
-				else if (csr_y == 19)	mem_bank[1] += 8;
-				else if (csr_y == 29)	mem_bank[2] += 8;
-				else if (csr_y < 30)	while (!CoordIsValid(csr_x, ++csr_y));
-			}
-			if (evnt->key.keysym.sym == SDLK_RETURN)
-				bIsCursorVisible = false;
 		}
-
-		// SPACE advances single step
-		if (evnt->key.keysym.sym == SDLK_SPACE)
-		{			
-			bSingleStep = true;
-			bIsStepPaused = false;
-			nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
-			bMouseWheelActive = false;
-		}
-
 	}
-	if (evnt->type == SDL_MOUSEWHEEL)
-		mouse_wheel = evnt->wheel.y;
 
+	// perform debug enabled specific events
+	if (gfx->DebugEnabled())
+	{
+		if (evnt->type == SDL_KEYDOWN)
+		{
+			if (evnt->key.keysym.sym == SDLK_ESCAPE)
+				bIsCursorVisible = false;
+			if (bIsCursorVisible)
+			{
+				if (evnt->key.keysym.sym == SDLK_LEFT || evnt->key.keysym.sym == SDLK_BACKSPACE)
+					if (csr_x > 1)
+						while (!CoordIsValid(--csr_x, csr_y));
+				if (evnt->key.keysym.sym == SDLK_RIGHT)
+					if (csr_x < 28)
+						while (!CoordIsValid(++csr_x, csr_y));
+				if (evnt->key.keysym.sym == SDLK_UP)
+				{
+					if (csr_y == 1)			mem_bank[0] -= 8;
+					else if (csr_y == 11)	mem_bank[1] -= 8;
+					else if (csr_y == 21)	mem_bank[2] -= 8;
+					else if (csr_y > 1)		while (!CoordIsValid(csr_x, --csr_y));
+				}
+				if (evnt->key.keysym.sym == SDLK_DOWN)
+				{
+					if (csr_y == 9)			mem_bank[0] += 8;
+					else if (csr_y == 19)	mem_bank[1] += 8;
+					else if (csr_y == 29)	mem_bank[2] += 8;
+					else if (csr_y < 30)	while (!CoordIsValid(csr_x, ++csr_y));
+				}
+				if (evnt->key.keysym.sym == SDLK_RETURN)
+					bIsCursorVisible = false;
+			}
+			// SPACE advances single step
+			if (evnt->key.keysym.sym == SDLK_SPACE)
+			{
+				bSingleStep = true;
+				bIsStepPaused = false;
+				nRegisterBeingEdited.reg = GfxDebug::EDIT_REGISTER::EDIT_NONE;	// cancel any register edits
+				bMouseWheelActive = false;
+			}
+		}
+		if (evnt->type == SDL_MOUSEWHEEL)
+			mouse_wheel = evnt->wheel.y;
+	}
 }
 
 void GfxDebug::OnCreate() 

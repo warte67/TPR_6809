@@ -33,6 +33,7 @@ private:
 	void cmd_scroll_right();
 	void cmd_scroll_up();
 	void cmd_scroll_down();
+	void cmd_copy_buffer();
 
 private:
 
@@ -85,10 +86,6 @@ Future Implementation:
 		// 0x05 blit from ram to v20_buffer (need x, y, width, height, and buffer address)
 		// 0x06 blit from v20_buffer to ram (need x, y, width, height, and buffer address)
 
-	256-Color Palette Specific to the Indexed and Tiled Modes, implement in the base-GFX object:
-
-	// (GFX)  change GFX_PAL_INDX and GFX_PAL_DATA to GFX_FG_PAL_IDX and GFX_FG_PAL_DAT
-	// (GFX)  add GFX_BG_PAL_IDX and GFX_BG_PAL_DAT
-
+	256-Color Palette Specific to the Indexed and Tiled Modes, implement in the base-GFX object: ???
 
 *******************************************************/

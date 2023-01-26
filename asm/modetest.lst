@@ -248,7 +248,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
                                               ; set up the initial graphics mode 
 2018  7F2005                                  clr             var_mode_index  ; start with index 0
-201B  8E20EF                                  ldx             #mode_data
+201B  8E20F1                                  ldx             #mode_data
 201E  B61801                                  lda             GFX_FLAGS
 2021  84F0                                    anda    #$f0
 2023  AA84                                    ora             ,x
@@ -320,8 +320,12 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 208F  8C0280                                  cmpx    #640            ;#$0800
 2092  26F3                                    bne             8b
                       
+                                              ; TOGGLE THE BACKBUFFERS
+                                              ;lda            #$08            ; cmd: copy buffer front to back
+                                              ;sta            GFX_BG_CMD                      
+                                              ;lda            #$03            ; cmd: swap backbuffers
+                                              ;sta            GFX_BG_CMD      ; send the command
                       
-                                              ; TOGGLE THE BACKBUFFER
 2094  B61801                                  lda             GFX_FLAGS       ; load current backbuffer
 2097  8820                                    eora    #$20            ; toggle it
 2099  B71801                                  sta             GFX_FLAGS       ; save the backbuffer
@@ -344,7 +348,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 20B7                  6
 20B7  F62005                                  ldb             var_mode_index
 20BA  7C2005                                  inc             var_mode_index
-20BD  8E20EF                                  ldx             #mode_data
+20BD  8E20F1                                  ldx             #mode_data
 20C0  A685                                    lda             b,x
 20C2  81FF                                    cmpa    #$ff
 20C4  270C                                    beq             5f
@@ -364,22 +368,22 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                                               ; check for ESCAPE
 20DC  B61A38                                  lda             CHAR_POP
 20DF  811B                                    cmpa    #$1b            ; [ESCAPE]
-20E1  2689                                    bne             2b
+20E1  1026FF87                                lbne            2b
                       
                                               ; RESTORE THE MOUSE CURSOR COLOR
-20E3  8604                                    lda             #4
-20E5  B71823                                  sta             CSR_PAL_INDX
-20E8  FC2006                                  ldd             var_mouse_color
-20EB  FD1824                                  std             CSR_PAL_DATA
+20E5  8604                                    lda             #4
+20E7  B71823                                  sta             CSR_PAL_INDX
+20EA  FC2006                                  ldd             var_mouse_color
+20ED  FD1824                                  std             CSR_PAL_DATA
                       
-20EE  39              done            rts
+20F0  39              done            rts
                                       
                       ; ////////////////////////////////////////////////////
                       
                       ;mode_data      fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
                       ;                       fcb             $0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
                       
-20EF  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
-20F7  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+20F1  0001020304050607 mode_data       fcb             $00, $01, $02, $03, $04, $05, $06, $07
+20F9  08090A0B0C0D0E0F                         fcb             $08, $09, $0a, $0b, $0c, $0d, $0e, $0f
                       
-20FF  FF                                      fcb             $ff
+2101  FF                                      fcb             $ff

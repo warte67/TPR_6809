@@ -46,7 +46,6 @@ Byte GfxGlyph32::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 	}
 	else
 	{	// WRITE
-
 		// write the font index
 		if (ofs == GFX_FONT_IDX)
 		{

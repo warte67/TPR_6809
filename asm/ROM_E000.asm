@@ -201,8 +201,6 @@ main_kernel
 			cmpx	TCSR_EDT_ADR	; check for the end of the string
 			blt		4b				; keep looping if not at the end
 			clr		,y				; append a NULL character in the hardware buffer
-			;lda		#$0a
-			;jsr 	char_out
 			jsr		execute_command	; parse and run the command			
 			puls	A				; A: restored Key typed
 			
@@ -245,14 +243,6 @@ main_kernel
 ; FILE SYSTEM TESTS:
 
 load_hex
-;			; load "test.hex"
-;			ldx		#test_file		; fetch the filename
-;			ldy		#FIO_FILEPATH	; fetch the filename hardware register storage
-;1
-;			lda		,x+				; copy a character from the source filename
-;			sta		,y+				; store it in the hardware register
-;			bne		1b				; keep looping until null-termination
-
 			lda		#$07			; command: LoadHex
 			sta		FIO_COMMAND		; executre the command
 			lda		FIO_ERR_FLAGS	; load the errors flag
@@ -269,7 +259,7 @@ load_hex
 2			; display, "ERROR: Wrong File Type"
 			ldx		#strz_wrongfile_error
 			jsr		text_out
-9			
+9			; return from subroutine
 			rts
 
 
@@ -360,7 +350,6 @@ text_out	; output the string pointed to by X using the current attribute
 
 
 tcsr_pos	; load into X according to TCSR_ROW & TCSR_COL
-
 			pshs	D				; save for later clean up
 			lda 	TCSR_ROW		; A: cursor row
 			ldb		TCSR_COL		; B: cursor column
@@ -420,8 +409,8 @@ text_screen_reset
 			lda		DEF_GFX_FLAGS
 			sta		GFX_FLAGS
 		; set the text attribute default
-			lda		#$a2
-			sta		TEXT_ATTRIB	
+			;lda		#$a2
+			;sta		TEXT_ATTRIB	
 		; clear screen
 			jsr		clear_text_screen
 		; start the first anchor
@@ -432,6 +421,47 @@ text_screen_reset
 			clr		TCSR_ANC_ADR
 			clr		TCSR_ANC_ADR+1
 			rts
+
+get_argument_attrib	; set text attribute from cmd argument
+			tst		FIO_FILEPATH
+			lbeq	13f
+			lda		FIO_FILEPATH
+			ora		#$20			; force lower case
+			cmpa	#'a'
+			blt		101f
+			cmpa	#'f'
+			bgt		101f
+			suba	#'a'
+			adda	#10
+			bra		102f
+101			cmpa	#'0'
+			blt		13f				; invalid, just use defaults
+			cmpa	#'9'
+			bgt		13f				; also invalid
+			suba	#'0'
+102			ldb		FIO_FILEPATH+1
+			orb		#$20			; force lower case
+			cmpb	#'a'
+			blt		103f
+			cmpb	#'f'
+			bgt		103f
+			subb	#'a'
+			addb	#10
+			bra		104f
+103			cmpb	#'0'
+			blt		13f				; invalid, just use defaults
+			cmpb	#'9'
+			bgt		13f				; also invalid
+			subb	#'0'
+104			lsla
+			lsla
+			lsla
+			lsla
+			sta		TEXT_ATTRIB
+			orb		TEXT_ATTRIB
+			stb		TEXT_ATTRIB
+13			rts
+
 
 
 execute_command	; parse and run the string that is currently in the hardware EDT_BUFFER register
@@ -464,55 +494,12 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lbeq	7f				; dir
 			cmpa	#8
 			lbeq	8f				; chdir
-			lbra		999f				; syntax error
+			cmpa	#9
+			lbeq	9f				; attr
+			lbra	999f				; syntax error
 
 1 ; cls
-			tst		FIO_FILEPATH
-			lbeq		11f
-
-			lda		FIO_FILEPATH
-			ora		#$20			; force lower case
-			cmpa	#'a'
-			blt		101f
-			cmpa	#'f'
-			bgt		101f
-			suba	#'a'
-			adda	#10
-			bra		102f
-101			cmpa	#'0'
-			blt		11f				; invalid, just use defaults
-			cmpa	#'9'
-			bgt		11f				; also invalid
-			suba	#'0'
-102;
-			ldb		FIO_FILEPATH+1
-			orb		#$20			; force lower case
-			cmpb	#'a'
-			blt		103f
-			cmpb	#'f'
-			bgt		103f
-			subb	#'a'
-			addb	#10
-			bra		104f
-103			cmpb	#'0'
-			blt		11f				; invalid, just use defaults
-			cmpb	#'9'
-			bgt		11f				; also invalid
-			subb	#'0'
-104
-			lsla
-			lsla
-			lsla
-			lsla
-			sta		TEXT_ATTRIB
-			orb		TEXT_ATTRIB
-			stb		TEXT_ATTRIB
-
-			bra 	12f
-11		; default color
-			lda		#$a2
-			sta		TEXT_ATTRIB	
-12		; clear screen
+			jsr		get_argument_attrib
 			jsr		clear_text_screen
 			jsr		ok_prompt
 			rts		
@@ -595,16 +582,13 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 7 ; dir
 			lda		#$0c			; list files
 			sta		FIO_COMMAND
-
 			clra
 			ldx		#FIO_RET_BUFFER
-71 ; loop
-			sta		FIO_RET_INDEX	; get the File[A]
+71			sta		FIO_RET_INDEX	; get the File[A]
 			jsr		text_out		; send it to the screen
 			inca	
 			cmpa	FIO_RET_COUNT	; how many entries?
-			bne		71b
-		
+			bne		71b		
 			lda		#$0A
 			jsr		char_out
 			jsr		ok_prompt	
@@ -613,16 +597,24 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 8 ; chdir
 			lda		#$0e			; $0E = command "CHDIR"
 			sta		FIO_COMMAND
-
 			lda 	FIO_ERR_FLAGS
 			anda	#$08			; directory not found
 			cmpa	#$08
 			bne		81f				; nope, just end
 			ldx		#strz_dirnope_error
 			jsr		text_out
-81 ; done
-			jsr		ok_prompt	
+81			jsr		ok_prompt	
+			rts
 
+9 ; attr	
+			jsr		get_argument_attrib
+			ldx		#VIDEO_START+1
+91			stb 	,x++
+			cmpx	#VIDEO_END
+			bls		91b
+			;lda		#$0A
+			;jsr		char_out
+			jsr		ok_prompt	
 			rts
 
 
@@ -671,8 +663,7 @@ fetch_cl_argument	; copy everything past the first space character to FIO_FILEPA
 			beq		3f	
 			cmpy	#FIO_FILEPATH+255
 			bne		2b
-3 ; done
-			puls    A, X, Y
+3 			puls    A, X, Y
 			rts
 
 
@@ -715,6 +706,8 @@ lookup_cmd	; return in A index of the command
 			rts						; return RET			
 
 
+
+
 strz_syntax_error		fcn		"ERROR: Syntax!\n"
 strz_nofile_error		fcn		"ERROR: File Not Found!\n"
 strz_range_error		fcn		"ERROR: Argument out of Range!\n"
@@ -730,6 +723,7 @@ command_LUT
 			fcn		"screen"		; 6	
 			fcn		"dir"			; 7
 			fcn		"cd"			; 8		change directories
+			fcn		"attr"			; 9		change default text attribute
 			fcb		0xFF
 
 

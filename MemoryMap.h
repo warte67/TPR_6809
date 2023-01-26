@@ -126,6 +126,7 @@ enum MEMMAP
                                 //      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
                                 //      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)
                                 //      0x07: Scroll Down      (by pixels x GFX_BG_ARG1)
+                                //      0x08: Copy Buffer      (From Active to Inactive)
     GFX_BG_END = 0x1819,        // end of paged background gfxmode registers
 
 //  Mouse Cursor Hardware Registers:

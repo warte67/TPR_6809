@@ -113,8 +113,12 @@ start
 			cmpx	#640		;#$0800
 			bne		8b
 
+			; TOGGLE THE BACKBUFFERS
+			;lda		#$08		; cmd: copy buffer front to back
+			;sta 		GFX_BG_CMD			
+			;lda		#$03		; cmd: swap backbuffers
+			;sta		GFX_BG_CMD	; send the command
 
-			; TOGGLE THE BACKBUFFER
 			lda		GFX_FLAGS	; load current backbuffer
 			eora	#$20		; toggle it
 			sta		GFX_FLAGS	; save the backbuffer
@@ -157,7 +161,7 @@ continue
 			; check for ESCAPE
 			lda		CHAR_POP
 			cmpa	#$1b		; [ESCAPE]
-			bne		2b
+			lbne	2b
 
 			; RESTORE THE MOUSE CURSOR COLOR
 			lda		#4

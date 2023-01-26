@@ -25,7 +25,6 @@
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
 #include "GfxIndexed.h"
-#include "GfxRaw.h"
 #include "GFX.h"
 
 
@@ -38,7 +37,6 @@ bool GFX::m_fullscreen			= DEFAULT_FULLSCREEN;
 int  GFX::m_display_num			= DEFAULT_MONITOR;
 
 // these don't need to be static anymore
-// bool GFX::m_enable_mouse = true;		// true:enabled, false:disabled
 int  GFX::m_current_backbuffer = 0;		// currently active backbuffer (0-1)
 
 // Palette Index
@@ -153,8 +151,6 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 					ptrGfx->m_bg_gmodes[ptrGfx->m_bg_mode_index]->OnActivate();
 				}
 				old_bg_gmode_index = ptrGfx->m_bg_mode_index;
-
-
 
 				ptrGfx->debug_write(ofs, data);
 			}
@@ -380,6 +376,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    0x05: Scroll Right     (by pixels x GFX_BG_ARG1)        " }); offset += 0;
 	memmap->push({ offset, "", ">    0x06: Scroll Up        (by pixels x GFX_BG_ARG1)        " }); offset += 0;
 	memmap->push({ offset, "", ">    0x07: Scroll Down      (by pixels x GFX_BG_ARG1)        " }); offset += 0;
+	memmap->push({ offset, "", ">    0x08: Copy Buffer      (From Active to Inactive)        " }); offset += 0;
 
 	memmap->push({ --offset, "GFX_BG_END", "end of paged background gfxmode registers" }); offset += 1;
 
@@ -483,27 +480,6 @@ void GFX::OnEvent(SDL_Event *evnt)
 		int num_displays = SDL_GetNumVideoDisplays() - 1;
 		if (km & KMOD_ALT)// && km & KMOD_CTRL)
 		{
-			//// toggle backbuffer enable
-			//if (evnt->key.keysym.sym == SDLK_c)
-			//{
-			//	Byte data = bus->read(GFX_FLAGS);
-			//	data ^= 0x40;
-			//	bus->write(GFX_FLAGS, data);
-			//}
-			
-														// toggle debug enable (move this to GfxDebug)
-														if (evnt->key.keysym.sym == SDLK_d)
-														{
-															Byte data = bus->read(DBG_FLAGS);
-															data ^= 0x80;
-															//if (data & 0x80)
-															//	gfx_debug->SetSingleStep(true);
-															bus->write(DBG_FLAGS, data);
-															// clear the keyboard buffer
-															bus->m_keyboard->Clear();
-															gfx_debug->bMouseWheelActive = false;
-														}
-
 			// left 
 			if (evnt->key.keysym.sym == SDLK_LEFT)
 			{
@@ -545,9 +521,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 	m_bg_gmodes[m_bg_mode_index]->OnEvent(evnt);
 	m_fg_gmodes[m_fg_mode_index]->OnEvent(evnt);
 
-	// run the debugger
-	if (DebugEnabled())
-		gfx_debug->OnEvent(evnt);
+	// run the debugger	
+	gfx_debug->OnEvent(evnt);
 	// run the mouse cursor
 	if (gfx_mouse->Mouse_Size() > 0)
 		gfx_mouse->OnEvent(evnt);

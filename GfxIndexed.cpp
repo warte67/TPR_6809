@@ -66,6 +66,10 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 					cmd_scroll_down();
 					break;
 
+				case 0x08:		// Copy Buffer      (From Active to Inactive)
+					cmd_scroll_down();
+					break;
+
 				default:		// default (write a 0 to indicate an error)
 					data = 0;
 					break;
@@ -162,6 +166,16 @@ void GfxIndexed::cmd_scroll_down()
 			s_mem_64k[adr1] = f_pix;
 		}
 	}
+}
+
+void GfxIndexed::cmd_copy_buffer()
+{
+	// copy from the active buffer to the inactive one
+	Word front = 0;
+	Word back = 10240;
+	if (!_bUsingFirstPage) { front = 10240;  back = 0; }
+	for (int t = 0; t < 10240; t++)
+		s_mem_64k[front++] = s_mem_64k[back++];
 }
 
 // constructor
@@ -347,12 +361,16 @@ void GfxIndexed::OnUpdate(float fElapsedTime)
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
 		Word addr = 0;
+
+		//// TODO: need some type of dual buffer enable and/or dual layer setting
+		//Word addr = 0;
+		//if (_bUsingFirstPage)
+		//	addr = 10240;
+
 		for (int y = 0; y < pixel_height; y++)
 		{
 			for (int x = 0; x < pixel_width; x++)
 			{
-				// TODO: read data according to the active page
-				// ...		bool _bUsingFirstPage
 				Byte data = GfxMode::s_mem_64k[addr++];
 				Byte r = red(data);
 				Byte g = grn(data);
