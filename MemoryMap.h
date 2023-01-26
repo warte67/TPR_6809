@@ -218,7 +218,7 @@ enum MEMMAP
        KEY_END = 0x1b4a,        // end of keyboard hardware registers
 
 //  Gamepad Hardware Registers:
-     GPD_BEGIN = 0x1b4b,        // start of keyboard hardware registers
+    JOYS_BEGIN = 0x1b4b,        // start of gamepad hardware registers
     JOYS_1_BTN = 0x1b4b,        // (Word) button bits: room for up to 16 buttons  (realtime)
    JOYS_1_DBND = 0x1b4d,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
     JOYS_1_LTX = 0x1b4e,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
@@ -236,7 +236,7 @@ enum MEMMAP
     JOYS_2_RTY = 0x1b5a,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
      JOYS_2_Z1 = 0x1b5b,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
      JOYS_2_Z2 = 0x1b5c,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
-       GPD_END = 0x1b5d,        // end of keyboard hardware registers
+      JOYS_END = 0x1b5d,        // end of gamepad hardware registers
 
 //  Reserved Hardware:
   RESERVED_HDW = 0x1b5e,        // Reserved 1181 bytes ($1B5E - $1FFB)

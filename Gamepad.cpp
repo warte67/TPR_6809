@@ -44,7 +44,7 @@ Word Gamepad::MapDevice(MemoryMap* memmap, Word offset)
 
 	//memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "Gamepad Hardware Registers:                   " }); offset += 0;
-	memmap->push({ offset, "GPD_BEGIN", "start of keyboard hardware registers  " }); offset += 0;
+	memmap->push({ offset, "JOYS_BEGIN", "start of gamepad hardware registers  " }); offset += 0;
 
 	memmap->push({ offset, "JOYS_1_BTN",  "(Word) button bits: room for up to 16 buttons  (realtime)" }); offset += 2;
 	memmap->push({ offset, "JOYS_1_DBND", "(Byte) PAD 1 analog deadband; default is 5   (read/write)" }); offset += 1;
@@ -64,7 +64,7 @@ Word Gamepad::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "JOYS_2_Z1",   "(char) PAD 2 left trigger        (0 - 127)     (realtime)" }); offset += 1;
 	memmap->push({ offset, "JOYS_2_Z2",   "(char) PAD 2 right trigger       (0 - 127)     (realtime)" }); offset += 1;
 
-	memmap->push({ offset, "GPD_END", "end of keyboard hardware registers     " }); offset += 1;
+	memmap->push({ offset, "JOYS_END", "end of gamepad hardware registers     " }); offset += 1;
 	memmap->push({ offset, "", "" });
 
 	return offset - start_offset;
