@@ -1,10 +1,9 @@
-// * GfxRaw.cpp ***************************************
-// *
-// * 256x160 x 64-Colors
-// *		Requires a 40KB Buffer
-// *
-// * Copyright (C) 2023 by Jay Faries
-// ************************************
+/**** GfxIndexed.cpp ***************************************
+ *
+ * 256x160 x 256-Colors Indexed Mode (external 40k buffer)
+ *
+ *  Copyright (C) 2023 by Jay Faries
+ ************************************/
 
 
 #include "types.h"
@@ -37,17 +36,17 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 					break;
 
 				case 0x01:		// Clear Screen       (with color index in GFX_BG_ARG1)
-					for ( int a = _buffer_base; a < _buffer_base + 10240; a++)
+					for ( int a = _buffer_base; a < _buffer_base + (pixel_width * pixel_height); a++)
 						s_mem_64k[a] = _arg1;
 					break;
 
-				case 0x02:		// Set Active Page  (zero or non-zero in GFX_BG_ARG1)
-					_bUsingFirstPage = (data != 0);
+				case 0x02:		// TODO: need a new command  ...      WAS: Set Active Page  (zero or non-zero in GFX_BG_ARG1)
+					//_bUsingFirstPage = (data != 0);
 					break;
 
-				case 0x03:		// Swap Pages or flip (simply swaps active video buffers)
-					_bUsingFirstPage = !_bUsingFirstPage;
-					(_bUsingFirstPage) ? _buffer_base : _buffer_base = 10240;
+				case 0x03:		// TODO: need a new command  ...      WAS: Swap Pages or flip (simply swaps active video buffers)
+					//_bUsingFirstPage = !_bUsingFirstPage;
+					//(_bUsingFirstPage) ? _buffer_base : _buffer_base = (pixel_width * pixel_height);
 					break;
 
 				case 0x04:		// Scroll Left      (by pixels x GFX_BG_ARG1)
@@ -317,13 +316,40 @@ void GfxIndexed::OnInitialize()
 
 void GfxIndexed::OnActivate()
 {
-	printf("GfxIndexed::OnActivate()\n");
+	//printf("GfxIndexed::OnActivate()\n");
 
 	//bus->write_word(GFX_EXT_ADDR, 0);
 
 	// ******  TESTING  **************************
-					const char* image_path = "resources/TPR_6809.bmp";
-					SDL_Surface* image = SDL_LoadBMP(image_path);
+
+					static int pix = 0;
+
+					std::string image_path;
+					switch (pix)
+					{
+					case 0:
+						image_path = "resources/vapor.bmp";
+						break;
+					case 1:
+						image_path = "resources/velvet.bmp";
+						break;
+					case 2:
+						image_path = "resources/CoalD_S.bmp";
+						break;
+					case 3:
+						image_path = "resources/TPR_256x160.bmp";
+						break;
+					case 4:
+						image_path = "resources/abstract.bmp";
+						break;
+					case 5:
+						image_path = "resources/Deposit.bmp";
+						break;
+					}
+					pix++;
+					pix %= 6;
+
+					SDL_Surface* image = SDL_LoadBMP(image_path.c_str());
 					/* Let the user know if the file failed to load */
 					if (!image) {
 						printf("Failed to load image at %s: %s\n", image_path, SDL_GetError());
@@ -332,21 +358,22 @@ void GfxIndexed::OnActivate()
 					// copy the image to the s_mem_64k buffer	
 					Word addr = 0;
 					SDL_LockSurface(image);
-					for (int y = 0; y < 80; y++)
+					for (int y = 0; y < pixel_height; y++)
 					{
-						for (int x = 0; x < 128; x++)
+						for (int x = 0; x < pixel_width; x++)
 						{
 							int bpp = image->format->BytesPerPixel;
 							Byte* p = (Byte*)image->pixels + (int)y * image->pitch + (int)x * bpp;
 							Byte index = *(Uint32*)p;
 							s_mem_64k[addr++] = index;
+							if (addr >= (pixel_width * pixel_height))		addr = 0;
 						}
 					}
 					SDL_UnlockSurface(image);
 					// load the palette
 
 					int ncolors = image->format->palette->ncolors;
-					printf("ncolors: %d\n", ncolors);
+					//printf("ncolors: %d\n", ncolors);
 					for (int index = 0; index <= ncolors;  index++)
 					{
 						Byte r = image->format->palette->colors[index].r;
@@ -409,12 +436,6 @@ void GfxIndexed::OnUpdate(float fElapsedTime)
 		SDL_SetRenderTarget(gfx->Renderer(), bitmap_texture);
 
 		Word addr = 0;
-
-		//// TODO: need some type of dual buffer enable and/or dual layer setting
-		//Word addr = 0;
-		//if (_bUsingFirstPage)
-		//	addr = 10240;
-
 		for (int y = 0; y < pixel_height; y++)
 		{
 			for (int x = 0; x < pixel_width; x++)
@@ -426,6 +447,8 @@ void GfxIndexed::OnUpdate(float fElapsedTime)
 				Byte a = SDL_ALPHA_OPAQUE;	// alf(data);
 				SDL_SetRenderDrawColor(gfx->Renderer(), r, g, b, a);
 				SDL_RenderDrawPoint(gfx->Renderer(), x, y);
+
+				if (addr > (pixel_width * pixel_height))	addr = 0;
 			}
 		}
 	}

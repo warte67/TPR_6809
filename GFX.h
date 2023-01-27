@@ -194,15 +194,29 @@ private:
     Maths:
 
     64KB External Ram Buffer:
-        GfxIndexed # 1 - 10k: $0000-$27ff        = 128x80  x 256-color screen (10 kb each)
-        GfxIndexed # 2 - 10k: $2800-$4fff        = 128x80  x 256-color screen (10 kb each)
-        TILES x 112    - 28k: $5000-$BFFF        = 16x16 x 256-color Tiles    (256 bytes each)
-        SPRITES x 64   - 16k: $C000-$FFFF        = 16x16 x 256-color Sprites  (256 bytes each)
+        GfxIndexed      - 40K: $0000-$9fff  = 256x160 x 256-color indexed screen
+        GfxTile16/32    - 40K: $0000-$9fff  = tile buffer map
+        TILES x 64      - 16K: $A000-$DFFF  = 16x16x256-color tiles x 64 (256 bytes each)
+        SPRITES x 32    -  8K: $E000-$FFFF  = 16x16x256-color sprites x 32 (256 bytes each)
 
     STATIC MODES:
 		+ DEBUG 
 		+ SPRITES (What about priority display layers?)
 		+ SYSTEM (Mouse Cursor)     
+
+
+
+
+    What ifs:
+
+        GfxIndexed      40k: $0000-$9fff        = 256 x 160 x 256-color indexed
+        TILES X 64      $4000
+        SPRITES X 32    $2000
+
+
+
+
+
 
 
     ************************************************************

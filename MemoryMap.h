@@ -115,13 +115,13 @@ enum MEMMAP
 
 //  Paged Background Graphics Mode Hardware Registers:
   GFX_BG_BEGIN = 0x1815,        // start of paged background gfxmode registers
-  GFX_EXT_ADDR = 0x1815,        // (Word) 20K extended graphics addresses
-  GFX_EXT_DATA = 0x1817,        // (Byte) 20K extended graphics RAM data
+  GFX_EXT_ADDR = 0x1815,        // (Word) 40K extended graphics addresses
+  GFX_EXT_DATA = 0x1817,        // (Byte) 40K extended graphics RAM data
    GFX_BG_ARG1 = 0x1818,        // (Byte) first read/write argument for the blit commands
     GFX_BG_CMD = 0x1819,        // (Byte) Blit Commands on the indexed bitmap buffer
                                 //      0x01: Clear Screen     (with color index in GFX_BG_ARG1)
-                                //      0x02: Set Active Page  (0 or 1 in GFX_BG_ARG1)
-                                //      0x03: Swap Pages       (simply swaps video buffers)
+                                //      0x02: unassigned
+                                //      0x03: unassigned
                                 //      0x04: Scroll Left      (by pixels x GFX_BG_ARG1)
                                 //      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
                                 //      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)

@@ -58,7 +58,8 @@ start
 			clra
 2
 			leax	1,x
-			cmpx	#$2800
+			;cmpx	#$2800
+			cmpx	#$0800
 			bne		1b
 
 
@@ -103,6 +104,8 @@ start
 			sta		GFX_BG_ARG1		; arg1 holds the delta value for the scroll
 			lda		#$04			; command: scroll 
 			sta		GFX_BG_CMD		; issue the command
+
+
 
 			; INCREMENT THE EXTENDED SCREEN BUFFER
 			lda		GFX_FLAGS
@@ -185,6 +188,6 @@ done		rts
 ;			fcb		$0c, $0c, $0c, $0c, $0c, $0c, $0c, $0c
 
 mode_data	fcb		$00, $01, $02, $03, $04, $05, $06, $07
-			fcb		$08, $09, $0a, $0b, $0c, $0d, $0e, $0f
+			fcb		$08, $09, $0a, $0b, $0c, $0c, $0c, $0c, $0d, $0e, $0f
 
 			fcb		$ff
