@@ -610,7 +610,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 81			jsr		ok_prompt	
 			rts
 
-9 ; attr	
+9 ; color 	
 			jsr		get_argument_attrib
 			ldx		#VIDEO_START+1
 91			stb 	,x++
@@ -727,7 +727,7 @@ command_LUT
 			fcn		"screen"		; 6	
 			fcn		"dir"			; 7
 			fcn		"cd"			; 8		change directories
-			fcn		"attr"			; 9		change default text attribute
+			fcn		"color"			; 9		change default text attribute
 			fcb		0xFF
 
 

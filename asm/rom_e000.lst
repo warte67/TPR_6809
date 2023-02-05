@@ -819,7 +819,7 @@ E3D2  BDE1EB                                  jsr             text_out
 E3D5  BDE24D          81                      jsr             ok_prompt       
 E3D8  39                                      rts
                       
-E3D9                  9 ; attr        
+E3D9                  9 ; color       
 E3D9  BDE275                                  jsr             get_argument_attrib
 E3DC  8E0401                                  ldx             #VIDEO_START+1
 E3DF  E781            91                      stb     ,x++
@@ -936,8 +936,8 @@ E50D  6578697400                              fcn             "exit"            
 E512  73637265656E00                          fcn             "screen"                ; 6     
 E519  64697200                                fcn             "dir"                   ; 7
 E51D  636400                                  fcn             "cd"                    ; 8             change directories
-E520  6174747200                              fcn             "attr"                  ; 9             change default text attribute
-E525  FF                                      fcb             0xFF
+E520  636F6C6F7200                            fcn             "color"                 ; 9             change default text attribute
+E526  FF                                      fcb             0xFF
                       
                       
                       

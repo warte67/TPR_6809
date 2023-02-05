@@ -352,7 +352,7 @@ void GfxIndexed::OnActivate()
 					SDL_Surface* image = SDL_LoadBMP(image_path.c_str());
 					/* Let the user know if the file failed to load */
 					if (!image) {
-						printf("Failed to load image at %s: %s\n", image_path, SDL_GetError());
+						printf("Failed to load image at %s: %s\n", image_path.c_str(), SDL_GetError());
 						return;
 					}
 					// copy the image to the s_mem_64k buffer	
