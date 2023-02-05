@@ -69,8 +69,8 @@ GFX_EXT_DATA    equ     $1817   ; (Byte) 20K extended graphics RAM data
 GFX_BG_ARG1     equ     $1818   ; (Byte) first read/write argument for the blit commands
 GFX_BG_CMD      equ     $1819   ; (Byte) Blit Commands on the indexed bitmap buffer
                                 ;      0x01: Clear Screen     (with color index in GFX_BG_ARG1)
-                                ;      0x02: Set Active Page  (0 or 1 in GFX_BG_ARG1)
-                                ;      0x03: Swap Pages       (simply swaps video buffers)
+                                ;      0x02: unassigned
+                                ;      0x03: unassigned
                                 ;      0x04: Scroll Left      (by pixels x GFX_BG_ARG1)
                                 ;      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
                                 ;      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)
@@ -121,7 +121,8 @@ FIO_ERR_FLAGS   equ     $182b   ; (Byte) file i/o system flags:
                                 ;      bit 4: wrong file type
                                 ;      bit 3: directory not found
                                 ;      bit 2: too many file handles
-                                ;      bit 0-1: not yet assigned
+                                ;      bit 1: incorrect file handle
+                                ;      bit 0: not yet assigned
 FIO_COMMAND     equ     $182c   ; (Byte) OnWrite - command to execute
                                 ;      $00 = Reset/Null
                                 ;      $01 = Open/Create Binary File for Reading
@@ -191,9 +192,10 @@ JOYS_END        equ     $1b5c   ; end of gamepad hardware registers
 ;  Reserved Hardware:
 RESERVED_HDW    equ     $1b5d   ; Reserved 1182 bytes ($1B5D - $1FFB)
 
-;  Memory Bank Selects (16MB):
-RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
-RAMBANK_SEL_2   equ     $1ffe   ; (Word)Indexes 65536 x 8kb banks
+;  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
+;  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+RAMBANK_SEL_1   equ     $1ffe   ; (Byte)Indexes 256 x 8kb banks
+RAMBANK_SEL_2   equ     $1fff   ; (Byte)Indexes 256 x 8kb banks
 
 ;  Standard Usable (from FAST static 32KB) RAM:
 RAM_START       equ     $2000   ; Begin System RAM (32k)

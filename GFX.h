@@ -228,7 +228,7 @@ private:
 
 
 
-    ************************************************************
+    **  NOTES:  ****************************************************
 
 
     Raspberry PI PICO has 26 Multifunction GPIO Pins:
@@ -258,6 +258,8 @@ private:
         - 6 QSPI I/O with SDRAM flash card
         - 1 UART USB Keyboard, Mouse, Gamepad #1, Gamepad #2
         - 1 UART Serial Terminal I/O (and serial debugging)
+
+
 
 
 

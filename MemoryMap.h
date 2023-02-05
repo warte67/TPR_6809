@@ -115,8 +115,8 @@ enum MEMMAP
 
 //  Paged Background Graphics Mode Hardware Registers:
   GFX_BG_BEGIN = 0x1815,        // start of paged background gfxmode registers
-  GFX_EXT_ADDR = 0x1815,        // (Word) 40K extended graphics addresses
-  GFX_EXT_DATA = 0x1817,        // (Byte) 40K extended graphics RAM data
+  GFX_EXT_ADDR = 0x1815,        // (Word) 20K extended graphics addresses
+  GFX_EXT_DATA = 0x1817,        // (Byte) 20K extended graphics RAM data
    GFX_BG_ARG1 = 0x1818,        // (Byte) first read/write argument for the blit commands
     GFX_BG_CMD = 0x1819,        // (Byte) Blit Commands on the indexed bitmap buffer
                                 //      0x01: Clear Screen     (with color index in GFX_BG_ARG1)
@@ -243,9 +243,10 @@ enum MEMMAP
 //  Reserved Hardware:
   RESERVED_HDW = 0x1b5d,        // Reserved 1182 bytes ($1B5D - $1FFB)
 
-//  Memory Bank Selects (16MB):
-  RAMBANK_SEL_1 = 0x1ffc,       // (Word)Indexes 65536 x 8kb banks
-  RAMBANK_SEL_2 = 0x1ffe,       // (Word)Indexes 65536 x 8kb banks
+//  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
+//  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+  RAMBANK_SEL_1 = 0x1ffe,       // (Byte)Indexes 256 x 8kb banks
+  RAMBANK_SEL_2 = 0x1fff,       // (Byte)Indexes 256 x 8kb banks
 
 //  Standard Usable (from FAST static 32KB) RAM:
      RAM_START = 0x2000,        // Begin System RAM (32k)
@@ -271,3 +272,24 @@ enum MEMMAP
 
 
 #endif // __MEMORY_MAP__
+
+
+
+/****** NOTES:  *************************************************
+
+    The use of 16MByte external buffer may be a bit overkill. Reconsider using
+    a single 16Mb SerialRAM chip for 2MBytes of total paged memory programmatically
+    clocked at full single thread ARM M0+ speed. SPI mode would work, but QPI mode would be, 
+    theoretically faster if the PICO can handle it.
+
+    Considering the use of:  IS66WVS2M8BLL-104NLI from Mouser...
+        see: https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+
+
+
+
+
+
+
+
+*****************************************************************/

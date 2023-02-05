@@ -82,13 +82,14 @@ Word MemoryMap::end(Word offset)
 	//v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Reserved Hardware:" });
 	v_mem.push_back({ offset, "RESERVED_HDW", _future_expansion });
-	offset = 0x2000 - 4;
+	offset = 0x2000 - 2;
 
 	// Memory Bank Select(s)
 	v_mem.push_back({ offset, "", "" });
-	v_mem.push_back({ offset, "", "Memory Bank Selects (16MB):" });
-	v_mem.push_back({ offset, "RAMBANK_SEL_1", "(Word)Indexes 65536 x 8kb banks" }); offset += 2;
-	v_mem.push_back({ offset, "RAMBANK_SEL_2", "(Word)Indexes 65536 x 8kb banks" }); offset += 2;
+	v_mem.push_back({ offset, "", "Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):" });
+	v_mem.push_back({ offset, "", "https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D" });
+	v_mem.push_back({ offset, "RAMBANK_SEL_1", "(Byte)Indexes 256 x 8kb banks" }); offset += 1;
+	v_mem.push_back({ offset, "RAMBANK_SEL_2", "(Byte)Indexes 256 x 8kb banks" }); offset += 1;
 
 	// Begin System Ram ($2000-AFFF)
 	v_mem.push_back({ offset, "", "" });
