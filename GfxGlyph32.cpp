@@ -113,7 +113,7 @@ void GfxGlyph32::OnActivate()
 			{ 0x055F },	// 0000 0101.0101 1111		3
 			{ 0x500F },	// 0101 0000.0000 1111		4
 			{ 0x505F },	// 0101 0000.0101 1111		5
-			{ 0x550F },	// 0101 0101.0000 1111		6
+			{ 0x631F },	// 0101 0101.0000 1111		6		{ 0x550F }
 			{ 0xAAAF },	// 1010 1010.1010 1111		7
 			{ 0x555F },	// 0101 0101.0101 1111		8
 			{ 0x00FF },	// 0000 0000.1111 1111		9
@@ -224,34 +224,39 @@ void GfxGlyph32::OnUpdate(float fElapsedTime)
 		SDL_SetRenderDrawColor(gfx->Renderer(), 0, 0, 0, 0);
 		SDL_RenderClear(gfx->Renderer());
 
-		for (int ofs = VIDEO_START; ofs < VIDEO_START + 1280; ofs += 2)	// <= VIDEO_END; ofs += 2)
+		// display four layers of text
+		for (int layer = VIDEO_START; layer < VIDEO_END; layer += 1280)
 		{
-			// attribute bites:   FFFF BBBB
-			Word index = ofs - VIDEO_START;
-			Byte glyph = bus->read(ofs);
-			Byte attr = bus->read(ofs + 1);
-			int x = ((index / 2) % 32) * 8;
-			int y = ((index / 2) / 32) * 8;
-			// draw background
-			Byte bg = attr & 0x0f;
-			Byte red = gfx->red(bg);
-			Byte grn = gfx->grn(bg);
-			Byte blu = gfx->blu(bg);
-			Byte alf = gfx->alf(bg);
-			SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
-			SDL_Rect dst = { x, y, 8, 8 };
-			SDL_RenderFillRect(gfx->Renderer(), &dst);
+			for (int ofs = layer; ofs < layer + 1280; ofs += 2)
+			//for (int ofs = VIDEO_START; ofs < VIDEO_START + 1280; ofs += 2)	// <= VIDEO_END; ofs += 2)
+			{
+				// attribute bites:   FFFF BBBB
+				Word index = ofs - VIDEO_START;
+				Byte glyph = bus->read(ofs);
+				Byte attr = bus->read(ofs + 1);
+				int x = ((index / 2) % 32) * 8;
+				int y = ((index / 2) / 32) * 8;
+				// draw background
+				Byte bg = attr & 0x0f;
+				Byte red = gfx->red(bg);
+				Byte grn = gfx->grn(bg);
+				Byte blu = gfx->blu(bg);
+				Byte alf = gfx->alf(bg);
+				SDL_SetRenderDrawColor(gfx->Renderer(), red, grn, blu, alf);
+				SDL_Rect dst = { x, y, 8, 8 };
+				SDL_RenderFillRect(gfx->Renderer(), &dst);
 
-			// draw foreground
-			Byte fg = (attr >> 4) & 0x0f;
-			red = gfx->red(fg);
-			grn = gfx->grn(fg);
-			blu = gfx->blu(fg);
-			alf = gfx->alf(fg);
-			int row = x / 8;
-			int col = y / 8;
+				// draw foreground
+				Byte fg = (attr >> 4) & 0x0f;
+				red = gfx->red(fg);
+				grn = gfx->grn(fg);
+				blu = gfx->blu(fg);
+				alf = gfx->alf(fg);
+				int row = x / 8;
+				int col = y / 8;
 
-			OutGlyph(row, col, glyph, red, grn, blu, false);
+				OutGlyph(row, col, glyph, red, grn, blu, false);
+			}
 		}
 	}
 }

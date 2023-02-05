@@ -475,7 +475,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 		; parse
 			jsr		lookup_cmd
 
-		; [L] = test load "test.hex"
+		; switch to command
 			cmpa	#0
 			lbeq	999f			; do syntax error
 			cmpa	#1				
@@ -496,6 +496,8 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lbeq	8f				; chdir
 			cmpa	#9
 			lbeq	9f				; attr
+			cmpa	#10
+			lbeq	debug_10		; debug
 			lbra	999f				; syntax error
 
 1 ; cls
@@ -518,6 +520,11 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			ldx		EXEC_VECTOR		; whats in the exec vector?
 			cmpx	#reset			; if its set to default
 			beq		31f				; then skip to OK prompt
+			
+			lda 	DBG_FLAGS		; read debug flags
+			anda 	#~$C0			; mask out debug and single step enable bits
+			sta 	DBG_FLAGS		; store debug flags
+			
 			jsr		[EXEC_VECTOR]	; call the loaded subroutine
 
 			lda		GFX_FLAGS		; check video mode
@@ -530,6 +537,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 31 ; skip exec
 			jsr		ok_prompt
 			rts
+
 
 4 ; reset
 			lda		#$00			; $00 = Reset/Null
@@ -619,6 +627,33 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			;lda		#$0A
 			;jsr		char_out
 			jsr		ok_prompt	
+			rts
+			
+			
+debug_10 ; debug			
+			lda		FIO_ERR_FLAGS	; load the errors flag
+			anda	#$80			; test for bit: file not found?		
+			tsta	
+			bne		101f			; dont call the sub if it wasnt loaded
+			ldx		EXEC_VECTOR		; whats in the exec vector?
+			cmpx	#reset			; if its set to default
+			beq		101f			; then skip to OK prompt
+			
+			lda 	DBG_FLAGS		; read debug flags
+			ora 	#$C0			; set debug and single step enable bits
+			sta 	DBG_FLAGS		; store debug flags						
+			
+			jsr		[EXEC_VECTOR]	; call the loaded subroutine
+			
+			lda		GFX_FLAGS		; check video mode
+			cmpa	DEF_GFX_FLAGS	; compare against defaults
+			beq		102f			; skip the CLS if the mode hasnt changed
+			jsr		text_screen_reset
+102 ; skip cls
+			jsr		ok_prompt		
+			rts
+101 ; skip exec
+			jsr		ok_prompt
 			rts
 
 
@@ -718,16 +753,18 @@ strz_range_error		fcn		"ERROR: Argument out of Range!\n"
 strz_wrongfile_error	fcn		"ERROR: Wrong File Type!\n"
 strz_dirnope_error		fcn		"ERROR: Directory Not Found!\n"
 
+; console commands
 command_LUT 
-			fcn		"cls"			; 1
-			fcn		"load"			; 2
-			fcn		"exec"			; 3
-			fcn		"reset"			; 4
-			fcn		"exit"			; 5
-			fcn		"screen"		; 6	
-			fcn		"dir"			; 7
+			fcn		"cls"			; 1		clear the screen
+			fcn		"load"			; 2		load a .hex file
+			fcn		"exec"			; 3		execute the loaded .hex file
+			fcn		"reset"			; 4		perform a soft system reset
+			fcn		"exit"			; 5		exit the emulation
+			fcn		"screen"		; 6		change screen modes
+			fcn		"dir"			; 7		display the files in the current directory
 			fcn		"cd"			; 8		change directories
-			fcn		"color"			; 9		change default text attribute
+			fcn		"color"			; 9 	change default text attribute
+			fcn		"debug"			; 10	debug the loaded .hex file
 			fcb		0xFF
 
 

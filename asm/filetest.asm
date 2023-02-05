@@ -12,12 +12,15 @@ exe_vect	fdb		start
 
 		ORG		$2000
 
-file_handle     fcb     $00     ; file handle
+file_handle     fcb     $00     ; used to save a temporary file handle
 
 start   ; execution entry point
 
+	; enable debug mode
         ;lda     #$C0
         ;sta     DBG_FLAGS
+		
+		
         ;ldx     #brk_here   ; set a breakpoint
         ;stx     DBG_BRK_ADDR
 

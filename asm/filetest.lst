@@ -221,12 +221,15 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
                       
 2000                                  ORG             $2000
                       
-2000  00              file_handle     fcb     $00     ; file handle
+2000  00              file_handle     fcb     $00     ; used to save a temporary file handle
                       
 2001                  start   ; execution entry point
                       
+                              ; enable debug mode
                               ;lda     #$C0
                               ;sta     DBG_FLAGS
+                                      
+                                      
                               ;ldx     #brk_here   ; set a breakpoint
                               ;stx     DBG_BRK_ADDR
                       

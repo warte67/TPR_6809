@@ -118,7 +118,7 @@ protected:
 		{"IRQ",				SDL_SCANCODE_I,	31, 35, 31, 0xD, &GfxDebug::cbIRQ },
 		{" FIRQ",			SDL_SCANCODE_F,	24, 29, 31, 0xD, &GfxDebug::cbFIRQ },
 		{" RUN",			SDL_SCANCODE_D,	17, 22, 31, 0xA, &GfxDebug::cbRunStop },
-		{" HIDE",			SDL_SCANCODE_H,	17, 22, 33, 0xF, &GfxDebug::cbHide },
+		{" EXIT",			SDL_SCANCODE_H,	17, 22, 33, 0xF, &GfxDebug::cbHide },
 		{"STEP_INTO",		SDL_SCANCODE_SPACE,	24, 34, 33, 0x7, &GfxDebug::cbStepIn },
 		{"STEP_OVER",		SDL_SCANCODE_O,	36, 46, 33, 0x8, &GfxDebug::cbStepOver },
 		{"ADD BRK",			SDL_SCANCODE_B,	48, 54, 33, 0xC, &GfxDebug::cbAddBrk },

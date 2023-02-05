@@ -170,14 +170,14 @@ private:
         bit 4: debug enable
         bits 2-3 = "Background" graphics mode (20KB buffer)
                 0) GfxNull()        NONE (forced black background)
-                1) GfxTile16()      Tile 16x16 mode             
-                2) GfxTile32()      Overscan Tile 16x16 mode    
-                3) GfxIndexed()     128x80 x 256-Colors (2 x 10K buffers)
+                1) GfxTile16()      Tile 16x16 mode             (40K buffers)
+                2) GfxTile32()      Overscan Tile 16x16 mode    (40K buffers) 
+                3) GfxIndexed()     256x160 x 256-Colors        (40K buffers)
 
-        bits 0-1 = "Foreground" graphics mode (5KB buffer)
+        bits 0-1 = "Foreground" graphics mode (5KB memory-mapped buffer)
                 0) GfxBmp2()        256x160 x 2-Color
-                1) GfxGlyph32()     Glyph Mode (256x160 or 32x20 text)
-                2) GfxGlyph64()     Glyph Mode (512x320 or 64x40 text)
+                1) GfxGlyph32()     Glyph Mode (256x160 / 32x20 text)   w/4 layers
+                2) GfxGlyph64()     Glyph Mode (512x320 / 64x40 text)   w/1 layer
                 3) GfxBmp16()       128x80 x 16-Color
 
     GFX_AUX: (emulator only)
@@ -200,18 +200,27 @@ private:
         SPRITES x 32    -  8K: $E000-$FFFF  = 16x16x256-color sprites x 32 (256 bytes each)
 
     STATIC MODES:
-		+ DEBUG 
-		+ SPRITES (What about priority display layers?)
+        + BACKGROUND GFX MODES:
+            0) GfxNull()        NONE (forced black background)
+            1) GfxTile16()      Tile 16x16 mode             (40K buffers)
+            2) GfxTile32()      Overscan Tile 16x16 mode    (40K buffers)
+            3) GfxIndexed()     256x160 x 256-Colors        (40K buffers)
+        + FOREGROUND GFX MODES:
+            0) GfxBmp2()        256x160 x 2-Color
+            1) GfxGlyph32()     Glyph Mode (256x160 / 32x20 text)   w/4 layers
+            2) GfxGlyph64()     Glyph Mode (512x320 / 64x40 text)   w/1 layer
+            3) GfxBmp16()       128x80 x 16-Color
+        + DEBUG
+		+ SPRITES 
+            - Priority:
+                0)  displays just on top of background
+                1)  displays above text layer 1
+                2)  displays above text layer 2
+                3)  displays above text layer 3
+                4)  displays above debug screen
+                5)  displays above mouse cursor
+                6+) displays over all graphics modes in priority order
 		+ SYSTEM (Mouse Cursor)     
-
-
-
-
-    What ifs:
-
-        GfxIndexed      40k: $0000-$9fff        = 256 x 160 x 256-color indexed
-        TILES X 64      $4000
-        SPRITES X 32    $2000
 
 
 
