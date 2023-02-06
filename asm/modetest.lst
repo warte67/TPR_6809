@@ -79,8 +79,8 @@
 1818                  GFX_BG_ARG1     equ     $1818   ; (Byte) first read/write argument for the blit commands
 1819                  GFX_BG_CMD      equ     $1819   ; (Byte) Blit Commands on the indexed bitmap buffer
                                                       ;      0x01: Clear Screen     (with color index in GFX_BG_ARG1)
-                                                      ;      0x02: Set Active Page  (0 or 1 in GFX_BG_ARG1)
-                                                      ;      0x03: Swap Pages       (simply swaps video buffers)
+                                                      ;      0x02: unassigned
+                                                      ;      0x03: unassigned
                                                       ;      0x04: Scroll Left      (by pixels x GFX_BG_ARG1)
                                                       ;      0x05: Scroll Right     (by pixels x GFX_BG_ARG1)
                                                       ;      0x06: Scroll Up        (by pixels x GFX_BG_ARG1)
@@ -131,7 +131,8 @@
                                                       ;      bit 4: wrong file type
                                                       ;      bit 3: directory not found
                                                       ;      bit 2: too many file handles
-                                                      ;      bit 0-1: not yet assigned
+                                                      ;      bit 1: incorrect file handle
+                                                      ;      bit 0: not yet assigned
 182C                  FIO_COMMAND     equ     $182c   ; (Byte) OnWrite - command to execute
                                                       ;      $00 = Reset/Null
                                                       ;      $01 = Open/Create Binary File for Reading
@@ -201,9 +202,10 @@
                       ;  Reserved Hardware:
 1B5D                  RESERVED_HDW    equ     $1b5d   ; Reserved 1182 bytes ($1B5D - $1FFB)
                       
-                      ;  Memory Bank Selects (16MB):
-1FFC                  RAMBANK_SEL_1   equ     $1ffc   ; (Word)Indexes 65536 x 8kb banks
-1FFE                  RAMBANK_SEL_2   equ     $1ffe   ; (Word)Indexes 65536 x 8kb banks
+                      ;  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
+                      ;  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+1FFE                  RAMBANK_SEL_1   equ     $1ffe   ; (Byte)Indexes 256 x 8kb banks
+1FFF                  RAMBANK_SEL_2   equ     $1fff   ; (Byte)Indexes 256 x 8kb banks
                       
                       ;  Standard Usable (from FAST static 32KB) RAM:
 2000                  RAM_START       equ     $2000   ; Begin System RAM (32k)
@@ -268,7 +270,7 @@ E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8
 2037                  2
 2037  3001                                    leax    1,x
                                               ;cmpx   #$2800
-2039  8C0800                                  cmpx    #$0800
+2039  8C17FF                                  cmpx    #VIDEO_END      ;$0800
 203C  26ED                                    bne             1b
                       
                       

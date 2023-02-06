@@ -126,6 +126,10 @@ void GfxGlyph32::OnActivate()
 		};
 		for (int t = 0; t < 16; t++)
 			default_palette.push_back(ref[t]);
+		// add blank entries for the rest of the 256 color palette entries
+		GFX::PALETTE blank{ 0 };
+		while (default_palette.size() < 256)
+			default_palette.push_back(blank);
 	}
 
 	// load the palette from the defaults

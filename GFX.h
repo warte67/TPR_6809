@@ -29,6 +29,7 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxBmp16;
     friend class GfxBmp2;
     friend class GfxIndexed;
+    friend class GfxSprite;
 
 public:
     GFX();

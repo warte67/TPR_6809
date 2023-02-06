@@ -1,6 +1,6 @@
 /**** GfxTile16.h ***************************************
  *
- *  16x16 Tile Mode
+ *  16x16 Tile Container Mode
  * 
  *  Copyright (C) 2023 by Jay Faries
  ************************************/

@@ -176,6 +176,7 @@
     <ClCompile Include="GfxIndexed.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
+    <ClCompile Include="GfxSprite.cpp" />
     <ClCompile Include="GfxTile16.cpp" />
     <ClCompile Include="GfxTile32.cpp" />
     <ClCompile Include="Gamepad.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="GfxIndexed.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />
+    <ClInclude Include="GfxSprite.h" />
     <ClInclude Include="GfxTile16.h" />
     <ClInclude Include="GfxTile32.h" />
     <ClInclude Include="Gamepad.h" />

@@ -22,16 +22,17 @@
 #include "C6809.h"
 #include "FileIO.h"
 
-//     FIO_BEGIN = 0x181e,        // start of file i/o hardware registers
-// 
-//  FIO_ERR_FLAGS = 0x181e,       // (Byte) file i/o system flags:
+//     FIO_BEGIN = 0x182b,        // start of file i/o hardware registers
+//  FIO_ERR_FLAGS = 0x182b,       // (Byte) file i/o system flags:
 //                                //      bit 7:  file not found
 //                                //      bit 6:  end of file
 //                                //      bit 5:  buffer overrun
-//                                //      bit 4:  wrong file type
-//                                //      bit 0-3: not yet assigned
-// 
-//   FIO_COMMAND = 0x181f,        // (Byte) OnWrite - command to execute
+//                                //      bit 4: wrong file type
+//                                //      bit 3: directory not found
+//                                //      bit 2: too many file handles
+//                                //      bit 1: incorrect file handle
+//                                //      bit 0: not yet assigned
+//   FIO_COMMAND = 0x182c,        // (Byte) OnWrite - command to execute
 //                                //      $00 = Reset/Null
 //                                //      $01 = Open/Create Binary File for Reading
 //                                //      $02 = Open/Create Binary File for Writing
@@ -55,17 +56,17 @@
 //                                //      $14 = Seek Start
 //                                //      $15 = Seek Current
 //                                //      $16 = Seek End
-// 
-//    FIO_HANDLE = 0x1820,        // (Byte) file handle or ZERO
-//    FIO_BFROFS = 0x1821,        // (Word) start of I/O buffer
-//    FIO_BFRLEN = 0x1822,        // (Word) length of I/O buffer
-//   FIO_SEEKOFS = 0x1823,        // (Word) seek offset
-//  FIO_RET_COUNT = 0x1827,       // (Byte) number of return entries
-//  FIO_RET_INDEX = 0x1828,       // (Byte) command return index
-//  FIO_RET_BUFFER = 0x1829,      // (Char Array 256) paged return buffer
-//  FIO_FILEPATH = 0x1824,        // (Char Array 256) file path and argument buffer
-// 
-//       FIO_END = 0x1924,        // end of file i/o hardware registers
+//                                //      $17 = SYSTEM: Shutdown
+//                                //      $18 = SYSTEM: Load Compilation Date
+//    FIO_HANDLE = 0x182d,        // (Byte) file handle or ZERO
+//    FIO_BFROFS = 0x182e,        // (Word) start of I/O buffer
+//    FIO_BFRLEN = 0x182f,        // (Word) length of I/O buffer
+//    FIO_IODATA = 0x1831,        // (Byte) input / output character
+//  FIO_RET_COUNT = 0x1832,       // (Byte) number of return entries
+//  FIO_RET_INDEX = 0x1833,       // (Byte) command return index
+//  FIO_RET_BUFFER = 0x1834,      // (Char Array 256) paged return buffer
+//  FIO_FILEPATH = 0x1934,        // (Char Array 256) file path and argument buffer
+//       FIO_END = 0x1a34,        // end of file i/o hardware registers
 
 
 // memory-map callback function
@@ -148,6 +149,7 @@ Byte FileIO::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 					case 0x15:	ptrFile->_cmd_seek_current();			break;
 					case 0x16:	ptrFile->_cmd_seek_end();				break;
 					case 0x17:	bus->IsRunning(false);					break;
+					case 0x18:	ptrFile->_cmd_read_compilation();		break;
 
 					default:
 						break;
@@ -258,6 +260,7 @@ Word FileIO::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", ">    $15 = Seek Current                        " }); offset += 0;
 	memmap->push({ offset, "", ">    $16 = Seek End                            " }); offset += 0;
 	memmap->push({ offset, "", ">    $17 = SYSTEM: Shutdown                    " }); offset += 0;
+	memmap->push({ offset, "", ">    $18 = SYSTEM: Load Compilation Date       " }); offset += 0;
 
 	memmap->push({ offset, "FIO_HANDLE", "(Byte) file handle or ZERO          " }); offset += 1;
 	memmap->push({ offset, "FIO_BFROFS", "(Word) start of I/O buffer          " }); offset += 1;
@@ -796,6 +799,14 @@ void FileIO::_cmd_seek_end()
 }
 
 
+// $18 = Seek End
+void FileIO::_cmd_read_compilation()
+{
+	printf("FileIO::_cmd_read_compilation()\n");
+	std::string FilePath = __DATE__;	// __TIMESTAMP__;
+	snprintf(_filepath, 255, "%s", FilePath.c_str());
+	printf("\n");
+}
 
 
 

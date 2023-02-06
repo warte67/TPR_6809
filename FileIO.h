@@ -71,6 +71,8 @@ private:
 	void _cmd_seek_start();			// $14 = Seek Start
 	void _cmd_seek_current();		// $15 = Seek Current
 	void _cmd_seek_end();			// $16 = Seek End
+	// ...							// $17 = SYSTEM: Shutdown
+	void _cmd_read_compilation();	// $18 = SYSTEM: Load Compilation Date
 
 private:
     Bus* bus = nullptr;

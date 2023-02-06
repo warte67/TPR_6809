@@ -59,7 +59,7 @@ start
 2
 			leax	1,x
 			;cmpx	#$2800
-			cmpx	#$0800
+			cmpx	#VIDEO_END	;$0800
 			bne		1b
 
 

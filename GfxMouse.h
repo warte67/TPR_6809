@@ -30,11 +30,11 @@ public:
 	virtual void OnDeactivate() override;
 	virtual void OnRender() override;
 
-	int Mouse_Xpos() { return mouse_x_screen; }
-	int Mouse_Ypos() { return mouse_y_screen; }
-	int Mouse_Xofs() { return mouse_x_offset; }
-	int Mouse_Yofs() { return mouse_y_offset; }
-	Byte Mouse_Size() { return m_size; }
+	int Mouse_Xpos()           { return mouse_x_screen; }
+	int Mouse_Ypos()           { return mouse_y_screen; }
+	int Mouse_Xofs()           { return mouse_x_offset; }
+	int Mouse_Yofs()           { return mouse_y_offset; }
+	Byte Mouse_Size()          { return m_size; }
 	void Mouse_Size(Byte size) { m_size = size; }
 
 private:
@@ -73,7 +73,6 @@ private:
 	};
 
 	// Palette Stuff
-	// std::vector<GFX::PALETTE> palette;
 	Uint8 m_palette_index = 0;
 	std::vector<GFX::PALETTE> default_palette;
 

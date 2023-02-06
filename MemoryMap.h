@@ -102,7 +102,7 @@ enum MEMMAP
                                 //      bit 0-2: monitor display index (0-7)
   GFX_TIMING_W = 0x1803,        // (Word) horizontal timing
   GFX_TIMING_H = 0x1805,        // (Word) vertical timing
-  GFX_PAL_INDX = 0x1807,        // (Byte) gfx palette index (0-15)
+  GFX_PAL_INDX = 0x1807,        // (Byte) gfx palette index (0-255)
   GFX_PAL_DATA = 0x1808,        // (Word) gfx palette color bits RGBA4444
 
 //  Paged Foreground Graphics Mode Hardware Registers:

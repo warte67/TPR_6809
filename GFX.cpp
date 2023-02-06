@@ -271,6 +271,9 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_fg_gmodes.push_back(new GfxGlyph64());
 	m_fg_gmodes.push_back(new GfxBmp16());
 
+	// initialize the Sprite sub-system
+	// ...
+
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
 		gfx_debug = new GfxDebug();
@@ -287,12 +290,18 @@ GFX::~GFX()
 	for (auto& a : m_fg_gmodes)
 		delete a;
 
-	// Destroy gfx_Debug
+
+	// Destroy the Sprite sub-system
+	// ...
+
+
+	// Destroy gfx_debug
 	if (gfx_debug)
 	{
 		delete gfx_debug;
 		gfx_debug = nullptr;
-	}	// Destroy GfxSystem
+	}	
+	// Destroy gfx_mouse
 	if (gfx_mouse)
 	{
 		delete gfx_mouse;
@@ -349,7 +358,7 @@ Word GFX::MapDevice(MemoryMap* memmap, Word offset)
 
 	memmap->push({ offset, "GFX_TIMING_W", "(Word) horizontal timing" }); offset += 2;
 	memmap->push({ offset, "GFX_TIMING_H", "(Word) vertical timing" }); offset += 2;
-	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-15)" }); offset += 1;
+	memmap->push({ offset, "GFX_PAL_INDX", "(Byte) gfx palette index (0-255)" }); offset += 1;
 	memmap->push({ offset, "GFX_PAL_DATA", "(Word) gfx palette color bits RGBA4444" }); offset += 2;
 
 	memmap->push({ offset, "", "" }); offset += 0;
@@ -419,6 +428,10 @@ void GFX::OnInitialize()
 			bus->write(GFX_PAL_INDX, t);
 			bus->write_word(GFX_PAL_DATA, ref[t].color);
 		}
+		// add blank entries for the rest of the 256 color palette entries
+		PALETTE blank { 0 };
+		while (palette.size() < 256)
+			palette.push_back(blank);
 	}
 
 	OnCreate();
@@ -788,10 +801,13 @@ void GFX::OnUpdate(float fElapsedTime)
 
 
 
-	// render the graphics mode
+	// update the background graphics mode
 	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);
+	// update the foreground graphics mode
 	m_fg_gmodes[m_fg_mode_index]->OnUpdate(fElapsedTime);
+	// update the mouse cursor
 	gfx_mouse->OnUpdate(fElapsedTime);
+	// update debug
 	gfx_debug->OnUpdate(fElapsedTime);
 
 	// update the fps every second. The SDL_SetWindowTitle seems very slow
@@ -842,7 +858,6 @@ void GFX::_onRender()
 	}
 
 	// render outputs
-	//m_gmodes[m_gmode_index]->OnRender();
 	m_bg_gmodes[m_bg_mode_index]->OnRender();
 	m_fg_gmodes[m_fg_mode_index]->OnRender();
 

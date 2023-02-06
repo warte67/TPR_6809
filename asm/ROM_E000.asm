@@ -1,6 +1,10 @@
 ; ****************
 ; * ROM_E000.asm *
 ; ****************
+
+VER		macro
+		fcc		"V0.03"
+		endm
         
 
 ; system call macro to support the Warte variant 
@@ -101,9 +105,13 @@ just_rti
 
 test_file	fcn		"./asm/test.hex"
 
-prompt_msg	fcc		"Two-PI Retro 6809\n"
-			fcc		"BIOS KERNEL v.0.02\n"
-			fcc		"Copyright 2023 by Jay Faries\n\n"
+prompt_msg1	fcc		"Two-PI Retro 6809\n"
+			fcc		"BIOS KERNEL " 
+			VER 	; version number
+			fcn 	"\n"
+prompt_msg2 fcn 	"Emulation compiled on "
+			
+prompt_msg3	fcc		"\nCopyright (C) 2023 by Jay Faries\n\n"
 prompt_ready fcn	"OK"
 
 reset		
@@ -385,9 +393,23 @@ starting_screen ; clear and display the starting screen condition
 			sta		TEXT_ATTRIB	
 		; clear screen
 			jsr		clear_text_screen
+			
 		; display the text prompt
-			ldx		#prompt_msg
+			ldx		#prompt_msg1
 			jsr		text_out
+			ldx		#prompt_msg2
+			jsr		text_out
+			
+		; display the compilation date
+			lda		#$18
+			sta		FIO_COMMAND
+			ldx		#FIO_FILEPATH
+			jsr		text_out
+		
+		; display more of the text prompt
+			ldx		#prompt_msg3
+			jsr		text_out
+			
 		; start the first anchor
 			lda		TCSR_ROW
 			sta		TCSR_ANC_ROW
@@ -532,9 +554,10 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			beq		32f				; skip the CLS if the mode hasnt changed
 			jsr		text_screen_reset
 32 ; skip cls
-			jsr		ok_prompt		
-			rts
+			;jsr		ok_prompt		
+			;rts
 31 ; skip exec
+			;jsr		clear_text_screen
 			jsr		ok_prompt
 			rts
 
@@ -647,11 +670,8 @@ debug_10 ; debug
 			
 			lda		GFX_FLAGS		; check video mode
 			cmpa	DEF_GFX_FLAGS	; compare against defaults
-			beq		102f			; skip the CLS if the mode hasnt changed
+			beq		101f			; skip the CLS if the mode hasnt changed
 			jsr		text_screen_reset
-102 ; skip cls
-			jsr		ok_prompt		
-			rts
 101 ; skip exec
 			jsr		ok_prompt
 			rts
