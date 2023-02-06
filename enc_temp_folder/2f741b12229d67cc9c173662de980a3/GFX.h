@@ -255,7 +255,7 @@ private:
     Raspberry PI PICO #2 GPIO Pins in consideration:
         - 1 SPI controller to communicate I/O events with the other PICO
         - 2 Stereo Audio outs
-        - 6 SPI I/O with SDRAM flash card
+        - 6 QSPI I/O with SDRAM flash card
         - 1 UART USB Keyboard, Mouse, Gamepad #1, Gamepad #2
         - 1 UART Serial Terminal I/O (and serial debugging)
 

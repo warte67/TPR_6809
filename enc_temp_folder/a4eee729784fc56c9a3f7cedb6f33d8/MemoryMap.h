@@ -275,7 +275,7 @@ enum MEMMAP
 
 
 
-/****** MEMORY NOTES:  *************************************************
+/****** NOTES:  *************************************************
 
     The use of 16MByte external buffer may be a bit overkill. Reconsider using
     a single 16Mb SerialRAM chip for 2MBytes of total paged memory programmatically
@@ -284,22 +284,12 @@ enum MEMMAP
 
     Considering the use of:  IS66WVS2M8BLL-104NLI from Mouser...
         see: https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
-    2 megabytes of volitile Serial Static RAM. 
 
-    Remeber, the PICO includes 2MB on-board flash memory. Some (unknown at this point) will be
-    used to load the System onto the PICO at startup. However, the bulk of the flash memory
-    will be available as "persistent" banked memory.
 
-    IDEA:  
-        - RAM_BANK_1 = 2 megabytes of Static SerialRAM via QSPI to the ISSI SRAM chip
-        - RAM_BANK_2 = up to 2 megabytes of remaining flash RAM from both PICO boards. This should
-                leave plenty of flash storage for the required OS files.
 
-        In other words, RAM_BANK_1 would be the volitile SRAM and ...
-        RAM_BANK_2 would be a persistent and non-volitile RAM container using flash ram from 
-        both PICOs. 
-    
-    For now, just map 2 megabytes into each bank.
-    
-    
-    *****************************************************************/
+
+
+
+
+
+*****************************************************************/
