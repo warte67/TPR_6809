@@ -1,16 +1,12 @@
 ; BUILD:	asm6809 -H -9 test.asm -o test.hex		
-		
-		org		$0010
-; EXEC_VECTOR
-exe_vect	fdb		start
 
+				INCLUDE "mem_map.asm"
 
+				; entry exec vector is at $0010				
+				org		$0010
+				fdb		start		; [EXEC_VECTOR]	
 
-
-		INCLUDE "mem_map.asm"
-
-		ORG		$2000
-
+				org		$2000
 var_ch			fcb		$00
 var_at			fcb		$00
 var_count		fcb		$00

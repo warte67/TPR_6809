@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 {
 	//printf("Starting the TPR_6809 Application...\n");	
 	//printf("\n");
-	printf("Compiled: %s\n", __TIMESTAMP__);		// __TIMESTAMP__  __DATE__
+	//printf("Compiled: %s\n", __TIMESTAMP__);		// __TIMESTAMP__  __DATE__
 
 
 	Bus* bus = Bus::getInstance();

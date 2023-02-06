@@ -3,8 +3,22 @@
 ;  **********************************************
 
 
+;  SOFTWARE Interrupt Vectors:
+SOFT_RESET      equ     $0000   ; Software RESET Vector
+SOFT_NMI        equ     $0002   ; Software NMI Vector
+SOFT_SWI        equ     $0004   ; Software SWI Vector
+SOFT_IRQ        equ     $0006   ; Software IRQ Vector
+SOFT_FIRQ       equ     $0008   ; Software FIRQ Vector
+SOFT_SWI2       equ     $000a   ; Software SWI2 Vector
+SOFT_SWI3       equ     $000c   ; Software SWI3 Vector
+SOFT_RSRVD      equ     $000e   ; Software Motorola Reserved Vector
+
 ;  Zero-Page Kernal Variables:
 SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
+KVEC_EXEC       equ     $0010   ; KERNEL Vector:  Exec
+KVEC_CLS        equ     $0012   ; KERNEL Vector:  Clear Text Screen
+KVEC_CHAROUT    equ     $0014   ; KERNEL Vector:  Character Out
+KVEC_SHUTDOWN   equ     $0016   ; KERNEL Vector:  System Shutdown
 
 ;  Stack Frames:
 U_STK_BTM       equ     $0100   ; 256 bytes default user stack space
@@ -51,7 +65,7 @@ GFX_AUX equ     $1802   ; (Byte) gfx auxillary/emulation flags:
                                 ;      bit 0-2: monitor display index (0-7)
 GFX_TIMING_W    equ     $1803   ; (Word) horizontal timing
 GFX_TIMING_H    equ     $1805   ; (Word) vertical timing
-GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-15)
+GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-255)
 GFX_PAL_DATA    equ     $1808   ; (Word) gfx palette color bits RGBA4444
 
 ;  Paged Foreground Graphics Mode Hardware Registers:
@@ -148,6 +162,7 @@ FIO_COMMAND     equ     $182c   ; (Byte) OnWrite - command to execute
                                 ;      $15 = Seek Current
                                 ;      $16 = Seek End
                                 ;      $17 = SYSTEM: Shutdown
+                                ;      $18 = SYSTEM: Load Compilation Date
 FIO_HANDLE      equ     $182d   ; (Byte) file handle or ZERO
 FIO_BFROFS      equ     $182e   ; (Word) start of I/O buffer
 FIO_BFRLEN      equ     $182f   ; (Word) length of I/O buffer
@@ -208,4 +223,12 @@ RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
 ;  Bios Kernal ROM:
 BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
 
-
+;  Hardware Interrupt Vectors:
+HARD_RSRVD      equ     $fff0   ; Motorola RESERVED Hardware Interrupt Vector
+HARD_SWI3       equ     $fff2   ; SWI3 Hardware Interrupt Vector
+HARD_SWI2       equ     $fff4   ; SWI2 Hardware Interrupt Vector
+HARD_FIRQ       equ     $fff6   ; FIRQ Hardware Interrupt Vector
+HARD_IRQ        equ     $fff8   ; IRQ Hardware Interrupt Vector
+HARD_SWI        equ     $fffa   ; SWI / SYS Hardware Interrupt Vector
+HARD_NMI        equ     $fffc   ; NMI Hardware Interrupt Vector
+HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt Vector

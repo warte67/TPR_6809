@@ -1,20 +1,27 @@
                       ; BUILD:        asm6809 -H -9 test.asm -o test.hex              
-                                      
-0010                                  org             $0010
-                      ; EXEC_VECTOR
-0010  2008            exe_vect        fdb             start
                       
-                      
-                      
-                      
-0012                                  INCLUDE "mem_map.asm"
+0000                                                  INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
                       ;  **********************************************
                       
                       
+                      ;  SOFTWARE Interrupt Vectors:
+0000                  SOFT_RESET      equ     $0000   ; Software RESET Vector
+0002                  SOFT_NMI        equ     $0002   ; Software NMI Vector
+0004                  SOFT_SWI        equ     $0004   ; Software SWI Vector
+0006                  SOFT_IRQ        equ     $0006   ; Software IRQ Vector
+0008                  SOFT_FIRQ       equ     $0008   ; Software FIRQ Vector
+000A                  SOFT_SWI2       equ     $000a   ; Software SWI2 Vector
+000C                  SOFT_SWI3       equ     $000c   ; Software SWI3 Vector
+000E                  SOFT_RSRVD      equ     $000e   ; Software Motorola Reserved Vector
+                      
                       ;  Zero-Page Kernal Variables:
 0010                  SYSTEM_VARS     equ     $0010   ; start kernal vectors and variables
+0010                  KVEC_EXEC       equ     $0010   ; KERNEL Vector:  Exec
+0012                  KVEC_CLS        equ     $0012   ; KERNEL Vector:  Clear Text Screen
+0014                  KVEC_CHAROUT    equ     $0014   ; KERNEL Vector:  Character Out
+0016                  KVEC_SHUTDOWN   equ     $0016   ; KERNEL Vector:  System Shutdown
                       
                       ;  Stack Frames:
 0100                  U_STK_BTM       equ     $0100   ; 256 bytes default user stack space
@@ -61,7 +68,7 @@
                                                       ;      bit 0-2: monitor display index (0-7)
 1803                  GFX_TIMING_W    equ     $1803   ; (Word) horizontal timing
 1805                  GFX_TIMING_H    equ     $1805   ; (Word) vertical timing
-1807                  GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-15)
+1807                  GFX_PAL_INDX    equ     $1807   ; (Byte) gfx palette index (0-255)
 1808                  GFX_PAL_DATA    equ     $1808   ; (Word) gfx palette color bits RGBA4444
                       
                       ;  Paged Foreground Graphics Mode Hardware Registers:
@@ -158,6 +165,7 @@
                                                       ;      $15 = Seek Current
                                                       ;      $16 = Seek End
                                                       ;      $17 = SYSTEM: Shutdown
+                                                      ;      $18 = SYSTEM: Load Compilation Date
 182D                  FIO_HANDLE      equ     $182d   ; (Byte) file handle or ZERO
 182E                  FIO_BFROFS      equ     $182e   ; (Word) start of I/O buffer
 182F                  FIO_BFRLEN      equ     $182f   ; (Word) length of I/O buffer
@@ -218,10 +226,21 @@ C000                  RAM_BANK_2      equ     $c000   ; switched 8KB ram bank 2
                       ;  Bios Kernal ROM:
 E000                  BIOS_ROM        equ     $e000   ; Begin BIOS Kernal ROM (8KB)
                       
+                      ;  Hardware Interrupt Vectors:
+FFF0                  HARD_RSRVD      equ     $fff0   ; Motorola RESERVED Hardware Interrupt Vector
+FFF2                  HARD_SWI3       equ     $fff2   ; SWI3 Hardware Interrupt Vector
+FFF4                  HARD_SWI2       equ     $fff4   ; SWI2 Hardware Interrupt Vector
+FFF6                  HARD_FIRQ       equ     $fff6   ; FIRQ Hardware Interrupt Vector
+FFF8                  HARD_IRQ        equ     $fff8   ; IRQ Hardware Interrupt Vector
+FFFA                  HARD_SWI        equ     $fffa   ; SWI / SYS Hardware Interrupt Vector
+FFFC                  HARD_NMI        equ     $fffc   ; NMI Hardware Interrupt Vector
+FFFE                  HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt Vector
                       
+                                                      ; entry exec vector is at $0010                         
+0010                                                  org             $0010
+0010  2008                                            fdb             start           ; [EXEC_VECTOR] 
                       
-2000                                  ORG             $2000
-                      
+2000                                                  org             $2000
 2000  00              var_ch                  fcb             $00
 2001  00              var_at                  fcb             $00
 2002  00              var_count               fcb             $00

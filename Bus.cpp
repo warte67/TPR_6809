@@ -442,28 +442,41 @@ void Bus::run()
                 bCpuEnabled = true;
                 switch (evnt.type)
                 {
-                case SDL_QUIT:
-                {
-                    s_bIsRunning = false;
-                    m_gfx->bIsDirty = true;
-                    break;
-                }
-                case SDL_KEYDOWN:
-                {
-                    if (evnt.key.keysym.sym == SDLK_PAUSE)  //SDLK_ESCAPE)
+                    case SDL_QUIT:
                     {
                         s_bIsRunning = false;
                         m_gfx->bIsDirty = true;
+                        break;
+                    }
+                    case SDL_KEYDOWN:
+                    {
+                        SDL_Keymod km = SDL_GetModState();
+                        if (evnt.key.keysym.sym == (SDLK_PAUSE-1) || evnt.key.keysym.sym == SDLK_c)     //SDLK_PAUSE 
+                        {
+                            if (km & KMOD_CTRL)
+                            {
+                                s_bIsRunning = false;
+                                m_gfx->bIsDirty = true;
+                                //if (!gfxdebug->bIsCursorVisible &&
+                                //    gfxdebug->nRegisterBeingEdited.reg == GfxDebug::EDIT_REGISTER::EDIT_NONE)
+                                //{
+                                //    s_bIsRunning = false;
+                                //    m_gfx->bIsDirty = true;
+                                //}
+                            }
 
-                        //if (!gfxdebug->bIsCursorVisible &&
-                        //    gfxdebug->nRegisterBeingEdited.reg == GfxDebug::EDIT_REGISTER::EDIT_NONE)
-                        //{
-                        //    s_bIsRunning = false;
-                        //    m_gfx->bIsDirty = true;
-                        //}
-                    }                    
-                    break;
-                }
+                        }
+                        if (evnt.key.keysym.sym == SDLK_PAUSE)
+                        {
+                            // set debug single step mode
+                            //gfxdebug->bSingleStep = (gfxdebug->bSingleStep) ? false : true;
+
+                            Byte data = read(DBG_FLAGS);
+                            (data & 0x40) ? data &= ~0x40 : data |= 0x40;
+                            write(DBG_FLAGS, data);
+                        }
+                        break;
+                    }
                 }
                 // call OnEvent(SDL_Event& evnt) for all devices
                 _OnEvent(&evnt);

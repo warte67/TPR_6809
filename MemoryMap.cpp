@@ -38,8 +38,19 @@ Word MemoryMap::start()
 
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Zero-Page Kernal Variables:" });
-	v_mem.push_back({ offset, "SYSTEM_VARS", "start kernal vectors and variables" }); offset += 0x0f0;
+	v_mem.push_back({ offset, "SYSTEM_VARS", "start kernal vectors and variables" }); 
 
+	v_mem.push_back({ offset, "KVEC_EXEC",		"KERNEL Vector:  Exec" }); offset += 2;
+	v_mem.push_back({ offset, "KVEC_CLS",		"KERNEL Vector:  Clear Text Screen" }); offset += 2;
+	v_mem.push_back({ offset, "KVEC_CHAROUT",	"KERNEL Vector:  Character Out" }); offset += 2;
+	v_mem.push_back({ offset, "KVEC_SHUTDOWN",	"KERNEL Vector:  System Shutdown" }); offset += 2;
+
+
+
+
+
+
+	offset = 0x0100;	// user stack bottom
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Stack Frames:" });
 	v_mem.push_back({ offset, "U_STK_BTM", "256 bytes default user stack space" }); offset += 0x100;

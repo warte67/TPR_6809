@@ -91,7 +91,7 @@ brk_here
         lda     FIO_ERR_FLAGS
         bne     2f              ; EOF is an "error"
         lda     FIO_IODATA
-        jsr     $E181       ; ROM CALL: char_out
+        jsr     [KVEC_CHAROUT]	; ROM CALL: char_out
         bra     1b
 
 2

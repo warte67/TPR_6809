@@ -15,26 +15,31 @@ SYS		macro
 		SWI3
 		fcb		\1		
 		endm
-			
-
-			
+						
 
 ; **************
 ; * MEMORY MAP *
 ; **************
 				org     $0000
 				
-SOFT_RESET      fdb 	do_RESET      	; Software RESET Vector
-SOFT_NMI        fdb 	do_NMI      	; Software NMI Vector
-SOFT_SWI        fdb 	do_SWI      	; Software SWI Vector
-SOFT_IRQ        fdb 	do_IRQ      	; Software IRQ Vector
-SOFT_FIRQ       fdb 	do_FIRQ      	; Software FIRQ Vector
-SOFT_SWI2       fdb 	do_SWI2      	; Software SWI2 Vector
-SOFT_SWI3       fdb 	do_SWI3      	; Software SWI3 Vector
-SOFT_RSRVD      fdb 	do_RSRV      	; Software Motorola Reserved Vector
+				fdb 	do_RESET      	; Software RESET Vector
+				fdb 	do_NMI      	; Software NMI Vector
+				fdb 	do_SWI      	; Software SWI Vector
+				fdb 	do_IRQ      	; Software IRQ Vector
+				fdb 	do_FIRQ      	; Software FIRQ Vector
+				fdb 	do_SWI2      	; Software SWI2 Vector
+				fdb 	do_SWI3      	; Software SWI3 Vector
+				fdb 	do_RSRV      	; Software Motorola Reserved Vector
+
+; KERNEL Soft Vectors
+				org		$0010
+				fdb		reset				; [KVEC_EXEC]		Exec software vector
+				fdb		clear_text_screen	; [KVEC_CLS]		Clear Text Screen software vector
+				fdb		char_out			; [KVEC_CHAROUT] 	Text Character Out software vector			
+				fdb		shutdown			; [KVEC_SHUTDOWN]	System Shutdown software vector
+
 
 ; reserved system variables
-EXEC_VECTOR		fdb		reset			; execution vector 
 
 TCSR_ROW		fcb		0				; current text cursor row
 TCSR_COL		fcb		0				; current text cursor column
@@ -64,7 +69,7 @@ ROM_ENTRY
 			LDU		#U_STK_TOP		; top of user stack	
 			LDS     #S_STK_TOP		; top of stack space   
 			LDX		#reset
-			STX		EXEC_VECTOR        
+			STX		KVEC_EXEC        
             JMP     [SOFT_RESET]      
 
             
@@ -109,16 +114,16 @@ prompt_msg1	fcc		"Two-PI Retro 6809\n"
 			fcc		"BIOS KERNEL " 
 			VER 	; version number
 			fcn 	"\n"
-prompt_msg2 fcn 	"Emulation compiled on "
+prompt_msg2 fcn 	"Compiled "
 			
-prompt_msg3	fcc		"\nCopyright (C) 2023 by Jay Faries\n\n"
+prompt_msg3	fcc		"\nCopyright(C) 2023 by Jay Faries\n\n"
 prompt_ready fcn	"OK"
 
 reset		
 			; display the starting screen
 			jsr		starting_screen
 			lda		#$0a
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			; fresh anchor
 			lda		TCSR_ROW
 			sta		TCSR_ANC_ROW
@@ -217,7 +222,7 @@ main_kernel
 			beq		2f
 			bra		3f
 2
-			jsr		char_out		; display the last typed character
+			jsr		[KVEC_CHAROUT]		; display the last typed character
 3
 			cmpa	#$0D			; Was [ENTER] pressed?
 			bne		2f				; no, move on
@@ -351,7 +356,7 @@ text_out	; output the string pointed to by X using the current attribute
 			pshs	D,X
 1			lda		,X+		
 			beq		2f				
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			bra		1b
 2			puls	D,X
 			rts
@@ -383,6 +388,11 @@ tcsr_pos_reg	; load into X according to text cursor position (A:ROW, B:COL)
 				ldx		#VIDEO_END-1		; point X to the very last cell as an error
 1			puls	D						; final register clean up
 			rts								; return
+			
+shutdown	; shutdown the system
+			lda		#$17			; $17 = SYSTEM: Shutdown
+			sta		FIO_COMMAND		; send the command 
+			rts
 
 starting_screen ; clear and display the starting screen condition
 		; load the default graphics mode
@@ -392,7 +402,7 @@ starting_screen ; clear and display the starting screen condition
 			lda		#$a2
 			sta		TEXT_ATTRIB	
 		; clear screen
-			jsr		clear_text_screen
+			jsr		[KVEC_CLS]				; clear_text_screen
 			
 		; display the text prompt
 			ldx		#prompt_msg1
@@ -423,7 +433,7 @@ ok_prompt ; display the ready prompt
 			ldx		#prompt_ready
 			jsr		text_out
 			lda		#$0A
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			rts
 
 text_screen_reset
@@ -434,7 +444,7 @@ text_screen_reset
 			;lda		#$a2
 			;sta		TEXT_ATTRIB	
 		; clear screen
-			jsr		clear_text_screen
+			jsr		[KVEC_CLS]			;clear_text_screen
 		; start the first anchor
 			lda		TCSR_ROW
 			sta		TCSR_ANC_ROW
@@ -492,7 +502,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			lbeq	1000f
 
 			lda		#$0a
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 
 		; parse
 			jsr		lookup_cmd
@@ -524,7 +534,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 
 1 ; cls
 			jsr		get_argument_attrib
-			jsr		clear_text_screen
+			jsr		[KVEC_CLS]		;clear_text_screen
 			jsr		ok_prompt
 			rts		
 
@@ -539,7 +549,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			anda	#$80			; test for bit: file not found?		
 			tsta	
 			bne		31f				; dont call the sub if it wasnt loaded
-			ldx		EXEC_VECTOR		; whats in the exec vector?
+			ldx		KVEC_EXEC		; whats in the exec vector?
 			cmpx	#reset			; if its set to default
 			beq		31f				; then skip to OK prompt
 			
@@ -547,7 +557,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			anda 	#~$C0			; mask out debug and single step enable bits
 			sta 	DBG_FLAGS		; store debug flags
 			
-			jsr		[EXEC_VECTOR]	; call the loaded subroutine
+			jsr		[KVEC_EXEC]	; call the loaded subroutine
 
 			lda		GFX_FLAGS		; check video mode
 			cmpa	DEF_GFX_FLAGS	; compare against defaults
@@ -557,7 +567,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			;jsr		ok_prompt		
 			;rts
 31 ; skip exec
-			;jsr		clear_text_screen
+			;jsr		[KVEC_CLS]	;clear_text_screen
 			jsr		ok_prompt
 			rts
 
@@ -570,8 +580,9 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			;jmp		reset
 
 5 ; exit
-			lda		#$17			; $17 = SYSTEM: Shutdown
-			sta		FIO_COMMAND		; send the command 
+			jsr		[KVEC_SHUTDOWN]	; call kernel shutdown via software vector
+			;lda		#$17			; $17 = SYSTEM: Shutdown
+			;sta		FIO_COMMAND		; send the command 
 			rts
 
 6 ; screen <arg>
@@ -625,7 +636,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			cmpa	FIO_RET_COUNT	; how many entries?
 			bne		71b		
 			lda		#$0A
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			jsr		ok_prompt	
 			rts
 
@@ -648,7 +659,7 @@ execute_command	; parse and run the string that is currently in the hardware EDT
 			cmpx	#VIDEO_END
 			bls		91b
 			;lda		#$0A
-			;jsr		char_out
+			;jsr		[KVEC_CHAROUT]
 			jsr		ok_prompt	
 			rts
 			
@@ -658,7 +669,7 @@ debug_10 ; debug
 			anda	#$80			; test for bit: file not found?		
 			tsta	
 			bne		101f			; dont call the sub if it wasnt loaded
-			ldx		EXEC_VECTOR		; whats in the exec vector?
+			ldx		KVEC_EXEC		; whats in the exec vector?
 			cmpx	#reset			; if its set to default
 			beq		101f			; then skip to OK prompt
 			
@@ -666,7 +677,7 @@ debug_10 ; debug
 			ora 	#$C0			; set debug and single step enable bits
 			sta 	DBG_FLAGS		; store debug flags						
 			
-			jsr		[EXEC_VECTOR]	; call the loaded subroutine
+			jsr		[KVEC_EXEC]		; call the loaded subroutine
 			
 			lda		GFX_FLAGS		; check video mode
 			cmpa	DEF_GFX_FLAGS	; compare against defaults
@@ -679,28 +690,28 @@ debug_10 ; debug
 
 999		; Report a Syntax Error
 ;			lda		#$0a
-;			jsr		char_out		
+;			jsr		[KVEC_CHAROUT]		
 			ldx		#strz_syntax_error
 			jsr		text_out
 			jsr		ok_prompt	
 			rts
 
 			lda		#':'
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			lda		#' '
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			lda		#$22			; "
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			ldx		#EDT_BUFFER
 			jsr		text_out
 			lda		#$22			; "
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			lda		#$0a
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 			ldx		#prompt_ready
 			jsr		text_out
 			lda		#$0a
-			jsr		char_out
+			jsr		[KVEC_CHAROUT]
 1000 ; return from subroutine
 			rts
 
@@ -794,15 +805,15 @@ command_LUT
 
 
 ; interrupt vectors
-				org  $fff0
-HARD_RSRVD      fdb  do_RSRV    ; Motorola RESERVED Hardware Interrupt Vector
-HARD_SWI3       fdb  do_SWI3    ; SWI3 Hardware Interrupt Vector
-HARD_SWI2       fdb  do_SWI2    ; SWI2 Hardware Interrupt Vector
-HARD_FIRQ       fdb  do_FIRQ    ; FIRQ Hardware Interrupt Vector
-HARD_IRQ        fdb  do_IRQ     ; IRQ Hardware Interrupt Vector
-HARD_SWI        fdb  do_SWI     ; SWI/SYS Hardware Interrupt Vector
-HARD_NMI        fdb  do_NMI     ; NMI Hardware Interrupt Vector
-HARD_RESET      fdb  ROM_ENTRY  ; RESET Hardware Interrupt Vector
+			org  $fff0
+			fdb  do_RSRV    ; Motorola RESERVED Hardware Interrupt Vector
+			fdb  do_SWI3    ; SWI3 Hardware Interrupt Vector
+			fdb  do_SWI2    ; SWI2 Hardware Interrupt Vector
+			fdb  do_FIRQ    ; FIRQ Hardware Interrupt Vector
+			fdb  do_IRQ     ; IRQ Hardware Interrupt Vector
+			fdb  do_SWI     ; SWI/SYS Hardware Interrupt Vector
+			fdb  do_NMI     ; NMI Hardware Interrupt Vector
+			fdb  ROM_ENTRY  ; RESET Hardware Interrupt Vector
 
 			END
 
