@@ -56,7 +56,7 @@ GFX_FLAGS       equ     $1801   ; (Byte) gfx system flags:
                                 ;          1) Glyph Mode (32x20 text)
                                 ;          2) Glyph Mode (64x40 text)
                                 ;          3) 128x80 x 16-Color
-GFX_AUX equ     $1802   ; (Byte) gfx auxillary/emulation flags:
+GFX_AUX         equ     $1802   ; (Byte) gfx auxillary/emulation flags:
                                 ;      bit 7: 1:fullscreen / 0:windowed
                                 ;      bit 6: reserved
                                 ;      bit 5: reserved
@@ -107,7 +107,7 @@ CSR_PAL_INDX    equ     $1823   ; (Byte) mouse cursor color palette index (0-15)
 CSR_PAL_DATA    equ     $1824   ; (Word) mouse cursor color palette data RGBA4444
 CSR_BMP_INDX    equ     $1826   ; (Byte) mouse cursor bitmap pixel offset
 CSR_BMP_DATA    equ     $1827   ; (Byte) mouse cursor bitmap pixel index color
-CSR_END equ     $1827   ; end of mouse cursor hardware registers
+CSR_END         equ     $1827   ; end of mouse cursor hardware registers
 
 ;  Debugger Hardware Registers:
 DBG_BEGIN       equ     $1828   ; Start of Debugger Hardware Registers
@@ -214,7 +214,7 @@ RAMBANK_SEL_2   equ     $1fff   ; (Byte)Indexes 256 x 8kb banks
 
 ;  Standard Usable (from FAST static 32KB) RAM:
 RAM_START       equ     $2000   ; Begin System RAM (32k)
-RAM_END equ     $9fff   ; End System RAM
+RAM_END         equ     $9fff   ; End System RAM
 
 ;  Switchable RAM Banks (from SLOW external serial 16MB RAM chip):
 RAM_BANK_1      equ     $a000   ; switched 8KB ram bank 1

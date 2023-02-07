@@ -1,11 +1,45 @@
                       ; **** filetest.asm *********************************************
                       
-0010                                  org             $0010
+0010                                  org     $0010
                       ; EXEC_VECTOR
-0010  2001            exe_vect        fdb             start
+0010  2001            exe_vect        fdb     start
                       
                       ; **** ***********************************************************
                       
+0012                                  INCLUDE "rom_e000_h.asm"
+                      ; ******************
+                      ; * ROM_E000_H.asm *
+                      ; ******************
+                      
+                      
+                      ; system call macro to support the Warte variant 
+                      ;               of the MC6809e, the 6809w. This replaces
+                      ;               the SWI3 instruction with the SYS #n OS9 
+                      ;               style system call instruction.
+                      SYS             macro
+                                      SWI3
+                                      fcb             \1              
+                                      endm
+                                                              
+                      ; reserved system variables
+                      
+                      ;               org     $0100   ; for now, just place reserved kernal variables at $0100
+                      ;                               ; after the rom kernel vectors are clearly established
+                      ;                               ; move this origin to just after them.
+                      ;
+                      ;TCSR_ROW       fcb     0       ; current text cursor row
+                      ;TCSR_COL       fcb     0       ; current text cursor column
+                      ;TCSR_ATTRIB    fcb     $10     ; current cursor attribute
+                      ;TEXT_ATTRIB    fcb     $a2     ; current text attribute
+                      ;TCSR_ANC_ROW   fcb     0       ; beginning row of line currently being edited
+                      ;TCSR_ANC_COL   fcb     0       ; beginning column of line currently being edited
+                      ;TCSR_ANC_ADR   fdb     0       ; anchor address
+                      ;TCSR_EDT_ADR   fdb     0       ; address when enter was pressed during line edit
+                      ;DEF_GFX_FLAGS  fcb     $02     ; default graphics flags        ($02)
+                      ;;TCSR_DECAY    fdb     $0000   ; counter delay for the cursor
+                      ;TCSR_DECAY     fcb     $00     ; counter delay for the cursor
+                      
+0100                  user_vars_page  equ     $0100   ; user variables page = $0100 - $01ff
 0012                                  INCLUDE "mem_map.asm"
                       ;  **********************************************
                       ;  * Allocated 64k Memory Mapped System Symbols *
@@ -65,7 +99,7 @@
                                                       ;          1) Glyph Mode (32x20 text)
                                                       ;          2) Glyph Mode (64x40 text)
                                                       ;          3) 128x80 x 16-Color
-1802                  GFX_AUX equ     $1802   ; (Byte) gfx auxillary/emulation flags:
+1802                  GFX_AUX         equ     $1802   ; (Byte) gfx auxillary/emulation flags:
                                                       ;      bit 7: 1:fullscreen / 0:windowed
                                                       ;      bit 6: reserved
                                                       ;      bit 5: reserved
@@ -116,7 +150,7 @@
 1824                  CSR_PAL_DATA    equ     $1824   ; (Word) mouse cursor color palette data RGBA4444
 1826                  CSR_BMP_INDX    equ     $1826   ; (Byte) mouse cursor bitmap pixel offset
 1827                  CSR_BMP_DATA    equ     $1827   ; (Byte) mouse cursor bitmap pixel index color
-1827                  CSR_END equ     $1827   ; end of mouse cursor hardware registers
+1827                  CSR_END         equ     $1827   ; end of mouse cursor hardware registers
                       
                       ;  Debugger Hardware Registers:
 1828                  DBG_BEGIN       equ     $1828   ; Start of Debugger Hardware Registers
@@ -223,7 +257,7 @@
                       
                       ;  Standard Usable (from FAST static 32KB) RAM:
 2000                  RAM_START       equ     $2000   ; Begin System RAM (32k)
-9FFF                  RAM_END equ     $9fff   ; End System RAM
+9FFF                  RAM_END         equ     $9fff   ; End System RAM
                       
                       ;  Switchable RAM Banks (from SLOW external serial 16MB RAM chip):
 A000                  RAM_BANK_1      equ     $a000   ; switched 8KB ram bank 1
@@ -244,81 +278,76 @@ FFFE                  HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt
                       
                       ; **** ***********************************************************
                       
-2000                                  ORG             $2000
+2000                                  ORG     $2000
+2000  00              file_handle     fcb     $00             ; used to save a temporary file handle
                       
-2000  00              file_handle     fcb     $00     ; used to save a temporary file handle
-                      
-2001                  start   ; execution entry point
-                      
+2001                  start   
+                              ; execution entry point
                               ; enable debug mode
-                              ;lda     #$C0
-                              ;sta     DBG_FLAGS
-                                      
-                                      
-                              ;ldx     #brk_here   ; set a breakpoint
-                              ;stx     DBG_BRK_ADDR
+                                      ;lda     #$C0
+                                      ;sta     DBG_FLAGS                                      
+                                      ;ldx     #brk_here      ; set a breakpoint
+                                      ;stx     DBG_BRK_ADDR
                       
                       ; **** TEST: Write file ****************************************************        
                       
 2001                  brk_here
-2001  8D7C                    bsr     copy_filename
+2001  8D7C                            bsr     copy_filename
                       
                               ; CMD: open a file for writing (binary)
-2003  8602                    lda     #$02        
-2005  B7182C                  sta     FIO_COMMAND
+2003  8602                            lda     #$02        
+2005  B7182C                          sta     FIO_COMMAND
                       
                               ; save the handle from the last file operation
-2008  B6182D                  lda     FIO_HANDLE  
-200B  B72000                  sta     file_handle 
+2008  B6182D                          lda     FIO_HANDLE  
+200B  B72000                          sta     file_handle 
                       
                               ; output the string to the file
-200E  8E209F                  ldx     #test_file
-2011  A680            1       lda     ,x+
-2013  270A                    beq     2f
-2015  B71831                  sta     FIO_IODATA
-2018  C606                    ldb     #$06            ; CMD: write byte @ FIO_IODATA   
-201A  F7182C                  stb     FIO_COMMAND
-201D  20F2                    bra     1b
-201F                  2
-                              ; CMD: close a file
-201F  B62000                  lda     file_handle
-2022  B7182D                  sta     FIO_HANDLE
-2025  8604                    lda     #$04        
-2027  B7182C                  sta     FIO_COMMAND
+200E  8E209F                          ldx     #test_file
+2011  A680            1               lda     ,x+
+2013  270A                            beq     2f
+2015  B71831                          sta     FIO_IODATA
+2018  C606                            ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+201A  F7182C                          stb     FIO_COMMAND
+201D  20F2                            bra     1b
+201F                  2       ; CMD: close a file
+201F  B62000                          lda     file_handle
+2022  B7182D                          sta     FIO_HANDLE
+2025  8604                            lda     #$04        
+2027  B7182C                          sta     FIO_COMMAND
                       
                       ; **** TEST: Append file ****************************************************
-202A  8D53                    bsr     copy_filename
+202A  8D53                            bsr     copy_filename
                               ; CMD: open a file for appending (binary)
-202C  8603                    lda     #$03        
-202E  B7182C                  sta     FIO_COMMAND
+202C  8603                            lda     #$03        
+202E  B7182C                          sta     FIO_COMMAND
                               ; save the handle from the last file operation
-2031  B6182D                  lda     FIO_HANDLE  
-2034  B72000                  sta     file_handle 
+2031  B6182D                          lda     FIO_HANDLE  
+2034  B72000                          sta     file_handle 
                               ; output the string to the file
-2037  8E2107                  ldx     #append_file
-203A  A680            1       lda     ,x+
-203C  270A                    beq     2f
-203E  B71831                  sta     FIO_IODATA
-2041  C606                    ldb     #$06            ; CMD: write byte @ FIO_IODATA   
-2043  F7182C                  stb     FIO_COMMAND
-2046  20F2                    bra     1b
-2048                  2
-                              ; CMD: close a file
-2048  B62000                  lda     file_handle
-204B  B7182D                  sta     FIO_HANDLE
-204E  8604                    lda     #$04        
-2050  B7182C                  sta     FIO_COMMAND
+2037  8E2107                          ldx     #append_file
+203A  A680            1               lda     ,x+
+203C  270A                            beq     2f
+203E  B71831                          sta     FIO_IODATA
+2041  C606                            ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+2043  F7182C                          stb     FIO_COMMAND
+2046  20F2                            bra     1b
+2048                  2       ; CMD: close a file
+2048  B62000                          lda     file_handle
+204B  B7182D                          sta     FIO_HANDLE
+204E  8604                            lda     #$04        
+2050  B7182C                          sta     FIO_COMMAND
                       
                       ; **** TEST: Read file ****************************************************
-                      
-2053  8D2A                    bsr     copy_filename
+2053  8D2A                            bsr     copy_filename
                               ; CMD: open a file for reading (binary)
-2055  8601                    lda     #$01        
-2057  B7182C                  sta     FIO_COMMAND
+2055  8601                            lda     #$01        
+2057  B7182C                          sta     FIO_COMMAND
                               ; save the handle from the last file operation
-205A  B6182D                  lda     FIO_HANDLE  
-205D  B72000                  sta     file_handle 
-                      ; read characters out to the screen
+205A  B6182D                          lda     FIO_HANDLE  
+205D  B72000                          sta     file_handle 
+                              ; read characters out to the screen
+                      
                               ; read a character from the file
 2060  8605            1       lda     #$05
 2062  B7182C                  sta     FIO_COMMAND
@@ -327,17 +356,12 @@ FFFE                  HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt
 206A  B61831                  lda     FIO_IODATA
 206D  AD9F0014                jsr     [KVEC_CHAROUT]  ; ROM CALL: char_out
 2071  20ED                    bra     1b
-                      
-2073                  2
-                              ; CMD: close a file
+2073                  2       ; CMD: close a file
 2073  B62000                  lda     file_handle
 2076  B7182D                  sta     FIO_HANDLE
 2079  8604                    lda     #$04        
 207B  B7182C                  sta     FIO_COMMAND
-                      
-                      
 207E  39                      rts
-                      
 207F                  copy_filename
 207F  8E208D                  ldx     #filename
 2082  108E1934                ldy     #FIO_FILEPATH

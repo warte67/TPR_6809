@@ -1,90 +1,86 @@
 ; **** filetest.asm *********************************************
 
-		org		$0010
+		org	$0010
 ; EXEC_VECTOR
-exe_vect	fdb		start
+exe_vect	fdb	start
 
 ; **** ***********************************************************
 
+		INCLUDE "rom_e000_h.asm"
 		INCLUDE "mem_map.asm"
 
 ; **** ***********************************************************
 
-		ORG		$2000
+		ORG	$2000
+file_handle     fcb     $00             ; used to save a temporary file handle
 
-file_handle     fcb     $00     ; used to save a temporary file handle
-
-start   ; execution entry point
-
+start   
+        ; execution entry point
 	; enable debug mode
-        ;lda     #$C0
-        ;sta     DBG_FLAGS
-		
-		
-        ;ldx     #brk_here   ; set a breakpoint
-        ;stx     DBG_BRK_ADDR
+                ;lda     #$C0
+                ;sta     DBG_FLAGS		                        
+                ;ldx     #brk_here      ; set a breakpoint
+                ;stx     DBG_BRK_ADDR
 
 ; **** TEST: Write file ****************************************************        
 
 brk_here
-        bsr     copy_filename
+                bsr     copy_filename
 
         ; CMD: open a file for writing (binary)
-        lda     #$02        
-        sta     FIO_COMMAND
+                lda     #$02        
+                sta     FIO_COMMAND
 
         ; save the handle from the last file operation
-        lda     FIO_HANDLE  
-        sta     file_handle 
+                lda     FIO_HANDLE  
+                sta     file_handle 
 
         ; output the string to the file
-        ldx     #test_file
-1       lda     ,x+
-        beq     2f
-        sta     FIO_IODATA
-        ldb     #$06            ; CMD: write byte @ FIO_IODATA   
-        stb     FIO_COMMAND
-        bra     1b
-2
-        ; CMD: close a file
-        lda     file_handle
-        sta     FIO_HANDLE
-        lda     #$04        
-        sta     FIO_COMMAND
+                ldx     #test_file
+1               lda     ,x+
+                beq     2f
+                sta     FIO_IODATA
+                ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+                stb     FIO_COMMAND
+                bra     1b
+2       ; CMD: close a file
+                lda     file_handle
+                sta     FIO_HANDLE
+                lda     #$04        
+                sta     FIO_COMMAND
 
 ; **** TEST: Append file ****************************************************
-        bsr     copy_filename
+                bsr     copy_filename
         ; CMD: open a file for appending (binary)
-        lda     #$03        
-        sta     FIO_COMMAND
+                lda     #$03        
+                sta     FIO_COMMAND
         ; save the handle from the last file operation
-        lda     FIO_HANDLE  
-        sta     file_handle 
+                lda     FIO_HANDLE  
+                sta     file_handle 
         ; output the string to the file
-        ldx     #append_file
-1       lda     ,x+
-        beq     2f
-        sta     FIO_IODATA
-        ldb     #$06            ; CMD: write byte @ FIO_IODATA   
-        stb     FIO_COMMAND
-        bra     1b
-2
-        ; CMD: close a file
-        lda     file_handle
-        sta     FIO_HANDLE
-        lda     #$04        
-        sta     FIO_COMMAND
+                ldx     #append_file
+1               lda     ,x+
+                beq     2f
+                sta     FIO_IODATA
+                ldb     #$06            ; CMD: write byte @ FIO_IODATA   
+                stb     FIO_COMMAND
+                bra     1b
+2       ; CMD: close a file
+                lda     file_handle
+                sta     FIO_HANDLE
+                lda     #$04        
+                sta     FIO_COMMAND
 
 ; **** TEST: Read file ****************************************************
-
-        bsr     copy_filename
+                bsr     copy_filename
         ; CMD: open a file for reading (binary)
-        lda     #$01        
-        sta     FIO_COMMAND
+                lda     #$01        
+                sta     FIO_COMMAND
         ; save the handle from the last file operation
-        lda     FIO_HANDLE  
-        sta     file_handle 
-; read characters out to the screen
+                lda     FIO_HANDLE  
+                sta     file_handle 
+        ; read characters out to the screen
+
         ; read a character from the file
 1       lda     #$05
         sta     FIO_COMMAND
@@ -93,17 +89,12 @@ brk_here
         lda     FIO_IODATA
         jsr     [KVEC_CHAROUT]	; ROM CALL: char_out
         bra     1b
-
-2
-        ; CMD: close a file
+2       ; CMD: close a file
         lda     file_handle
         sta     FIO_HANDLE
         lda     #$04        
         sta     FIO_COMMAND
-
-
         rts
-
 copy_filename
         ldx     #filename
         ldy     #FIO_FILEPATH
