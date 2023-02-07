@@ -98,6 +98,12 @@ Using two PI PICO's:
 				- Etc
 
 
-		
+	Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
+	https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+
+	Posibly include a AY-3-8910 Programmable Sound Generator as was used in the 
+	TRS-80 Color Computer sound generator cartridge. 
+	https://f.rdw.se/AY-3-8910-datasheet.pdf
+
 		
 */
