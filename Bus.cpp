@@ -38,6 +38,7 @@
 #include "Keyboard.h"
 #include "FileIO.h"
 #include "C6809.h"
+#include "Math.h"
 #include "Bus.h"
 #include "GfxMouse.h"
 #include "GfxDebug.h"
@@ -124,6 +125,9 @@ Bus::Bus()
 
     // attach a keyboard device:
     m_gamepad = Gamepad::Assign_Gamepad(memmap, mem_offset);
+
+    // attach a math device:
+    m_math = Math::Assign_Math(memmap, mem_offset);
 
     // add more hardware devices here:
     // ...

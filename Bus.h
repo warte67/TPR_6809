@@ -40,6 +40,7 @@ class FileIO;
 class Keyboard;
 class Gamepad;
 class C6809;
+class Math;
 
 class Bus
 {
@@ -103,6 +104,7 @@ public:
     FileIO* m_file = nullptr;
     Keyboard* m_keyboard = nullptr;
     Gamepad* m_gamepad = nullptr;
+    Math* m_math = nullptr;
 };
 
 #endif // __BUS_H__

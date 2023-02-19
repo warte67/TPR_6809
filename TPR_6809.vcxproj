@@ -182,6 +182,7 @@
     <ClCompile Include="Gamepad.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Math.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="MemoryMap.cpp" />
   </ItemGroup>
@@ -202,7 +203,9 @@
     <ClInclude Include="GfxTile16.h" />
     <ClInclude Include="GfxTile32.h" />
     <ClInclude Include="Gamepad.h" />
+    <ClInclude Include="half.hpp" />
     <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Device.h" />
