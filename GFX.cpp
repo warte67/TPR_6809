@@ -21,6 +21,7 @@
 #include "GfxTile32.h"
 #include "GfxDebug.h"
 #include "GfxMouse.h"
+#include "GfxSprite.h"
 #include "Keyboard.h"
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
@@ -272,7 +273,8 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_fg_gmodes.push_back(new GfxBmp16());
 
 	// initialize the Sprite sub-system
-	// ...
+	if (gfx_sprite == nullptr)
+		gfx_sprite = new GfxSprite();
 
 	// initialize GfxDebug
 	if (gfx_debug == nullptr)
@@ -292,7 +294,11 @@ GFX::~GFX()
 
 
 	// Destroy the Sprite sub-system
-	// ...
+	if (gfx_sprite)
+	{
+		delete gfx_sprite;
+		gfx_sprite = nullptr;
+	}
 
 
 	// Destroy gfx_debug

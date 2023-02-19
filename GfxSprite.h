@@ -17,6 +17,8 @@ public:
 	virtual ~GfxSprite() {}
 
 	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+	// static members
+
 
 	virtual void OnInitialize() override;				// runs once after all devices are created
 	virtual void OnQuit() override;						// fires on exit -- reverses OnInitialize()

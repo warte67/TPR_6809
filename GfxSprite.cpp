@@ -34,6 +34,8 @@ GfxSprite::GfxSprite()
 	gfx = bus->m_gfx;
 }
 
+
+
 void GfxSprite::OnInitialize()
 {
 	if (palette256.size() == 0)

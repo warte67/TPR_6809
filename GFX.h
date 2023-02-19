@@ -122,6 +122,7 @@ protected:
     Memory* memory = nullptr;
     GfxMouse* gfx_mouse = nullptr;
     GfxDebug* gfx_debug = nullptr;
+    GfxSprite* gfx_sprite = nullptr;
 
     // Palette Stuff
     union PALETTE {

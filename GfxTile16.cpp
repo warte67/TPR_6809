@@ -29,7 +29,7 @@ Byte GfxTile16::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 
 GfxTile16::GfxTile16()
 {
-	//printf("GfxTile16::GfxTile16()\n");
+	// printf("GfxTile16::GfxTile16()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
