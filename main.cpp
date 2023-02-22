@@ -42,6 +42,51 @@ int main(int argc, char* argv[])
 
 /*
 
+TO-DO:
+	- GfxSprite: Framework is present, but still needs to be completely fleshed out.
+	- Math: Framework is present, but still has little to no function. Needs a lot
+		of work. The "Half" precision library does work, but still needs to 
+		support "full" (or Single) precision. An implementation the shares registers
+		between half and full precision seems very sloppy. Reconsider dedicating
+		3x (16-bit) registers for "Half" and 3x (32-bit) registers for "Full".
+
+	- FileIO: Framework is present, has some functionality, but still needs work.
+
+	- Audio/Sound (WAV/FM): Not even started, needs implementation. Should run within 
+		its own task, possibly just a function of clock timing. Similar to how the
+		CPU is currently being clocked, the audio should have a base clock. In other
+		words, decide whether to use a modern audio chip as hardware or to emulate
+		old hardware in software, possibly using a third raspberry PI PICO.
+		AY-3-8910 (no longer made): https://f.rdw.se/AY-3-8910-datasheet.pdf
+		
+		A simple two-channel DAC with a dedicated audio task may be only maintainable
+		option. Sourcing Modern SSG (Software-controlled Sound Generation) chips is
+		proving to be somewhat of a challenge.
+			Waveforms:
+				- Sine
+				- Square
+				- Sawtooth
+				- Triangle
+				- Noise
+			Online waveform examples: https://www.rapidtables.com/tools/tone-generator.html?f=400
+
+	- MemoryBank Paging: Still needs to be fully implemented. Consider, using
+		external 2MB QSPI ISSI 16Mbit SerialRAM (see notes below) and/or some of
+		either/both PICO's onboard flash RAM as a kind of "persistent" memory.
+		https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
+
+	- GPIO/Parallel I/O: Still needs to be fully implemented. At least 16-bits of
+		input/output pins should be available to the user on the final hardware. The
+		method is still undecided, possibly use the serial to parallel chip that is
+		used in one of the Landboards PicoMite VGA versions. The MCP23017/MCP23S17 or
+		MCP23017-E/SP
+		see: 
+		https://www.digikey.com/en/products/detail/microchip-technology/MCP23017-E-SP/894272
+		https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
+		http://land-boards.com/blwiki/index.php?title=PiPicoMite02#SPI_port_expanders
+
+
+
 Raspberry PI Pico Retro 6809 Thing Notes:
 
 Using two PI PICO's:
@@ -104,6 +149,10 @@ Using two PI PICO's:
 	Posibly include a AY-3-8910 Programmable Sound Generator as was used in the 
 	TRS-80 Color Computer sound generator cartridge. 
 	https://f.rdw.se/AY-3-8910-datasheet.pdf
+
+
+
+
 
 		
 */
