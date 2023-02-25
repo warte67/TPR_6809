@@ -220,7 +220,9 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 			ptrGfx->debug_write(ofs, data);
 		}
 
-
+		// intercept for GfxSprite
+		if (ofs >= SPR_BEGIN && ofs <= SPR_END)
+			return ptrGfx->gfx_sprite->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
 		// intercept for GfxMouse
 		if (ofs >= DBG_BEGIN && ofs <= DBG_END)
 			return ptrGfx->gfx_debug->OnCallback(ptrGfx->gfx_mouse, ofs, data, bWasRead);
@@ -235,6 +237,7 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				ptrGfx->m_fg_mode_index]->OnCallback(ptrGfx->m_fg_gmodes[ptrGfx->m_fg_mode_index
 				], ofs, data, bWasRead);
 		}
+
 		// intercept for banked background GfxMode registers
 		if (ofs >= GFX_BG_BEGIN && ofs <= GFX_BG_END)
 		{
@@ -450,6 +453,7 @@ void GFX::OnInitialize()
 		m_bg_gmodes[t]->OnInitialize();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnInitialize();
+	gfx_sprite->OnInitialize();
 	gfx_debug->OnInitialize();
 	gfx_mouse->OnInitialize();
 }
@@ -466,6 +470,7 @@ void GFX::OnQuit()
 		m_bg_gmodes[t]->OnQuit();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnQuit();
+	gfx_sprite->OnQuit();
 	gfx_debug->OnQuit();
 	gfx_mouse->OnQuit();
 }
@@ -539,6 +544,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 	m_bg_gmodes[m_bg_mode_index]->OnEvent(evnt);
 	m_fg_gmodes[m_fg_mode_index]->OnEvent(evnt);
 
+	// run sprites
+	gfx_sprite->OnEvent(evnt);
 	// run the debugger	
 	gfx_debug->OnEvent(evnt);
 	// run the mouse cursor
@@ -643,6 +650,7 @@ void GFX::OnCreate()
 		m_bg_gmodes[t]->OnCreate();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnCreate();
+	gfx_sprite->OnCreate();
 	gfx_debug->OnCreate();
 	gfx_mouse->OnCreate();
 
@@ -674,6 +682,7 @@ void GFX::OnDestroy()
 		m_bg_gmodes[t]->OnDestroy();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnDestroy();
+	gfx_sprite->OnDestroy();
 	gfx_debug->OnDestroy();
 	gfx_mouse->OnDestroy();
 
@@ -780,8 +789,6 @@ void GFX::OnUpdate(float fElapsedTime)
 	SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0xFF);
 	SDL_SetRenderTarget(_renderer, _texture[m_current_backbuffer]);
 
-
-
 	if (bRebuildTextures)
 	{
 		const float _texDelay = 0.010f;
@@ -804,12 +811,12 @@ void GFX::OnUpdate(float fElapsedTime)
 		}
 	}
 
-
-
 	// update the background graphics mode
 	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);
 	// update the foreground graphics mode
 	m_fg_gmodes[m_fg_mode_index]->OnUpdate(fElapsedTime);
+	// update the sprites
+	gfx_sprite->OnUpdate(fElapsedTime);
 	// update the mouse cursor
 	gfx_mouse->OnUpdate(fElapsedTime);
 	// update debug
@@ -865,7 +872,7 @@ void GFX::_onRender()
 	// render outputs
 	m_bg_gmodes[m_bg_mode_index]->OnRender();
 	m_fg_gmodes[m_fg_mode_index]->OnRender();
-
+	gfx_sprite->OnRender();
 	if (DebugEnabled())
 		gfx_debug->OnRender();
 	if (gfx_mouse->Mouse_Size() > 0)

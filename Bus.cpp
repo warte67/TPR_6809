@@ -163,23 +163,16 @@ Bus::Bus()
     #endif
     mem_offset += m_memory->AssignROM("BIOS_ROM", 0x2000, rom_path.c_str());
 
-
-    //// Memory Device Allocation ERROR???
-    //if (mem_offset != 0x10000) {
-    //    printf("ERROR: \n  Memory::AssignMemory() failed to fill map to 0xFFFF!" \
-    //        " $%04X bytes remain.\n", 0x10000 - mem_offset);
-    //    std::string err = "$" + hex(0x10000 - mem_offset, 4) + " bytes remain.";
-    //    Bus::Err("Memory::AssignMemory() failed to fill map to 0xFFFF!");        
-    //    // Bus::getInstance()->IsRunning(false);
-    //    for (auto& a : m_memory->m_memBlocks) {
-    //        printf("[%s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
-    //    }
-    //    return;
-    //}
-    for (auto& a : m_memory->m_memBlocks) {
-        printf("[%12s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+    // ***** MAPPED MEMORY BLOCK DUMP **************************
+    if (MEMORY_MAP_BLOCK_DUMP)
+    {
+        for (auto& a : m_memory->m_memBlocks) {
+            printf("[%12s] \t$%04X-$%04X $%04X Bytes\n", a->Name(), a->Base(), (a->Base() + a->Size() - 1), a->Size());
+        }
+        printf("\n");
     }
-    printf("\n");
+
+
     //printf("Final Memory Offset: $%08X\n\n", mem_offset);
 
    

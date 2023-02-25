@@ -12,22 +12,62 @@
 #include "GfxMode.h"
 #include "GfxSprite.h"
 
+ //		//  Sprite Hardware Registers:
+ //		     SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
+ //		
+ //		//  Sprite Flag Registers:
+ //		   SPR_DIS_ENA = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+ //		   SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
+ //		   SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
+ //		
+ //		//  Sprite Palette Registers:
+ //		   SPR_PAL_IDX = 0x1837,        // (Byte) color palette index
+ //		   SPR_PAL_DAT = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
+ //		
+ //		//  Sprite Indexed Registers:
+ //		   SPR_COL_DET = 0x183a,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
+ //		     SPR_H_POS = 0x183e,        // (Sint16) signed 16-bit integer
+ //		     SPR_V_POS = 0x1840,        // (Sint16) signed 16-bit integer
+ //		     SPR_X_OFS = 0x1842,        // (Sint8) signed 8-bit integer horizontal display offset
+ //		     SPR_Y_OFS = 0x1843,        // (Sint8) signed 8-bit integer vertical display offset
+ //		      SPR_PRIO = 0x1844,        // (Byte) Sprite Display Priority:
+ //		                                //      0) displays directly behind all foreground modes
+ //		                                //      1) displays infront of Glyph32 layer 0 but all other foreground modes
+ //		                                //      2) displays infront of Glyph32 layer 1 but all other foreground modes
+ //		                                //      3) displays infront of Glyph32 layer 2 but all other foreground modes
+ //		                                //      4) displays infront of Glyph32 layer 3 but all other foreground modes
+ //		                                //      5) displays infront of Debug layer, but behind the mouse cursor
+ //		                                //      6) displays infront of Mouse Cursor layer (in index order)
+ //		                                //      7) displays in sprite order
+ //		
+ //		//  Sprite Indexed Bitmap Pixel Data:
+ //		   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
+ //		   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
+ //		
+ //		//  End of Sprite Hardware Registers
+ //		       SPR_END = 0x1846,        // End of the Sprite Hardware Registers
+ //		
+
  // Graphics Mode Unique Callback Function:
 Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
+	//printf("GfxSprite::OnCallback($%04X)\n", ofs);
+
 	if (bWasRead)
 	{	// READ	
-		//printf("GfxTile16::OnCallback() -- READ\n");
+		//printf("GfxSprite::OnCallback($%04X): $%02X -- READ\n", ofs, data);
 	}
 	else
 	{	// WRITE
-		//printf("GfxTile16::OnCallback() -- WRITE\n");
+		//printf("GfxSprite::OnCallback($%04X): $%02X -- WRITE\n", ofs, data);
 	}
 	return data;
 }
 
 Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 {
+	//printf("GfxSprite::MapDevice()\n");
+
 	std::string reg_name = "Sprite System";
 	DWord st_offset = offset;
 
@@ -78,16 +118,21 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 
 GfxSprite::GfxSprite()
 {
-	printf("GfxSprite::GfxSprite()\n");
+	//printf("GfxSprite::GfxSprite()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
-
+GfxSprite::~GfxSprite()
+{
+	//printf("GfxSprite::~GfxSprite()\n");
+}
 
 
 void GfxSprite::OnInitialize()
 {
+	//printf("GfxSprite::OnInitialize()\n");
+
 	if (palette256.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
@@ -210,13 +255,16 @@ void GfxSprite::OnInitialize()
 
 void GfxSprite::OnActivate()
 {
+	//printf("GfxSprite::OnActivate()\n");
 }
 void GfxSprite::OnDeactivate()
 {
+	//printf("GfxSprite::OnDeactivate()\n");
 }
 
 void GfxSprite::OnQuit()
 {
+	//printf("GfxSprite::OnQuit()\n");
 }
 
 void GfxSprite::OnCreate()
@@ -244,7 +292,10 @@ void GfxSprite::OnDestroy()
 
 void GfxSprite::OnUpdate(float fElapsedTime)
 {
-	//printf("GfxGlyph::OnUpdate()\n");
+	//printf("GfxSprite::OnUpdate()\n");
+
+
+	/*** will need to be revised to render sprites not a screen ***
 
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;
@@ -256,10 +307,14 @@ void GfxSprite::OnUpdate(float fElapsedTime)
 		SDL_SetRenderTarget(gfx->Renderer(), _tile_texture);
 		// ...
 	}
+
+	*****************************************************************/
 }
 
 void GfxSprite::OnRender()
 {
+	//printf("GfxSprite::OnRender()\n");
+
 	/*** will need to be revised to render sprites not a screen ***
 	
 
