@@ -26,9 +26,59 @@ Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 	return data;
 }
 
+Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
+{
+	std::string reg_name = "Sprite System";
+	DWord st_offset = offset;
+
+	// map fundamental Debugger hardware registers:
+	//memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "Sprite Hardware Registers:" }); offset += 0;
+	memmap->push({ offset, "SPR_BEGIN", "Start of Sprite Hardware Registers" }); offset += 0;
+	memmap->push({ offset, "", "" }); offset += 0;
+
+	memmap->push({ offset, "", "Sprite Flag Registers:" }); offset += 0;
+	memmap->push({ offset, "SPR_DIS_ENA",	"(4-Bytes) sprite Enable Bits. 1 bit per sprite" }); offset += 4;
+	memmap->push({ offset, "SPR_COL_ENA",	"(4-Bytes) sprite collision enable. 1 bit per sprite" }); offset += 4;
+	memmap->push({ offset, "SPR_COL_TYP",	"(4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)" }); offset += 4;
+	memmap->push({ offset, "", "" }); offset += 0;
+
+	memmap->push({ offset, "", "Sprite Palette Registers:" }); offset += 0;
+	memmap->push({ offset, "SPR_PAL_IDX",	"(Byte) color palette index" }); offset += 1;
+	memmap->push({ offset, "SPR_PAL_DAT",	"(Word) indexed sprite palette entry color bits RGBA4444" }); offset += 2;
+	memmap->push({ offset, "", "" }); offset += 0;
+
+	memmap->push({ offset, "", "Sprite Indexed Registers:" }); offset += 0;
+	memmap->push({ offset, "SPR_COL_DET",	"(4-Bytes) Collision detection bits. One bit per colliding sprite." }); offset += 4;
+	memmap->push({ offset, "SPR_H_POS",		"(Sint16) signed 16-bit integer" }); offset += 2;
+	memmap->push({ offset, "SPR_V_POS",		"(Sint16) signed 16-bit integer" }); offset += 2;
+	memmap->push({ offset, "SPR_X_OFS",		"(Sint8) signed 8-bit integer horizontal display offset" }); offset += 1;
+	memmap->push({ offset, "SPR_Y_OFS",		"(Sint8) signed 8-bit integer vertical display offset" }); offset += 1;
+	memmap->push({ offset, "SPR_PRIO",		"(Byte) Sprite Display Priority:" }); offset += 1;
+	memmap->push({ offset, "",				">    0) displays directly behind all foreground modes" }); offset += 0;
+	memmap->push({ offset, "",				">    1) displays infront of Glyph32 layer 0 but all other foreground modes" }); offset += 0;
+	memmap->push({ offset, "",				">    2) displays infront of Glyph32 layer 1 but all other foreground modes" }); offset += 0;
+	memmap->push({ offset, "",				">    3) displays infront of Glyph32 layer 2 but all other foreground modes" }); offset += 0;
+	memmap->push({ offset, "",				">    4) displays infront of Glyph32 layer 3 but all other foreground modes" }); offset += 0;
+	memmap->push({ offset, "",				">    5) displays infront of Debug layer, but behind the mouse cursor" }); offset += 0;
+	memmap->push({ offset, "",				">    6) displays infront of Mouse Cursor layer (in index order)" }); offset += 0;
+	memmap->push({ offset, "",				">    7) displays in sprite order" }); offset += 0;
+	memmap->push({ offset, "", "" }); offset += 0;
+
+	memmap->push({ offset, "", "Sprite Indexed Bitmap Pixel Data:" }); offset += 0;
+	memmap->push({ offset, "SPR_BMP_IDX",	"(Byte) Sprite pixel offset (Y*16+X)" }); offset += 1;
+	memmap->push({ offset, "SPR_BMP_DAT",	"(Byte) Sprite color palette index data" }); offset += 1;
+
+	memmap->push({ offset, "", "" }); offset += 0;
+	memmap->push({ offset, "", "End of Sprite Hardware Registers" }); offset += 0;
+	memmap->push({ --offset, "SPR_END", "End of the Sprite Hardware Registers" }); offset += 1;
+
+	return offset - st_offset;
+}
+
 GfxSprite::GfxSprite()
 {
-	//printf("GfxSprite::GfxSprite()\n");
+	printf("GfxSprite::GfxSprite()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
@@ -194,7 +244,7 @@ void GfxSprite::OnDestroy()
 
 void GfxSprite::OnUpdate(float fElapsedTime)
 {
-	// printf("GfxGlyph::OnUpdate()\n");
+	//printf("GfxGlyph::OnUpdate()\n");
 
 	// only update once every 10ms (timing my need further adjustment)
 	const float delay = 0.010f;

@@ -46,10 +46,6 @@ Word MemoryMap::start()
 	v_mem.push_back({ offset, "KVEC_SHUTDOWN",	"KERNEL Vector:  System Shutdown" }); offset += 2;
 
 
-
-
-
-
 	offset = 0x0100;	// user stack bottom
 	v_mem.push_back({ offset, "", "" });
 	v_mem.push_back({ offset, "", "Stack Frames:" });

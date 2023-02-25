@@ -42,6 +42,7 @@
 #include "Bus.h"
 #include "GfxMouse.h"
 #include "GfxDebug.h"
+#include "GfxSprite.h"
 
 // initialize staatics
 
@@ -98,8 +99,11 @@ Bus::Bus()
     mem_offset += size;
     mem_offset += temp->gfx_mouse->MapDevice(memmap, mem_offset);
     mem_offset += temp->gfx_debug->MapDevice(memmap, mem_offset);
+    mem_offset += temp->gfx_sprite->MapDevice(memmap, mem_offset);
+
     //mem_offset+=2;
     size = mem_offset - gfx_start;
+
     // attach the graphics device
     m_memory->AssignREG("GFX_DEVICE", size, GFX::OnCallback);
     REG* reg = m_memory->FindRegByName("GFX_DEVICE"); 
@@ -112,6 +116,7 @@ Bus::Bus()
     delete temp;
     // close the graphics device in the memory map
     memmap->push({ (Word)mem_offset, "", "" }); 
+    memmap->push({ (Word)mem_offset, "", "End ofthe GFX Hardware Registers" });
     memmap->push({ (Word)mem_offset, "GFX_END", "end of the GFX Hardware Registers" });
     memmap->push({ (Word)mem_offset, "", "" });
     // END OF GRAPHICS DEVICE
@@ -127,7 +132,7 @@ Bus::Bus()
     m_gamepad = Gamepad::Assign_Gamepad(memmap, mem_offset);
 
     // attach a math device:
-    m_math = Math::Assign_Math(memmap, mem_offset);
+    // m_math = Math::Assign_Math(memmap, mem_offset);
 
     // add more hardware devices here:
     // ...

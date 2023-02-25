@@ -292,7 +292,6 @@ GFX::~GFX()
 	for (auto& a : m_fg_gmodes)
 		delete a;
 
-
 	// Destroy the Sprite sub-system
 	if (gfx_sprite)
 	{

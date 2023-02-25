@@ -17,6 +17,7 @@ public:
 	virtual ~GfxSprite() {}
 
 	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+	static Word MapDevice(MemoryMap* memmap, Word offset);
 	// static members
 
 
@@ -54,41 +55,42 @@ private:
 
 /**** SPRITE SUB-SYSTEM NOTES: ****************************************************
 
-	The Sprite System supports 32 x 16x16x256 color sprite objects. The 8K sprite bitmap table is stored
-	in the GfxMode::s_mem_64k[$$E000-$FFFF] array buffer. 
+	The Sprite System supports 32 x 16x16x256 color sprite objects. The 8K sprite
+	bitmap table is stored in the GfxMode::s_mem_64k[$$E000-$FFFF] array buffer. 
 
 
 	Static Registers:
+		Sprite Flags:
+			SPR_DIS_ENA			(4-Bytes) Sprite Enable Bits. 1 bit per sprite
+			SPR_COL_ENA			(4-Bytes) Sprite Collision Enable. 1 bit per sprite
+			SPR_COL_TYP			(4-Bytes) Sprite Collision Type (0:hitbox, 1:pixel perfect)
+
 		Sprite Palette:
 			SPR_PAL_IDX		(Byte) Color Palette Index
 			SPR_PAL_DAT		(Word) sprite palette color bits RGBA4444
 
 		Sprite Index Register:
-			SPR_INDEX		(Byte) 0-31 indexes the "current" sprite.
+			SPR_INDEX		(Byte) 0-31 indexes the "current" sprite
 
-	Indexed Sprite Registers:   (This references a specific Sprite object node)
-		SPR_FLAGS		(Byte) Sprite State Flags:
-							bit 0: display enable (0:disabled, 1:enabled)
-							bit 1: collision enable (0:disabled, 1:enabled)
-							bit 2: collision type (0:hitbox, 1:pixel perfect)
-							bit 3-7: reserved
+		Sprite Indexed Registers:
+			SPR_COL_DET		(4-Bytes) Collision detection bits. One bit per colliding sprite
+			SPR_PRIO		(Byte) Sprite Display Priority:
+								0) displays directly behind all foreground modes
+								1) displays infront of Glyph32 layer 0 but all other foreground modes
+								2) displays infront of Glyph32 layer 1 but all other foreground modes
+								3) displays infront of Glyph32 layer 2 but all other foreground modes
+								4) displays infront of Glyph32 layer 3 but all other foreground modes
+								5) displays infront of Debug layer, but behind the mouse cursor
+								6) displays infront of Mouse Cursor layer (in index order)
+								7) displays in sprite order
+			
+			SPR_H_POS		(Sint16) signed 16-bit integer
+			SPR_V_POS		(Sint16) signed 16-bit integer
+			SPR_X_OFS		(Sint8) signed 8-bit integer horizontal display offset
+			SPR_Y_OFS		(Sint8) signed 8-bit integer vertical display offset
 
-		SPR_COL_DET		(4-Bytes) Collision detection bits. One bit per sprite colliding with this one.
-		SPR_H_POS		(Sint16) signed 16-bit integer
-		SPR_V_POS		(Sint16) signed 16-bit integer
-		SPR_X_OFS		(Sint8) signed 8-bit integer horizontal display offset
-		SPR_Y_OFS		(Sint8) signed 8-bit integer vertical display offset
-		SPR_PRIO		(Byte)	display order:
-							0) displays directly infront of the background mode, but behind all foreground modes
-							1) displays infront of Glyph32 layer 0	and all other foreground modes
-							2) displays infront of Glyph32 layer 1	and all other foreground modes
-							3) displays infront of Glyph32 layer 2	and all other foreground modes
-							4) displays infront of Glyph32 layer 3	and all other foreground modes
-							5) displays infront of Debug layer, but behind the mouse cursor
-							6) displays infront of Mouse Cursor layer
-							7+) displays in priority order then in sprite order (where priority is equal)
-
-		SPR_BMP_IDX		(Byte) Sprite pixel offset (Y*16+X)
-		SPR_BMP_DAT		(Byte) Sprite color palette index data
+		Sprite Indexed Bitmap Pixel Data:
+			SPR_BMP_IDX		(Byte) Sprite pixel offset (Y*16+X)
+			SPR_BMP_DAT		(Byte) Sprite color palette index data
 
 ************************************************************************/
