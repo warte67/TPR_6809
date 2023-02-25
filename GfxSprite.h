@@ -45,6 +45,13 @@ private:
 	Uint8 blu(Uint8 index) { Uint8 c = palette256[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
 	Uint8 alf(Uint8 index) { Uint8 c = palette256[index].a;  return c | (c << 4) | (c << 8) | (c << 12); }
 
+// hardware registers
+private:
+	Uint32 spr_enable	= 0;		// 32-sprite bit-fields
+	Uint32 spr_col_ena	= 0;		// 32-sprite bit-fields
+	Uint32 spr_col_typ	= 0;		// 32-sprite bit-fields
+
+
 };
 
 
@@ -64,7 +71,7 @@ class Sprite
 //		     SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
 //		
 //		//  Sprite Flag Registers:
-//		   SPR_DIS_ENA = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+//		   SPR_ENABLE = 0x182b,			// (4-Bytes) sprite Enable Bits. 1 bit per sprite
 //		   SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
 //		   SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 //		
@@ -106,7 +113,7 @@ class Sprite
 
 	Static Registers:
 		Sprite Flags:
-			SPR_DIS_ENA			(4-Bytes) Sprite Enable Bits. 1 bit per sprite
+			SPR_ENABLE			(4-Bytes) Sprite Enable Bits. 1 bit per sprite
 			SPR_COL_ENA			(4-Bytes) Sprite Collision Enable. 1 bit per sprite
 			SPR_COL_TYP			(4-Bytes) Sprite Collision Type (0:hitbox, 1:pixel perfect)
 

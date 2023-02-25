@@ -168,7 +168,7 @@ enum MEMMAP
      SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
 
 //  Sprite Flag Registers:
-   SPR_DIS_ENA = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+    SPR_ENABLE = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
    SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
    SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 

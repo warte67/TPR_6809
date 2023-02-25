@@ -16,7 +16,7 @@
  //		     SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
  //		
  //		//  Sprite Flag Registers:
- //		   SPR_DIS_ENA = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+ //		   SPR_ENABLE = 0x182b,         // (4-Bytes) sprite Enable Bits. 1 bit per sprite
  //		   SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
  //		   SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
  //		
@@ -53,14 +53,52 @@ Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GfxSprite::OnCallback($%04X)\n", ofs);
 
-	if (bWasRead)
-	{	// READ	
-		//printf("GfxSprite::OnCallback($%04X): $%02X -- READ\n", ofs, data);
+	// flag enable registers (SPR_ENABLE, SPR_COL_ENA, and SPR_COL_TYP)
+	Uint32 wb = (3 - (ofs - SPR_ENABLE)) * 8;
+	if (ofs >= SPR_ENABLE && ofs <= SPR_ENABLE + 3)
+	{
+		if (bWasRead)	
+			return (spr_enable >> wb) & 0xFF;
+		else
+		{	// WRITE
+			Uint32 mask = 0xFF << wb;
+			spr_enable &= ~mask;			// AND out old byte
+			spr_enable |= (data << wb);		// OR in new data							
+			bus->debug_write( ofs, data	);
+			printf("SPR_ENABLE: $%08X\n", spr_enable);
+		}
 	}
-	else
-	{	// WRITE
-		//printf("GfxSprite::OnCallback($%04X): $%02X -- WRITE\n", ofs, data);
+	if (ofs >= SPR_COL_ENA && ofs <= SPR_COL_ENA + 3)
+	{
+		if (bWasRead)
+			return (spr_col_ena >> wb) & 0xFF;
+		else
+		{	// WRITE
+			Uint32 mask = 0xFF << wb;
+			spr_col_ena &= ~mask;			// AND out old byte
+			spr_col_ena |= (data << wb);	// OR in new data							
+			bus->debug_write(ofs, data);
+			printf("SPR_COL_ENA: $%08X\n", spr_col_ena);
+		}
 	}
+	if (ofs >= SPR_COL_TYP && ofs <= SPR_COL_TYP + 3)
+	{
+		if (bWasRead)
+			return (spr_col_typ >> wb) & 0xFF;
+		else
+		{	// WRITE
+			Uint32 mask = 0xFF << wb;
+			spr_col_typ &= ~mask;			// AND out old byte
+			spr_col_typ |= (data << wb);		// OR in new data							
+			bus->debug_write(ofs, data);
+			printf("SPR_COL_TYP: $%08X\n", spr_col_typ);
+		}
+	}
+
+
+
+
+
 	return data;
 }
 
@@ -78,7 +116,7 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 
 	memmap->push({ offset, "", "Sprite Flag Registers:" }); offset += 0;
-	memmap->push({ offset, "SPR_DIS_ENA",	"(4-Bytes) sprite Enable Bits. 1 bit per sprite" }); offset += 4;
+	memmap->push({ offset, "SPR_ENABLE",	"(4-Bytes) sprite Enable Bits. 1 bit per sprite" }); offset += 4;
 	memmap->push({ offset, "SPR_COL_ENA",	"(4-Bytes) sprite collision enable. 1 bit per sprite" }); offset += 4;
 	memmap->push({ offset, "SPR_COL_TYP",	"(4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)" }); offset += 4;
 	memmap->push({ offset, "", "" }); offset += 0;

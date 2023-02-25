@@ -127,7 +127,7 @@ DBG_END equ     $182a   ; End of the Debugger Hardware Registers
 SPR_BEGIN       equ     $182b   ; Start of Sprite Hardware Registers
 
 ;  Sprite Flag Registers:
-SPR_DIS_ENA     equ     $182b   ; (4-Bytes) sprite Enable Bits. 1 bit per sprite
+SPR_ENABLE      equ     $182b   ; (4-Bytes) sprite Enable Bits. 1 bit per sprite
 SPR_COL_ENA     equ     $182f   ; (4-Bytes) sprite collision enable. 1 bit per sprite
 SPR_COL_TYP     equ     $1833   ; (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 
