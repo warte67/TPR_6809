@@ -62,6 +62,8 @@ private:
 	Sint8 spr_y_ofs[SPRITE_MAX]		{ 0 };		// 8-bit signed vertical offset
 	Uint8 spr_prio[SPRITE_MAX]		{ 0 };		// 8-bit unsigned sprite priority
 
+	Byte spr_bmp_index[SPRITE_MAX]		{ 0 };	// sprite bitmap pixel index (Y*16+X)
+	Byte spr_bmp_data[SPRITE_MAX][256]	{ 0 };	// sprite bitmap color data
 };
 
 

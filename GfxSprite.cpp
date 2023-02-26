@@ -281,15 +281,28 @@ Byte GfxSprite::OnCallback(GfxMode* memDev, Word ofs, Byte data, bool bWasRead)
 		}
 	}
 
-	//  Sprite Indexed Bitmap Pixel Data
-			//		   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
-			//		   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
-	//if (bWasRead)
-	//{	// READ
-	//}
-	//else
-	//{	// WRITE
-	//}
+	//  Indexed Sprite Indexed Bitmap Pixel Data
+	if (ofs == SPR_BMP_INDX || ofs == SPR_BMP_DATA)
+	{
+		if (bWasRead)
+		{	// READ
+			if (ofs == SPR_BMP_INDX)
+				data = spr_bmp_index[spr_index];
+			if (ofs == SPR_BMP_DATA)
+				data = spr_bmp_data[spr_index][spr_bmp_index[spr_index]];
+			bus->debug_write(ofs, data);
+		}
+		else
+		{	// WRITE
+			if (ofs == SPR_BMP_INDX)
+				spr_bmp_index[spr_index] = data;
+			if (ofs == SPR_BMP_DATA)
+				spr_bmp_data[spr_index][spr_bmp_index[spr_index]] = data;
+			bus->debug_write(ofs, data);
+			// FORCE REFRESH
+			// bIsDirty = true;
+		}
+	}
 
 	return data;
 }
