@@ -44,6 +44,21 @@ int main(int argc, char* argv[])
 
 TO-DO:
 	- GfxSprite: Framework is present, but still needs to be completely fleshed out.
+		- Framework has been further fleshed out.
+		- Need a mechanism for loading sprites and tiles
+			-  Basic Sprite Sheet Maths:
+				32 x Sprites
+				64 x Tiles
+				96 x Images
+			- Sprite/Tile Sheet:
+                8 x 12 aspect 
+                128 x 192 bitmap size (16x16 images)
+                4 rows of sprites
+                8 rows of tiles
+			- Load with FileIO Command?
+
+
+
 	- Math: Framework is present, but still has little to no function. Needs a lot
 		of work. The "Half" precision library does work, but still needs to 
 		support "full" (or Single) precision. An implementation the shares registers

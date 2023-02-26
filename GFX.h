@@ -226,9 +226,16 @@ private:
 
 
 
+        Basic Sprite Sheet Maths:
+            32 x Sprites
+            64 x Tiles
+            96 x Images
 
-
-
+            Sprite/Tile Sheet:
+                8 x 12 aspect 
+                128 x 192 bitmap size (16x16 images)
+                4 rows of sprites
+                8 rows of tiles
 
     **  NOTES:  ****************************************************
 
