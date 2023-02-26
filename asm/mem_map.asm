@@ -132,16 +132,19 @@ SPR_COL_ENA     equ     $182f   ; (4-Bytes) sprite collision enable. 1 bit per s
 SPR_COL_TYP     equ     $1833   ; (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 
 ;  Sprite Palette Registers:
-SPR_PAL_IDX     equ     $1837   ; (Byte) color palette index
-SPR_PAL_DAT     equ     $1838   ; (Word) indexed sprite palette entry color bits RGBA4444
+SPR_PAL_INDX    equ     $1837   ; (Byte) color palette index
+SPR_PAL_DATA    equ     $1838   ; (Word) indexed sprite palette entry color bits RGBA4444
 
-;  Sprite Indexed Registers:
-SPR_COL_DET     equ     $183a   ; (4-Bytes) Collision detection bits. One bit per colliding sprite.
-SPR_H_POS       equ     $183e   ; (Sint16) signed 16-bit integer
-SPR_V_POS       equ     $1840   ; (Sint16) signed 16-bit integer
-SPR_X_OFS       equ     $1842   ; (Sint8) signed 8-bit integer horizontal display offset
-SPR_Y_OFS       equ     $1843   ; (Sint8) signed 8-bit integer vertical display offset
-SPR_PRIO        equ     $1844   ; (Byte) Sprite Display Priority:
+;  Sprite Index Register:
+SPR_INDEX       equ     $183a   ; (Byte) 0-31 indexes the 'current' sprite
+
+;  Indexed Sprite Registers:
+SPR_COL_DET     equ     $183b   ; (4-Bytes) Collision detection bits. One bit per colliding sprite.
+SPR_H_POS       equ     $183f   ; (Sint16) signed 16-bit integer
+SPR_V_POS       equ     $1841   ; (Sint16) signed 16-bit integer
+SPR_X_OFS       equ     $1843   ; (Sint8) signed 8-bit integer horizontal display offset
+SPR_Y_OFS       equ     $1844   ; (Sint8) signed 8-bit integer vertical display offset
+SPR_PRIO        equ     $1845   ; (Byte) Sprite Display Priority:
                                 ;      0) displays directly behind all foreground modes
                                 ;      1) displays infront of Glyph32 layer 0 but all other foreground modes
                                 ;      2) displays infront of Glyph32 layer 1 but all other foreground modes
@@ -152,18 +155,18 @@ SPR_PRIO        equ     $1844   ; (Byte) Sprite Display Priority:
                                 ;      7) displays in sprite order
 
 ;  Sprite Indexed Bitmap Pixel Data:
-SPR_BMP_IDX     equ     $1845   ; (Byte) Sprite pixel offset (Y*16+X)
-SPR_BMP_DAT     equ     $1846   ; (Byte) Sprite color palette index data
+SPR_BMP_INDX    equ     $1846   ; (Byte) Sprite pixel offset (Y*16+X)
+SPR_BMP_DATA    equ     $1847   ; (Byte) Sprite color palette index data
 
 ;  End of Sprite Hardware Registers
-SPR_END equ     $1846   ; End of the Sprite Hardware Registers
+SPR_END equ     $1847   ; End of the Sprite Hardware Registers
 
 ;  End ofthe GFX Hardware Registers
-GFX_END equ     $1847   ; end of the GFX Hardware Registers
+GFX_END equ     $1848   ; end of the GFX Hardware Registers
 
 ;  File I/O Hardware Registers:
-FIO_BEGIN       equ     $1847   ; start of file i/o hardware registers
-FIO_ERR_FLAGS   equ     $1847   ; (Byte) file i/o system flags:
+FIO_BEGIN       equ     $1848   ; start of file i/o hardware registers
+FIO_ERR_FLAGS   equ     $1848   ; (Byte) file i/o system flags:
                                 ;      bit 7:   file not found
                                 ;      bit 6:  end of file
                                 ;      bit 5:   buffer overrun
@@ -172,7 +175,7 @@ FIO_ERR_FLAGS   equ     $1847   ; (Byte) file i/o system flags:
                                 ;      bit 2: too many file handles
                                 ;      bit 1: incorrect file handle
                                 ;      bit 0: not yet assigned
-FIO_COMMAND     equ     $1848   ; (Byte) OnWrite - command to execute
+FIO_COMMAND     equ     $1849   ; (Byte) OnWrite - command to execute
                                 ;      $00 = Reset/Null
                                 ;      $01 = Open/Create Binary File for Reading
                                 ;      $02 = Open/Create Binary File for Writing
@@ -198,49 +201,49 @@ FIO_COMMAND     equ     $1848   ; (Byte) OnWrite - command to execute
                                 ;      $16 = Seek End
                                 ;      $17 = SYSTEM: Shutdown
                                 ;      $18 = SYSTEM: Load Compilation Date
-FIO_HANDLE      equ     $1849   ; (Byte) file handle or ZERO
-FIO_BFROFS      equ     $184a   ; (Word) start of I/O buffer
-FIO_BFRLEN      equ     $184b   ; (Word) length of I/O buffer
-FIO_IODATA      equ     $184d   ; (Byte) input / output character
-FIO_RET_COUNT   equ     $184e   ; (Byte) number of return entries
-FIO_RET_INDEX   equ     $184f   ; (Byte) command return index
-FIO_RET_BUFFER  equ     $1850   ; (Char Array 256) paged return buffer
-FIO_FILEPATH    equ     $1950   ; (Char Array 256) file path and argument buffer
-FIO_END equ     $1a50   ; end of file i/o hardware registers
+FIO_HANDLE      equ     $184a   ; (Byte) file handle or ZERO
+FIO_BFROFS      equ     $184b   ; (Word) start of I/O buffer
+FIO_BFRLEN      equ     $184c   ; (Word) length of I/O buffer
+FIO_IODATA      equ     $184e   ; (Byte) input / output character
+FIO_RET_COUNT   equ     $184f   ; (Byte) number of return entries
+FIO_RET_INDEX   equ     $1850   ; (Byte) command return index
+FIO_RET_BUFFER  equ     $1851   ; (Char Array 256) paged return buffer
+FIO_FILEPATH    equ     $1951   ; (Char Array 256) file path and argument buffer
+FIO_END equ     $1a51   ; end of file i/o hardware registers
 
 ;  Keyboard Hardware Registers:
-KEY_BEGIN       equ     $1a51   ; start of keyboard hardware registers
-CHAR_Q_LEN      equ     $1a51   ; (char) # of characters waiting in queue       (Read Only)
-CHAR_SCAN       equ     $1a52   ; read next character in queue       (not popped when read)
-CHAR_POP        equ     $1a53   ; (char) next character waiting in queue (popped when read)
-XKEY_BUFFER     equ     $1a54   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-EDT_BFR_CSR     equ     $1a64   ; (Byte) cursor position within edit buffer    (Read/Write)
-EDT_BUFFER      equ     $1a65   ; (256 Bytes) line editing character buffer    (Read/Write)
-KEY_END equ     $1b65   ; end of keyboard hardware registers
+KEY_BEGIN       equ     $1a52   ; start of keyboard hardware registers
+CHAR_Q_LEN      equ     $1a52   ; (char) # of characters waiting in queue       (Read Only)
+CHAR_SCAN       equ     $1a53   ; read next character in queue       (not popped when read)
+CHAR_POP        equ     $1a54   ; (char) next character waiting in queue (popped when read)
+XKEY_BUFFER     equ     $1a55   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+EDT_BFR_CSR     equ     $1a65   ; (Byte) cursor position within edit buffer    (Read/Write)
+EDT_BUFFER      equ     $1a66   ; (256 Bytes) line editing character buffer    (Read/Write)
+KEY_END equ     $1b66   ; end of keyboard hardware registers
 
 ;  Gamepad Hardware Registers:
-JOYS_BEGIN      equ     $1b66   ; start of gamepad hardware registers
-JOYS_1_BTN      equ     $1b66   ; (Word) button bits: room for up to 16 buttons  (realtime)
-JOYS_1_DBND     equ     $1b68   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
-JOYS_1_LTX      equ     $1b69   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
-JOYS_1_LTY      equ     $1b6a   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
-JOYS_1_RTX      equ     $1b6b   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
-JOYS_1_RTY      equ     $1b6c   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
-JOYS_1_Z1       equ     $1b6d   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
-JOYS_1_Z2       equ     $1b6e   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
+JOYS_BEGIN      equ     $1b67   ; start of gamepad hardware registers
+JOYS_1_BTN      equ     $1b67   ; (Word) button bits: room for up to 16 buttons  (realtime)
+JOYS_1_DBND     equ     $1b69   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
+JOYS_1_LTX      equ     $1b6a   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+JOYS_1_LTY      equ     $1b6b   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+JOYS_1_RTX      equ     $1b6c   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+JOYS_1_RTY      equ     $1b6d   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+JOYS_1_Z1       equ     $1b6e   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
+JOYS_1_Z2       equ     $1b6f   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
 
-JOYS_2_BTN      equ     $1b6f   ; (Word) button bits: room for up to 16 buttons  (realtime)
-JOYS_2_DBND     equ     $1b71   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
-JOYS_2_LTX      equ     $1b72   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
-JOYS_2_LTY      equ     $1b73   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
-JOYS_2_RTX      equ     $1b74   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
-JOYS_2_RTY      equ     $1b75   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
-JOYS_2_Z1       equ     $1b76   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
-JOYS_2_Z2       equ     $1b77   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
-JOYS_END        equ     $1b78   ; end of gamepad hardware registers
+JOYS_2_BTN      equ     $1b70   ; (Word) button bits: room for up to 16 buttons  (realtime)
+JOYS_2_DBND     equ     $1b72   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
+JOYS_2_LTX      equ     $1b73   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+JOYS_2_LTY      equ     $1b74   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+JOYS_2_RTX      equ     $1b75   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+JOYS_2_RTY      equ     $1b76   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+JOYS_2_Z1       equ     $1b77   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
+JOYS_2_Z2       equ     $1b78   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
+JOYS_END        equ     $1b79   ; end of gamepad hardware registers
 
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1b79   ; Reserved 1154 bytes ($1B79 - $1FFB)
+RESERVED_HDW    equ     $1b7a   ; Reserved 1153 bytes ($1B7A - $1FFB)
 
 ;  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
 ;  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
@@ -267,4 +270,3 @@ HARD_IRQ        equ     $fff8   ; IRQ Hardware Interrupt Vector
 HARD_SWI        equ     $fffa   ; SWI / SYS Hardware Interrupt Vector
 HARD_NMI        equ     $fffc   ; NMI Hardware Interrupt Vector
 HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt Vector
-

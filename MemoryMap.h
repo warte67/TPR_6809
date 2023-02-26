@@ -37,6 +37,12 @@ private:
 };
 
 
+
+
+
+
+
+
 enum MEMMAP
 {
 //  **********************************************
@@ -173,16 +179,19 @@ enum MEMMAP
    SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 
 //  Sprite Palette Registers:
-   SPR_PAL_IDX = 0x1837,        // (Byte) color palette index
-   SPR_PAL_DAT = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
+  SPR_PAL_INDX = 0x1837,        // (Byte) color palette index
+  SPR_PAL_DATA = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
 
-//  Sprite Indexed Registers:
-   SPR_COL_DET = 0x183a,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
-     SPR_H_POS = 0x183e,        // (Sint16) signed 16-bit integer
-     SPR_V_POS = 0x1840,        // (Sint16) signed 16-bit integer
-     SPR_X_OFS = 0x1842,        // (Sint8) signed 8-bit integer horizontal display offset
-     SPR_Y_OFS = 0x1843,        // (Sint8) signed 8-bit integer vertical display offset
-      SPR_PRIO = 0x1844,        // (Byte) Sprite Display Priority:
+//  Sprite Index Register:
+     SPR_INDEX = 0x183a,        // (Byte) 0-31 indexes the 'current' sprite
+
+//  Indexed Sprite Registers:
+   SPR_COL_DET = 0x183b,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
+     SPR_H_POS = 0x183f,        // (Sint16) signed 16-bit integer
+     SPR_V_POS = 0x1841,        // (Sint16) signed 16-bit integer
+     SPR_X_OFS = 0x1843,        // (Sint8) signed 8-bit integer horizontal display offset
+     SPR_Y_OFS = 0x1844,        // (Sint8) signed 8-bit integer vertical display offset
+      SPR_PRIO = 0x1845,        // (Byte) Sprite Display Priority:
                                 //      0) displays directly behind all foreground modes
                                 //      1) displays infront of Glyph32 layer 0 but all other foreground modes
                                 //      2) displays infront of Glyph32 layer 1 but all other foreground modes
@@ -193,18 +202,18 @@ enum MEMMAP
                                 //      7) displays in sprite order
 
 //  Sprite Indexed Bitmap Pixel Data:
-   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
-   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
+  SPR_BMP_INDX = 0x1846,        // (Byte) Sprite pixel offset (Y*16+X)
+  SPR_BMP_DATA = 0x1847,        // (Byte) Sprite color palette index data
 
 //  End of Sprite Hardware Registers
-       SPR_END = 0x1846,        // End of the Sprite Hardware Registers
+       SPR_END = 0x1847,        // End of the Sprite Hardware Registers
 
 //  End ofthe GFX Hardware Registers
-       GFX_END = 0x1847,        // end of the GFX Hardware Registers
+       GFX_END = 0x1848,        // end of the GFX Hardware Registers
 
 //  File I/O Hardware Registers:
-     FIO_BEGIN = 0x1847,        // start of file i/o hardware registers
-  FIO_ERR_FLAGS = 0x1847,       // (Byte) file i/o system flags:
+     FIO_BEGIN = 0x1848,        // start of file i/o hardware registers
+  FIO_ERR_FLAGS = 0x1848,       // (Byte) file i/o system flags:
                                 //      bit 7:  file not found
                                 //      bit 6:  end of file
                                 //      bit 5:  buffer overrun
@@ -213,7 +222,7 @@ enum MEMMAP
                                 //      bit 2: too many file handles
                                 //      bit 1: incorrect file handle
                                 //      bit 0: not yet assigned
-   FIO_COMMAND = 0x1848,        // (Byte) OnWrite - command to execute
+   FIO_COMMAND = 0x1849,        // (Byte) OnWrite - command to execute
                                 //      $00 = Reset/Null
                                 //      $01 = Open/Create Binary File for Reading
                                 //      $02 = Open/Create Binary File for Writing
@@ -239,49 +248,49 @@ enum MEMMAP
                                 //      $16 = Seek End
                                 //      $17 = SYSTEM: Shutdown
                                 //      $18 = SYSTEM: Load Compilation Date
-    FIO_HANDLE = 0x1849,        // (Byte) file handle or ZERO
-    FIO_BFROFS = 0x184a,        // (Word) start of I/O buffer
-    FIO_BFRLEN = 0x184b,        // (Word) length of I/O buffer
-    FIO_IODATA = 0x184d,        // (Byte) input / output character
-  FIO_RET_COUNT = 0x184e,       // (Byte) number of return entries
-  FIO_RET_INDEX = 0x184f,       // (Byte) command return index
-  FIO_RET_BUFFER = 0x1850,      // (Char Array 256) paged return buffer
-  FIO_FILEPATH = 0x1950,        // (Char Array 256) file path and argument buffer
-       FIO_END = 0x1a50,        // end of file i/o hardware registers
+    FIO_HANDLE = 0x184a,        // (Byte) file handle or ZERO
+    FIO_BFROFS = 0x184b,        // (Word) start of I/O buffer
+    FIO_BFRLEN = 0x184c,        // (Word) length of I/O buffer
+    FIO_IODATA = 0x184e,        // (Byte) input / output character
+  FIO_RET_COUNT = 0x184f,       // (Byte) number of return entries
+  FIO_RET_INDEX = 0x1850,       // (Byte) command return index
+  FIO_RET_BUFFER = 0x1851,      // (Char Array 256) paged return buffer
+  FIO_FILEPATH = 0x1951,        // (Char Array 256) file path and argument buffer
+       FIO_END = 0x1a51,        // end of file i/o hardware registers
 
 //  Keyboard Hardware Registers:
-     KEY_BEGIN = 0x1a51,        // start of keyboard hardware registers
-    CHAR_Q_LEN = 0x1a51,        // (char) # of characters waiting in queue       (Read Only)
-     CHAR_SCAN = 0x1a52,        // read next character in queue       (not popped when read)
-      CHAR_POP = 0x1a53,        // (char) next character waiting in queue (popped when read)
-   XKEY_BUFFER = 0x1a54,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-   EDT_BFR_CSR = 0x1a64,        // (Byte) cursor position within edit buffer    (Read/Write)
-    EDT_BUFFER = 0x1a65,        // (256 Bytes) line editing character buffer    (Read/Write)
-       KEY_END = 0x1b65,        // end of keyboard hardware registers
+     KEY_BEGIN = 0x1a52,        // start of keyboard hardware registers
+    CHAR_Q_LEN = 0x1a52,        // (char) # of characters waiting in queue       (Read Only)
+     CHAR_SCAN = 0x1a53,        // read next character in queue       (not popped when read)
+      CHAR_POP = 0x1a54,        // (char) next character waiting in queue (popped when read)
+   XKEY_BUFFER = 0x1a55,        // (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+   EDT_BFR_CSR = 0x1a65,        // (Byte) cursor position within edit buffer    (Read/Write)
+    EDT_BUFFER = 0x1a66,        // (256 Bytes) line editing character buffer    (Read/Write)
+       KEY_END = 0x1b66,        // end of keyboard hardware registers
 
 //  Gamepad Hardware Registers:
-    JOYS_BEGIN = 0x1b66,        // start of gamepad hardware registers
-    JOYS_1_BTN = 0x1b66,        // (Word) button bits: room for up to 16 buttons  (realtime)
-   JOYS_1_DBND = 0x1b68,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
-    JOYS_1_LTX = 0x1b69,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
-    JOYS_1_LTY = 0x1b6a,        // (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
-    JOYS_1_RTX = 0x1b6b,        // (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
-    JOYS_1_RTY = 0x1b6c,        // (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
-     JOYS_1_Z1 = 0x1b6d,        // (char) PAD 1 left trigger        (0 - 127)     (realtime)
-     JOYS_1_Z2 = 0x1b6e,        // (char) PAD 1 right trigger       (0 - 127)     (realtime)
+    JOYS_BEGIN = 0x1b67,        // start of gamepad hardware registers
+    JOYS_1_BTN = 0x1b67,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_1_DBND = 0x1b69,        // (Byte) PAD 1 analog deadband; default is 5   (read/write)
+    JOYS_1_LTX = 0x1b6a,        // (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_LTY = 0x1b6b,        // (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_1_RTX = 0x1b6c,        // (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_1_RTY = 0x1b6d,        // (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_1_Z1 = 0x1b6e,        // (char) PAD 1 left trigger        (0 - 127)     (realtime)
+     JOYS_1_Z2 = 0x1b6f,        // (char) PAD 1 right trigger       (0 - 127)     (realtime)
 
-    JOYS_2_BTN = 0x1b6f,        // (Word) button bits: room for up to 16 buttons  (realtime)
-   JOYS_2_DBND = 0x1b71,        // (Byte) PAD 2 analog deadband; default is 5   (read/write)
-    JOYS_2_LTX = 0x1b72,        // (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
-    JOYS_2_LTY = 0x1b73,        // (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
-    JOYS_2_RTX = 0x1b74,        // (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
-    JOYS_2_RTY = 0x1b75,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
-     JOYS_2_Z1 = 0x1b76,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
-     JOYS_2_Z2 = 0x1b77,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
-      JOYS_END = 0x1b78,        // end of gamepad hardware registers
+    JOYS_2_BTN = 0x1b70,        // (Word) button bits: room for up to 16 buttons  (realtime)
+   JOYS_2_DBND = 0x1b72,        // (Byte) PAD 2 analog deadband; default is 5   (read/write)
+    JOYS_2_LTX = 0x1b73,        // (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_LTY = 0x1b74,        // (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+    JOYS_2_RTX = 0x1b75,        // (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+    JOYS_2_RTY = 0x1b76,        // (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+     JOYS_2_Z1 = 0x1b77,        // (char) PAD 2 left trigger        (0 - 127)     (realtime)
+     JOYS_2_Z2 = 0x1b78,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
+      JOYS_END = 0x1b79,        // end of gamepad hardware registers
 
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1b79,        // Reserved 1154 bytes ($1B79 - $1FFB)
+  RESERVED_HDW = 0x1b7a,        // Reserved 1153 bytes ($1B7A - $1FFB)
 
 //  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
 //  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
@@ -309,6 +318,12 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
+
+
+
+
+
+
 
 #endif // __MEMORY_MAP__
 

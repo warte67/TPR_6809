@@ -167,21 +167,24 @@
 182B                  SPR_BEGIN       equ     $182b   ; Start of Sprite Hardware Registers
                       
                       ;  Sprite Flag Registers:
-182B                  SPR_DIS_ENA     equ     $182b   ; (4-Bytes) sprite Enable Bits. 1 bit per sprite
+182B                  SPR_ENABLE      equ     $182b   ; (4-Bytes) sprite Enable Bits. 1 bit per sprite
 182F                  SPR_COL_ENA     equ     $182f   ; (4-Bytes) sprite collision enable. 1 bit per sprite
 1833                  SPR_COL_TYP     equ     $1833   ; (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
                       
                       ;  Sprite Palette Registers:
-1837                  SPR_PAL_IDX     equ     $1837   ; (Byte) color palette index
-1838                  SPR_PAL_DAT     equ     $1838   ; (Word) indexed sprite palette entry color bits RGBA4444
+1837                  SPR_PAL_INDX    equ     $1837   ; (Byte) color palette index
+1838                  SPR_PAL_DATA    equ     $1838   ; (Word) indexed sprite palette entry color bits RGBA4444
                       
-                      ;  Sprite Indexed Registers:
-183A                  SPR_COL_DET     equ     $183a   ; (4-Bytes) Collision detection bits. One bit per colliding sprite.
-183E                  SPR_H_POS       equ     $183e   ; (Sint16) signed 16-bit integer
-1840                  SPR_V_POS       equ     $1840   ; (Sint16) signed 16-bit integer
-1842                  SPR_X_OFS       equ     $1842   ; (Sint8) signed 8-bit integer horizontal display offset
-1843                  SPR_Y_OFS       equ     $1843   ; (Sint8) signed 8-bit integer vertical display offset
-1844                  SPR_PRIO        equ     $1844   ; (Byte) Sprite Display Priority:
+                      ;  Sprite Index Register:
+183A                  SPR_INDEX       equ     $183a   ; (Byte) 0-31 indexes the 'current' sprite
+                      
+                      ;  Indexed Sprite Registers:
+183B                  SPR_COL_DET     equ     $183b   ; (4-Bytes) Collision detection bits. One bit per colliding sprite.
+183F                  SPR_H_POS       equ     $183f   ; (Sint16) signed 16-bit integer
+1841                  SPR_V_POS       equ     $1841   ; (Sint16) signed 16-bit integer
+1843                  SPR_X_OFS       equ     $1843   ; (Sint8) signed 8-bit integer horizontal display offset
+1844                  SPR_Y_OFS       equ     $1844   ; (Sint8) signed 8-bit integer vertical display offset
+1845                  SPR_PRIO        equ     $1845   ; (Byte) Sprite Display Priority:
                                                       ;      0) displays directly behind all foreground modes
                                                       ;      1) displays infront of Glyph32 layer 0 but all other foreground modes
                                                       ;      2) displays infront of Glyph32 layer 1 but all other foreground modes
@@ -192,18 +195,18 @@
                                                       ;      7) displays in sprite order
                       
                       ;  Sprite Indexed Bitmap Pixel Data:
-1845                  SPR_BMP_IDX     equ     $1845   ; (Byte) Sprite pixel offset (Y*16+X)
-1846                  SPR_BMP_DAT     equ     $1846   ; (Byte) Sprite color palette index data
+1846                  SPR_BMP_INDX    equ     $1846   ; (Byte) Sprite pixel offset (Y*16+X)
+1847                  SPR_BMP_DATA    equ     $1847   ; (Byte) Sprite color palette index data
                       
                       ;  End of Sprite Hardware Registers
-1846                  SPR_END equ     $1846   ; End of the Sprite Hardware Registers
+1847                  SPR_END equ     $1847   ; End of the Sprite Hardware Registers
                       
                       ;  End ofthe GFX Hardware Registers
-1847                  GFX_END equ     $1847   ; end of the GFX Hardware Registers
+1848                  GFX_END equ     $1848   ; end of the GFX Hardware Registers
                       
                       ;  File I/O Hardware Registers:
-1847                  FIO_BEGIN       equ     $1847   ; start of file i/o hardware registers
-1847                  FIO_ERR_FLAGS   equ     $1847   ; (Byte) file i/o system flags:
+1848                  FIO_BEGIN       equ     $1848   ; start of file i/o hardware registers
+1848                  FIO_ERR_FLAGS   equ     $1848   ; (Byte) file i/o system flags:
                                                       ;      bit 7:   file not found
                                                       ;      bit 6:  end of file
                                                       ;      bit 5:   buffer overrun
@@ -212,7 +215,7 @@
                                                       ;      bit 2: too many file handles
                                                       ;      bit 1: incorrect file handle
                                                       ;      bit 0: not yet assigned
-1848                  FIO_COMMAND     equ     $1848   ; (Byte) OnWrite - command to execute
+1849                  FIO_COMMAND     equ     $1849   ; (Byte) OnWrite - command to execute
                                                       ;      $00 = Reset/Null
                                                       ;      $01 = Open/Create Binary File for Reading
                                                       ;      $02 = Open/Create Binary File for Writing
@@ -238,49 +241,49 @@
                                                       ;      $16 = Seek End
                                                       ;      $17 = SYSTEM: Shutdown
                                                       ;      $18 = SYSTEM: Load Compilation Date
-1849                  FIO_HANDLE      equ     $1849   ; (Byte) file handle or ZERO
-184A                  FIO_BFROFS      equ     $184a   ; (Word) start of I/O buffer
-184B                  FIO_BFRLEN      equ     $184b   ; (Word) length of I/O buffer
-184D                  FIO_IODATA      equ     $184d   ; (Byte) input / output character
-184E                  FIO_RET_COUNT   equ     $184e   ; (Byte) number of return entries
-184F                  FIO_RET_INDEX   equ     $184f   ; (Byte) command return index
-1850                  FIO_RET_BUFFER  equ     $1850   ; (Char Array 256) paged return buffer
-1950                  FIO_FILEPATH    equ     $1950   ; (Char Array 256) file path and argument buffer
-1A50                  FIO_END equ     $1a50   ; end of file i/o hardware registers
+184A                  FIO_HANDLE      equ     $184a   ; (Byte) file handle or ZERO
+184B                  FIO_BFROFS      equ     $184b   ; (Word) start of I/O buffer
+184C                  FIO_BFRLEN      equ     $184c   ; (Word) length of I/O buffer
+184E                  FIO_IODATA      equ     $184e   ; (Byte) input / output character
+184F                  FIO_RET_COUNT   equ     $184f   ; (Byte) number of return entries
+1850                  FIO_RET_INDEX   equ     $1850   ; (Byte) command return index
+1851                  FIO_RET_BUFFER  equ     $1851   ; (Char Array 256) paged return buffer
+1951                  FIO_FILEPATH    equ     $1951   ; (Char Array 256) file path and argument buffer
+1A51                  FIO_END equ     $1a51   ; end of file i/o hardware registers
                       
                       ;  Keyboard Hardware Registers:
-1A51                  KEY_BEGIN       equ     $1a51   ; start of keyboard hardware registers
-1A51                  CHAR_Q_LEN      equ     $1a51   ; (char) # of characters waiting in queue       (Read Only)
-1A52                  CHAR_SCAN       equ     $1a52   ; read next character in queue       (not popped when read)
-1A53                  CHAR_POP        equ     $1a53   ; (char) next character waiting in queue (popped when read)
-1A54                  XKEY_BUFFER     equ     $1a54   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
-1A64                  EDT_BFR_CSR     equ     $1a64   ; (Byte) cursor position within edit buffer    (Read/Write)
-1A65                  EDT_BUFFER      equ     $1a65   ; (256 Bytes) line editing character buffer    (Read/Write)
-1B65                  KEY_END equ     $1b65   ; end of keyboard hardware registers
+1A52                  KEY_BEGIN       equ     $1a52   ; start of keyboard hardware registers
+1A52                  CHAR_Q_LEN      equ     $1a52   ; (char) # of characters waiting in queue       (Read Only)
+1A53                  CHAR_SCAN       equ     $1a53   ; read next character in queue       (not popped when read)
+1A54                  CHAR_POP        equ     $1a54   ; (char) next character waiting in queue (popped when read)
+1A55                  XKEY_BUFFER     equ     $1a55   ; (128 bits) 16 bytes for XK_KEY data buffer    (Read Only)
+1A65                  EDT_BFR_CSR     equ     $1a65   ; (Byte) cursor position within edit buffer    (Read/Write)
+1A66                  EDT_BUFFER      equ     $1a66   ; (256 Bytes) line editing character buffer    (Read/Write)
+1B66                  KEY_END equ     $1b66   ; end of keyboard hardware registers
                       
                       ;  Gamepad Hardware Registers:
-1B66                  JOYS_BEGIN      equ     $1b66   ; start of gamepad hardware registers
-1B66                  JOYS_1_BTN      equ     $1b66   ; (Word) button bits: room for up to 16 buttons  (realtime)
-1B68                  JOYS_1_DBND     equ     $1b68   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
-1B69                  JOYS_1_LTX      equ     $1b69   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
-1B6A                  JOYS_1_LTY      equ     $1b6a   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
-1B6B                  JOYS_1_RTX      equ     $1b6b   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
-1B6C                  JOYS_1_RTY      equ     $1b6c   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
-1B6D                  JOYS_1_Z1       equ     $1b6d   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
-1B6E                  JOYS_1_Z2       equ     $1b6e   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
+1B67                  JOYS_BEGIN      equ     $1b67   ; start of gamepad hardware registers
+1B67                  JOYS_1_BTN      equ     $1b67   ; (Word) button bits: room for up to 16 buttons  (realtime)
+1B69                  JOYS_1_DBND     equ     $1b69   ; (Byte) PAD 1 analog deadband; default is 5   (read/write)
+1B6A                  JOYS_1_LTX      equ     $1b6a   ; (char) PAD 1 LThumb-X position (-128 _ +127)   (realtime)
+1B6B                  JOYS_1_LTY      equ     $1b6b   ; (char) PAD 1 LThumb-Y position (-128 _ +127)   (realtime)
+1B6C                  JOYS_1_RTX      equ     $1b6c   ; (char) PAD 1 RThumb-X position (-128 _ +127)   (realtime)
+1B6D                  JOYS_1_RTY      equ     $1b6d   ; (char) PAD 1 RThumb-Y position (-128 _ +127)   (realtime)
+1B6E                  JOYS_1_Z1       equ     $1b6e   ; (char) PAD 1 left trigger        (0 - 127)     (realtime)
+1B6F                  JOYS_1_Z2       equ     $1b6f   ; (char) PAD 1 right trigger       (0 - 127)     (realtime)
                       
-1B6F                  JOYS_2_BTN      equ     $1b6f   ; (Word) button bits: room for up to 16 buttons  (realtime)
-1B71                  JOYS_2_DBND     equ     $1b71   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
-1B72                  JOYS_2_LTX      equ     $1b72   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
-1B73                  JOYS_2_LTY      equ     $1b73   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
-1B74                  JOYS_2_RTX      equ     $1b74   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
-1B75                  JOYS_2_RTY      equ     $1b75   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
-1B76                  JOYS_2_Z1       equ     $1b76   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
-1B77                  JOYS_2_Z2       equ     $1b77   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
-1B78                  JOYS_END        equ     $1b78   ; end of gamepad hardware registers
+1B70                  JOYS_2_BTN      equ     $1b70   ; (Word) button bits: room for up to 16 buttons  (realtime)
+1B72                  JOYS_2_DBND     equ     $1b72   ; (Byte) PAD 2 analog deadband; default is 5   (read/write)
+1B73                  JOYS_2_LTX      equ     $1b73   ; (char) PAD 2 LThumb-X position (-128 _ +127)   (realtime)
+1B74                  JOYS_2_LTY      equ     $1b74   ; (char) PAD 2 LThumb-Y position (-128 _ +127)   (realtime)
+1B75                  JOYS_2_RTX      equ     $1b75   ; (char) PAD 2 RThumb-X position (-128 _ +127)   (realtime)
+1B76                  JOYS_2_RTY      equ     $1b76   ; (char) PAD 2 RThumb-Y position (-128 _ +127)   (realtime)
+1B77                  JOYS_2_Z1       equ     $1b77   ; (char) PAD 2 left trigger        (0 - 127)     (realtime)
+1B78                  JOYS_2_Z2       equ     $1b78   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
+1B79                  JOYS_END        equ     $1b79   ; end of gamepad hardware registers
                       
                       ;  Reserved Hardware:
-1B79                  RESERVED_HDW    equ     $1b79   ; Reserved 1154 bytes ($1B79 - $1FFB)
+1B7A                  RESERVED_HDW    equ     $1b7a   ; Reserved 1153 bytes ($1B7A - $1FFB)
                       
                       ;  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
                       ;  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
@@ -307,7 +310,6 @@ FFF8                  HARD_IRQ        equ     $fff8   ; IRQ Hardware Interrupt V
 FFFA                  HARD_SWI        equ     $fffa   ; SWI / SYS Hardware Interrupt Vector
 FFFC                  HARD_NMI        equ     $fffc   ; NMI Hardware Interrupt Vector
 FFFE                  HARD_RESET      equ     $fffe   ; RESET Hardware Interrupt Vector
-                      
                       
                       ; **********************
                       ; * KERNEL ROM VERSION *
@@ -433,7 +435,7 @@ E07A  F6001A                          ldb     TCSR_ATTRIB     ; load the current
 E07D  ED84                            std     0,x             ; place the cursor onto the screen
                                       
                               ; check for a key in the queue
-E07F  B61A51                          lda     CHAR_Q_LEN      ; load the length of the key queue
+E07F  B61A52                          lda     CHAR_Q_LEN      ; load the length of the key queue
 E082  27C4                            beq     main_kernel     ; loop if nothing is queued
                       
                               ; delete the old cursor
@@ -443,7 +445,7 @@ E089  F6001B                          ldb     TEXT_ATTRIB     ; load the current
 E08C  ED84                            std     0,x             ; store the colored character at X (row/col)
                                       
                               ; display typed character
-E08E  B61A53                          lda     CHAR_POP        ; pop the last typed character  
+E08E  B61A54                          lda     CHAR_POP        ; pop the last typed character  
                               ; was [ENTER] pressed
 E091  810D                            cmpa    #$0D            ; check for [ENTER]
 E093  262F                            bne     2f              ; nope, that wasn't it. Skip ahead to 2
@@ -460,7 +462,7 @@ E0A0  BF0020                          stx     TCSR_EDT_ADR    ; save as the end 
                       ;               cmpx    TCSR_EDT_ADR
                       ;               blt     99b
                       ;       ; copy the string to the hardware buffer
-E0A3  108E1A65                        ldy     #EDT_BUFFER     ; Y: current hardware edit buffer
+E0A3  108E1A66                        ldy     #EDT_BUFFER     ; Y: current hardware edit buffer
 E0A7  BE001E                          ldx     TCSR_ANC_ADR    ; X: anchor or start of the edit string
 E0AA  A681            4               lda     ,x++            ; load the character from the screen
 E0AC  A7A0                            sta     ,y+             ; store it into the hardware edit buffer
@@ -504,8 +506,8 @@ E0F0  7EE048                          jmp     main_kernel     ; continue the mai
                       
 E0F3                  load_hex
 E0F3  8607                            lda     #$07            ; command: LoadHex
-E0F5  B71848                          sta     FIO_COMMAND     ; executre the command
-E0F8  B61847                          lda     FIO_ERR_FLAGS   ; load the errors flag
+E0F5  B71849                          sta     FIO_COMMAND     ; executre the command
+E0F8  B61848                          lda     FIO_ERR_FLAGS   ; load the errors flag
 E0FB  8180                            cmpa    #$80            ; test for bit: file not found?
 E0FD  2706                            beq     1f              ; dont call the sub if it wasnt loaded
 E0FF  8110                            cmpa    #$10            ; test for bit: file not found?
@@ -638,7 +640,7 @@ E1D3  39                              rts                     ; return
 E1D4                  shutdown        
                               ; shutdown the system
 E1D4  8617                            lda     #$17            ; $17 = SYSTEM: Shutdown
-E1D6  B71848                          sta     FIO_COMMAND     ; send the command 
+E1D6  B71849                          sta     FIO_COMMAND     ; send the command 
 E1D9  39                              rts
                       
 E1DA                  starting_screen 
@@ -658,8 +660,8 @@ E1EF  8EE56C                          ldx     #prompt_msg2
 E1F2  BDE198                          jsr     text_out                
                               ; display the compilation date
 E1F5  8618                            lda     #$18
-E1F7  B71848                          sta     FIO_COMMAND
-E1FA  8E1950                          ldx     #FIO_FILEPATH
+E1F7  B71849                          sta     FIO_COMMAND
+E1FA  8E1951                          ldx     #FIO_FILEPATH
 E1FD  BDE198                          jsr     text_out        
                               ; display more of the text prompt
 E200  8EE576                          ldx     #prompt_msg3
@@ -701,9 +703,9 @@ E242  39                              rts
                       
 E243                  get_argument_attrib     
                               ; set text attribute from cmd argument
-E243  7D1950                          tst     FIO_FILEPATH
+E243  7D1951                          tst     FIO_FILEPATH
 E246  10270047                        lbeq    13f
-E24A  B61950                          lda     FIO_FILEPATH
+E24A  B61951                          lda     FIO_FILEPATH
 E24D  8A20                            ora     #$20            ; force lower case
 E24F  8161                            cmpa    #'a'
 E251  2D0A                            blt     101f
@@ -717,7 +719,7 @@ E25F  2D30                            blt     13f             ; invalid, just us
 E261  8139                            cmpa    #'9'
 E263  2E2C                            bgt     13f             ; also invalid
 E265  8030                            suba    #'0'
-E267  F61951          102             ldb     FIO_FILEPATH+1
+E267  F61952          102             ldb     FIO_FILEPATH+1
 E26A  CA20                            orb     #$20            ; force lower case
 E26C  C161                            cmpb    #'a'
 E26E  2D0A                            blt     103f
@@ -742,7 +744,7 @@ E291  39              13              rts
                       
 E292                  execute_command
                               ; parse and run the string that is currently in the hardware EDT_BUFFER register
-E292  B61A65                          lda     EDT_BUFFER
+E292  B61A66                          lda     EDT_BUFFER
 E295  8120                            cmpa    #$20
 E297  1027018E                        lbeq    1000f
 E29B  860A                            lda     #$0a
@@ -784,7 +786,7 @@ E2F7  8602                            lda     #$02            ; load the default
 E2F9  BDE219                          jsr     ok_prompt
 E2FC  39                              rts
 E2FD                  3 ; exec                        
-E2FD  B61847                          lda     FIO_ERR_FLAGS   ; load the errors flag
+E2FD  B61848                          lda     FIO_ERR_FLAGS   ; load the errors flag
 E300  8480                            anda    #$80            ; test for bit: file not found?         
 E302  4D                              tsta    
 E303  261F                            bne     31f             ; dont call the sub if it wasnt loaded
@@ -809,7 +811,7 @@ E327  39                              rts
                       
 E328                  4 ; reset
 E328  8600                            lda     #$00            ; $00 = Reset/Null
-E32A  B71848                          sta     FIO_COMMAND     ; send the command
+E32A  B71849                          sta     FIO_COMMAND     ; send the command
 E32D  39                              rts
                       
 E32E                  5 ; exit
@@ -821,7 +823,7 @@ E333                  6 ; screen <arg>
                               ; $31 = 1       64x40
                               ; $32 = 2       128x80 bitmap mode
                               ; check the argument
-E333  B61950                          lda     FIO_FILEPATH
+E333  B61951                          lda     FIO_FILEPATH
 E336  8130                            cmpa    #'0'            ; mode 0 = 32x20 
 E338  2712                            beq     60f
 E33A  8131                            cmpa    #'1'            ; mode 0 = 32x20 
@@ -858,13 +860,13 @@ E379  7EE328                          jmp     4b              ; system: reset
                       
 E37C                  7 ; dir
 E37C  860C                            lda     #$0c            ; list files
-E37E  B71848                          sta     FIO_COMMAND
+E37E  B71849                          sta     FIO_COMMAND
 E381  4F                              clra
-E382  8E1850                          ldx     #FIO_RET_BUFFER
-E385  B7184F          71              sta     FIO_RET_INDEX   ; get the File[A]
+E382  8E1851                          ldx     #FIO_RET_BUFFER
+E385  B71850          71              sta     FIO_RET_INDEX   ; get the File[A]
 E388  BDE198                          jsr     text_out        ; send it to the screen
 E38B  4C                              inca    
-E38C  B1184E                          cmpa    FIO_RET_COUNT   ; how many entries?
+E38C  B1184F                          cmpa    FIO_RET_COUNT   ; how many entries?
 E38F  26F4                            bne     71b             
 E391  860A                            lda     #$0A
 E393  AD9F0014                        jsr     [KVEC_CHAROUT]
@@ -873,8 +875,8 @@ E39A  39                              rts
                       
 E39B                  8 ; chdir
 E39B  860E                            lda     #$0e            ; $0E = command "CHDIR"
-E39D  B71848                          sta     FIO_COMMAND
-E3A0  B61847                          lda     FIO_ERR_FLAGS
+E39D  B71849                          sta     FIO_COMMAND
+E3A0  B61848                          lda     FIO_ERR_FLAGS
 E3A3  8408                            anda    #$08            ; directory not found
 E3A5  8108                            cmpa    #$08
 E3A7  2606                            bne     81f             ; nope, just end
@@ -895,7 +897,7 @@ E3C0  BDE219                          jsr     ok_prompt
 E3C3  39                              rts             
                                       
 E3C4                  debug_10 ; debug                        
-E3C4  B61847                          lda     FIO_ERR_FLAGS   ; load the errors flag
+E3C4  B61848                          lda     FIO_ERR_FLAGS   ; load the errors flag
 E3C7  8480                            anda    #$80            ; test for bit: file not found?         
 E3C9  4D                              tsta    
 E3CA  261F                            bne     101f            ; dont call the sub if it wasnt loaded
@@ -925,7 +927,7 @@ E3FF  8620                            lda     #' '
 E401  AD9F0014                        jsr     [KVEC_CHAROUT]
 E405  8622                            lda     #$22            ; "
 E407  AD9F0014                        jsr     [KVEC_CHAROUT]
-E40B  8E1A65                          ldx     #EDT_BUFFER
+E40B  8E1A66                          ldx     #EDT_BUFFER
 E40E  BDE198                          jsr     text_out
 E411  8622                            lda     #$22            ; "
 E413  AD9F0014                        jsr     [KVEC_CHAROUT]
@@ -941,13 +943,13 @@ E429  39                              rts
 E42A                  fetch_cl_argument       
                               ; copy everything past the first space character to FIO_FILEPATH
 E42A  3432                            pshs    A, X, Y
-E42C  8E1A65                          ldx     #EDT_BUFFER
-E42F  108E1950                        ldy     #FIO_FILEPATH
+E42C  8E1A66                          ldx     #EDT_BUFFER
+E42F  108E1951                        ldy     #FIO_FILEPATH
 E433                  1 ; look for space
 E433  A680                            lda     ,X+
 E435  8120                            cmpa    #' '
 E437  2705                            beq     2f              ; copy the argument
-E439  8C1B64                          cmpx    #EDT_BUFFER+255
+E439  8C1B65                          cmpx    #EDT_BUFFER+255
 E43C  26F5                            bne     1b
 E43E                  2 ; loop through the argument
 E43E  6F1F                            clr     -1,X
@@ -955,7 +957,7 @@ E440  A680                            lda     ,X+
 E442  A7A0                            sta     ,Y+
 E444  4D                              tsta
 E445  2706                            beq     3f      
-E447  108C1A4F                        cmpy    #FIO_FILEPATH+255
+E447  108C1A50                        cmpy    #FIO_FILEPATH+255
 E44B  26F1                            bne     2b
 E44D  3532            3               puls    A, X, Y
 E44F  39                              rts
@@ -970,7 +972,7 @@ E455  8601                            lda     #1              ; RET = 1
 E457  3402                            pshs    A               ; push local RET onto the stack
 E459  4F                              clra                    ; A = Working Accumilator                       
 E45A  5F                              clrb                    ; B = EDT_BUFFER[B] index
-E45B  8E1A65                          ldx     #EDT_BUFFER     ; X = EDT_BUFFER[0]
+E45B  8E1A66                          ldx     #EDT_BUFFER     ; X = EDT_BUFFER[0]
 E45E  108EE504                        ldy     #command_LUT    ; Y points to the position within the lookup table
 E462                  1 ; loop:       
 E462  A685                            lda     B, X            ; load A from EDT_BUFFER[X]                             

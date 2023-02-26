@@ -18,7 +18,7 @@ public:
 	GfxSprite();
 	virtual ~GfxSprite();
 
-	virtual Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+	virtual Byte OnCallback(GfxMode* memDev, Word ofs, Byte data, bool bWasRead)  override;
 	static Word MapDevice(MemoryMap* memmap, Word offset);
 	// static members
 
@@ -35,11 +35,13 @@ public:
 
 private:
 
+	// bool bIsDirty = true;
+
 	SDL_Texture* _tile_texture = nullptr;
 	std::vector<GFX::PALETTE> default_palette;
 
 	std::vector<GFX::PALETTE> palette256;
-	static Uint8 m_palette_index;
+	Uint8 m_palette_index;
 	Uint8 red(Uint8 index) { Uint8 c = palette256[index].r;  return c | (c << 4) | (c << 8) | (c << 12); }
 	Uint8 grn(Uint8 index) { Uint8 c = palette256[index].g;  return c | (c << 4) | (c << 8) | (c << 12); }
 	Uint8 blu(Uint8 index) { Uint8 c = palette256[index].b;  return c | (c << 4) | (c << 8) | (c << 12); }
@@ -51,6 +53,14 @@ private:
 	Uint32 spr_col_ena	= 0;		// 32-sprite bit-fields
 	Uint32 spr_col_typ	= 0;		// 32-sprite bit-fields
 
+#define SPRITE_MAX 32
+	Byte spr_index = 0;							// sprite index (0-31)
+	Uint32 spr_col_det[SPRITE_MAX]	{ 0 };		// 32-bit sprite bitfields
+	Sint16 spr_h_pos[SPRITE_MAX]	{ 0 };		// 16-bit signed horizontal position
+	Sint16 spr_v_pos[SPRITE_MAX]	{ 0 };		// 16-bit signed vertical position
+	Sint8 spr_x_ofs[SPRITE_MAX]		{ 0 };		// 8-bit signed horizontal offset
+	Sint8 spr_y_ofs[SPRITE_MAX]		{ 0 };		// 8-bit signed vertical offset
+	Uint8 spr_prio[SPRITE_MAX]		{ 0 };		// 8-bit unsigned sprite priority
 
 };
 
@@ -67,42 +77,44 @@ class Sprite
 
 
 
-//		//  Sprite Hardware Registers:
-//		     SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
+//		 //  Sprite Hardware Registers:
+//		SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
 //		
 //		//  Sprite Flag Registers:
-//		   SPR_ENABLE = 0x182b,			// (4-Bytes) sprite Enable Bits. 1 bit per sprite
-//		   SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
-//		   SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
+//		SPR_ENABLE = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+//		SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
+//		SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
 //		
 //		//  Sprite Palette Registers:
-//		   SPR_PAL_IDX = 0x1837,        // (Byte) color palette index
-//		   SPR_PAL_DAT = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
+//		SPR_PAL_INDX = 0x1837,        // (Byte) color palette index
+//		SPR_PAL_DATA = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
 //		
-//		//  Sprite Indexed Registers:
-//		   SPR_COL_DET = 0x183a,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
-//		     SPR_H_POS = 0x183e,        // (Sint16) signed 16-bit integer
-//		     SPR_V_POS = 0x1840,        // (Sint16) signed 16-bit integer
-//		     SPR_X_OFS = 0x1842,        // (Sint8) signed 8-bit integer horizontal display offset
-//		     SPR_Y_OFS = 0x1843,        // (Sint8) signed 8-bit integer vertical display offset
-//		      SPR_PRIO = 0x1844,        // (Byte) Sprite Display Priority:
-//		                                //      0) displays directly behind all foreground modes
-//		                                //      1) displays infront of Glyph32 layer 0 but all other foreground modes
-//		                                //      2) displays infront of Glyph32 layer 1 but all other foreground modes
-//		                                //      3) displays infront of Glyph32 layer 2 but all other foreground modes
-//		                                //      4) displays infront of Glyph32 layer 3 but all other foreground modes
-//		                                //      5) displays infront of Debug layer, but behind the mouse cursor
-//		                                //      6) displays infront of Mouse Cursor layer (in index order)
-//		                                //      7) displays in sprite order
+//		//  Sprite Index Register:
+//		SPR_INDEX = 0x183a,        // (Byte) 0-31 indexes the 'current' sprite
+//		
+//		//  Indexed Sprite Registers:
+//		SPR_COL_DET = 0x183b,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
+//		SPR_H_POS = 0x183f,        // (Sint16) signed 16-bit integer
+//		SPR_V_POS = 0x1841,        // (Sint16) signed 16-bit integer
+//		SPR_X_OFS = 0x1843,        // (Sint8) signed 8-bit integer horizontal display offset
+//		SPR_Y_OFS = 0x1844,        // (Sint8) signed 8-bit integer vertical display offset
+//		SPR_PRIO = 0x1845,        // (Byte) Sprite Display Priority:
+//		//      0) displays directly behind all foreground modes
+//		//      1) displays infront of Glyph32 layer 0 but all other foreground modes
+//		//      2) displays infront of Glyph32 layer 1 but all other foreground modes
+//		//      3) displays infront of Glyph32 layer 2 but all other foreground modes
+//		//      4) displays infront of Glyph32 layer 3 but all other foreground modes
+//		//      5) displays infront of Debug layer, but behind the mouse cursor
+//		//      6) displays infront of Mouse Cursor layer (in index order)
+//		//      7) displays in sprite order
 //		
 //		//  Sprite Indexed Bitmap Pixel Data:
-//		   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
-//		   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
+//		SPR_BMP_INDX = 0x1846,        // (Byte) Sprite pixel offset (Y*16+X)
+//		SPR_BMP_DATA = 0x1847,        // (Byte) Sprite color palette index data
 //		
 //		//  End of Sprite Hardware Registers
-//		       SPR_END = 0x1846,        // End of the Sprite Hardware Registers
-//		
-
+//		SPR_END = 0x1847,        // End of the Sprite Hardware Registers
+//	
 
 
 /**** SPRITE SUB-SYSTEM NOTES: ****************************************************

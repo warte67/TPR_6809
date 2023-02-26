@@ -12,51 +12,58 @@
 #include "GfxMode.h"
 #include "GfxSprite.h"
 
- //		//  Sprite Hardware Registers:
- //		     SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
- //		
- //		//  Sprite Flag Registers:
- //		   SPR_ENABLE = 0x182b,         // (4-Bytes) sprite Enable Bits. 1 bit per sprite
- //		   SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
- //		   SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
- //		
- //		//  Sprite Palette Registers:
- //		   SPR_PAL_IDX = 0x1837,        // (Byte) color palette index
- //		   SPR_PAL_DAT = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
- //		
- //		//  Sprite Indexed Registers:
- //		   SPR_COL_DET = 0x183a,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
- //		     SPR_H_POS = 0x183e,        // (Sint16) signed 16-bit integer
- //		     SPR_V_POS = 0x1840,        // (Sint16) signed 16-bit integer
- //		     SPR_X_OFS = 0x1842,        // (Sint8) signed 8-bit integer horizontal display offset
- //		     SPR_Y_OFS = 0x1843,        // (Sint8) signed 8-bit integer vertical display offset
- //		      SPR_PRIO = 0x1844,        // (Byte) Sprite Display Priority:
- //		                                //      0) displays directly behind all foreground modes
- //		                                //      1) displays infront of Glyph32 layer 0 but all other foreground modes
- //		                                //      2) displays infront of Glyph32 layer 1 but all other foreground modes
- //		                                //      3) displays infront of Glyph32 layer 2 but all other foreground modes
- //		                                //      4) displays infront of Glyph32 layer 3 but all other foreground modes
- //		                                //      5) displays infront of Debug layer, but behind the mouse cursor
- //		                                //      6) displays infront of Mouse Cursor layer (in index order)
- //		                                //      7) displays in sprite order
- //		
- //		//  Sprite Indexed Bitmap Pixel Data:
- //		   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
- //		   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
- //		
- //		//  End of Sprite Hardware Registers
- //		       SPR_END = 0x1846,        // End of the Sprite Hardware Registers
- //		
+
+//		 //  Sprite Hardware Registers:
+//		SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
+//		
+//		//  Sprite Flag Registers:
+//		SPR_ENABLE = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
+//		SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
+//		SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
+//		
+//		//  Sprite Palette Registers:
+//		SPR_PAL_INDX = 0x1837,        // (Byte) color palette index
+//		SPR_PAL_DATA = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
+//		
+//		//  Sprite Index Register:
+//		SPR_INDEX = 0x183a,        // (Byte) 0-31 indexes the 'current' sprite
+//		
+//		//  Indexed Sprite Registers:
+//		SPR_COL_DET = 0x183b,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
+//		SPR_H_POS = 0x183f,        // (Sint16) signed 16-bit integer
+//		SPR_V_POS = 0x1841,        // (Sint16) signed 16-bit integer
+//		SPR_X_OFS = 0x1843,        // (Sint8) signed 8-bit integer horizontal display offset
+//		SPR_Y_OFS = 0x1844,        // (Sint8) signed 8-bit integer vertical display offset
+//		SPR_PRIO = 0x1845,        // (Byte) Sprite Display Priority:
+//		//      0) displays directly behind all foreground modes
+//		//      1) displays infront of Glyph32 layer 0 but all other foreground modes
+//		//      2) displays infront of Glyph32 layer 1 but all other foreground modes
+//		//      3) displays infront of Glyph32 layer 2 but all other foreground modes
+//		//      4) displays infront of Glyph32 layer 3 but all other foreground modes
+//		//      5) displays infront of Debug layer, but behind the mouse cursor
+//		//      6) displays infront of Mouse Cursor layer (in index order)
+//		//      7) displays in sprite order
+//		
+//		//  Sprite Indexed Bitmap Pixel Data:
+//		SPR_BMP_INDX = 0x1846,        // (Byte) Sprite pixel offset (Y*16+X)
+//		SPR_BMP_DATA = 0x1847,        // (Byte) Sprite color palette index data
+//		
+//		//  End of Sprite Hardware Registers
+//		SPR_END = 0x1847,        // End of the Sprite Hardware Registers
+//		
 
  // Graphics Mode Unique Callback Function:
-Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
+Byte GfxSprite::OnCallback(GfxMode* memDev, Word ofs, Byte data, bool bWasRead)
 {
 	//printf("GfxSprite::OnCallback($%04X)\n", ofs);
 
-	// flag enable registers (SPR_ENABLE, SPR_COL_ENA, and SPR_COL_TYP)
-	Uint32 wb = (3 - (ofs - SPR_ENABLE)) * 8;
+	Bus* bus = Bus::getInstance();
+	//GfxSprite* ptrSprite = dynamic_cast<GfxSprite*>(memDev);
+
+	// flag enable registers (SPR_ENABLE, SPR_COL_ENA, and SPR_COL_TYP)	
 	if (ofs >= SPR_ENABLE && ofs <= SPR_ENABLE + 3)
 	{
+		Uint32 wb = (3 - (ofs - SPR_ENABLE)) * 8;
 		if (bWasRead)	
 			return (spr_enable >> wb) & 0xFF;
 		else
@@ -70,6 +77,7 @@ Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 	}
 	if (ofs >= SPR_COL_ENA && ofs <= SPR_COL_ENA + 3)
 	{
+		Uint32 wb = (3 - (ofs - SPR_ENABLE)) * 8;
 		if (bWasRead)
 			return (spr_col_ena >> wb) & 0xFF;
 		else
@@ -83,6 +91,7 @@ Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 	}
 	if (ofs >= SPR_COL_TYP && ofs <= SPR_COL_TYP + 3)
 	{
+		Uint32 wb = (3 - (ofs - SPR_ENABLE)) * 8;
 		if (bWasRead)
 			return (spr_col_typ >> wb) & 0xFF;
 		else
@@ -95,9 +104,192 @@ Byte GfxSprite::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 		}
 	}
 
+	//  Sprite Palette Registers:
+	if (ofs == SPR_PAL_INDX)
+	{
+		if (bWasRead)
+		{	// READ
+			bus->debug_write(ofs, data);
+			return m_palette_index = data;
+		}
+		else
+		{	// WRITE
+			bus->debug_write(ofs, data);
+			m_palette_index = data;
+		}
+	}
+	if (ofs >= SPR_PAL_DATA && ofs <= SPR_PAL_DATA + 1)
+	{
+		if (bWasRead)
+		{	// READ
+			if (ofs == SPR_PAL_DATA)
+			{
+				data = palette256[m_palette_index].color >> 8;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+			if (ofs == SPR_PAL_DATA + 1)
+			{
+				data = palette256[m_palette_index].color & 0xFF;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+		}
+		else
+		{	// WRITE
+			if (ofs == SPR_PAL_DATA)
+			{
+				bus->debug_write(ofs, data);
+				palette256[m_palette_index].color =
+					(palette256[m_palette_index].color & 0x00FF) | (data << 8);
+				// FORCE REFRESH
+				// bIsDirty = true;
+			}
+			if (ofs == SPR_PAL_DATA + 1)
+			{
+				bus->debug_write(ofs, data);
+				palette256[m_palette_index].color =
+					(palette256[m_palette_index].color & 0xFF00) | (data << 0);
+				// FORCE REFRESH
+				// bIsDirty = true;
+			}
+		}
+	}
 
+	// sprite index register
+	if (ofs == SPR_INDEX)
+	{
+		if (bWasRead)
+		{	// READ
+			data = spr_index % SPRITE_MAX;
+			bus->debug_write(ofs, data);
+			return data;
+		}
+		else
+		{	// WRITE
+			spr_index = data % SPRITE_MAX;
+			bus->debug_write(ofs, data);
+		}
+	}
 
+	// indexed sprite registers
+	if (ofs >= SPR_COL_DET && ofs <= SPR_COL_DET + 3)
+	{
+		Uint32 wb = (3 - (ofs - SPR_COL_DET)) * 8;
+		if (bWasRead)
+		{	// READ
+			data = (spr_col_det[spr_index] >> wb) & 0xFF;
+			bus->debug_write(ofs, data);
+			return data;
+		}
+		else
+		{	// WRITE
+			Uint32 mask = 0xFF << wb;
+			spr_col_det[spr_index] &= ~mask;			// AND out old byte
+			spr_col_det[spr_index] |= (data << wb);		// OR in new data							
+			bus->debug_write(ofs, data);
+			printf("SPR_COL_DET[$%02X]: $%08X\n", spr_index, spr_col_det[spr_index]);
+		}
+	}	
+	if (ofs >= SPR_H_POS && ofs <= SPR_H_POS + 1)
+	{
+		if (bWasRead)
+		{	// READ
+			if (ofs == SPR_H_POS)
+			{	// Most Significant Byte
+				data = (spr_h_pos[spr_index] >> 8) & 0xFF;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+			if (ofs == SPR_H_POS + 1)
+			{	// Least Significant Byte
+				data = (spr_h_pos[spr_index] >> 0) & 0xFF;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+		}
+		else
+		{	// WRITE
+			if (ofs == SPR_H_POS)
+			{	// Most Significant Byte					
+				spr_h_pos[spr_index] &= 0x00ff;
+				spr_h_pos[spr_index] |= (data << 8);
+				bus->debug_write(ofs, data);
+			}
+			if (ofs == SPR_H_POS + 1)
+			{	// Least Significant Byte
+				spr_h_pos[spr_index] &= 0xff00;
+				spr_h_pos[spr_index] |= (data << 0);
+				bus->debug_write(ofs, data);
+			}
+		}
+	}
+	if (ofs >= SPR_V_POS && ofs <= SPR_V_POS + 1)
+	{
+		if (bWasRead)
+		{	// READ
+			if (ofs == SPR_V_POS)
+			{	// Most Significant Byte
+				data = (spr_v_pos[spr_index] >> 8) & 0xFF;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+			if (ofs == SPR_V_POS + 1)
+			{	// Least Significant Byte
+				data = (spr_v_pos[spr_index] >> 0) & 0xFF;
+				bus->debug_write(ofs, data);
+				return data;
+			}
+		}
+		else
+		{	// WRITE
+			if (ofs == SPR_V_POS)
+			{	// Most Significant Byte					
+				spr_v_pos[spr_index] &= 0x00ff;
+				spr_v_pos[spr_index] |= (data << 8);
+				bus->debug_write(ofs, data);
+			}
+			if (ofs == SPR_V_POS + 1)
+			{	// Least Significant Byte
+				spr_v_pos[spr_index] &= 0xff00;
+				spr_v_pos[spr_index] |= (data << 0);
+				bus->debug_write(ofs, data);
+			}
+		}
+	}
+	if (ofs == SPR_X_OFS || ofs == SPR_Y_OFS || ofs == SPR_PRIO)
+	{
+		if (bWasRead)
+		{	// READ
+			if (ofs == SPR_X_OFS)
+				data = spr_x_ofs[spr_index];
+			if (ofs == SPR_Y_OFS)
+				data = spr_y_ofs[spr_index];
+			if (ofs == SPR_PRIO)
+				data = spr_prio[spr_index];
+			bus->debug_write(ofs, data);
+		}
+		else
+		{	// WRITE 
+			bus->debug_write(ofs, data);
+			if (ofs == SPR_X_OFS)
+				spr_x_ofs[spr_index] = data;
+			if (ofs == SPR_Y_OFS)
+				spr_y_ofs[spr_index] = data;
+			if (ofs == SPR_PRIO)
+				spr_prio[spr_index] = data;
+		}
+	}
 
+	//  Sprite Indexed Bitmap Pixel Data
+			//		   SPR_BMP_IDX = 0x1845,        // (Byte) Sprite pixel offset (Y*16+X)
+			//		   SPR_BMP_DAT = 0x1846,        // (Byte) Sprite color palette index data
+	//if (bWasRead)
+	//{	// READ
+	//}
+	//else
+	//{	// WRITE
+	//}
 
 	return data;
 }
@@ -122,11 +314,15 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 
 	memmap->push({ offset, "", "Sprite Palette Registers:" }); offset += 0;
-	memmap->push({ offset, "SPR_PAL_IDX",	"(Byte) color palette index" }); offset += 1;
-	memmap->push({ offset, "SPR_PAL_DAT",	"(Word) indexed sprite palette entry color bits RGBA4444" }); offset += 2;
+	memmap->push({ offset, "SPR_PAL_INDX",	"(Byte) color palette index" }); offset += 1;
+	memmap->push({ offset, "SPR_PAL_DATA",	"(Word) indexed sprite palette entry color bits RGBA4444" }); offset += 2;
 	memmap->push({ offset, "", "" }); offset += 0;
 
-	memmap->push({ offset, "", "Sprite Indexed Registers:" }); offset += 0;
+	memmap->push({ offset, "", "Sprite Index Register:" }); offset += 0;
+	memmap->push({ offset, "SPR_INDEX",	"(Byte) 0-31 indexes the 'current' sprite" }); offset += 1;
+	memmap->push({ offset, "", "" }); offset += 0;
+
+	memmap->push({ offset, "", "Indexed Sprite Registers:" }); offset += 0;
 	memmap->push({ offset, "SPR_COL_DET",	"(4-Bytes) Collision detection bits. One bit per colliding sprite." }); offset += 4;
 	memmap->push({ offset, "SPR_H_POS",		"(Sint16) signed 16-bit integer" }); offset += 2;
 	memmap->push({ offset, "SPR_V_POS",		"(Sint16) signed 16-bit integer" }); offset += 2;
@@ -144,8 +340,8 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 	memmap->push({ offset, "", "" }); offset += 0;
 
 	memmap->push({ offset, "", "Sprite Indexed Bitmap Pixel Data:" }); offset += 0;
-	memmap->push({ offset, "SPR_BMP_IDX",	"(Byte) Sprite pixel offset (Y*16+X)" }); offset += 1;
-	memmap->push({ offset, "SPR_BMP_DAT",	"(Byte) Sprite color palette index data" }); offset += 1;
+	memmap->push({ offset, "SPR_BMP_INDX",	"(Byte) Sprite pixel offset (Y*16+X)" }); offset += 1;
+	memmap->push({ offset, "SPR_BMP_DATA",	"(Byte) Sprite color palette index data" }); offset += 1;
 
 	memmap->push({ offset, "", "" }); offset += 0;
 	memmap->push({ offset, "", "End of Sprite Hardware Registers" }); offset += 0;
