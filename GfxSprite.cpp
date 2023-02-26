@@ -365,21 +365,31 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 
 GfxSprite::GfxSprite()
 {
-	//printf("GfxSprite::GfxSprite()\n");
+	printf("GfxSprite::GfxSprite()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
 GfxSprite::~GfxSprite()
 {
-	//printf("GfxSprite::~GfxSprite()\n");
+	printf("GfxSprite::~GfxSprite()\n");
 }
 
 
-void GfxSprite::OnInitialize()
+void GfxSprite::OnInitialize()		// -> OnQuit()
 {
-	//printf("GfxSprite::OnInitialize()\n");
+	printf("GfxSprite::OnInitialize()\n");
 
+	// create 32 blank sprites
+	for (int t = 0; t < SPRITE_MAX; t++)
+	{
+		Sprite* newSprite = new Sprite(this);
+		newSprite->bus = Bus::getInstance();
+		newSprite->gfx = bus->m_gfx;
+		sprites.push_back(newSprite);
+	}
+
+	// create a default 256-color palette
 	if (palette256.size() == 0)
 	{
 		std::vector<GFX::PALETTE> ref = {
@@ -500,40 +510,32 @@ void GfxSprite::OnInitialize()
 	}
 }
 
-void GfxSprite::OnActivate()
+void GfxSprite::OnActivate()		// <- OnDeactivate()
 {
-	//printf("GfxSprite::OnActivate()\n");
+	printf("GfxSprite::OnActivate()\n");
 }
-void GfxSprite::OnDeactivate()
+void GfxSprite::OnDeactivate()		// -> OnActivate()
 {
-	//printf("GfxSprite::OnDeactivate()\n");
-}
-
-void GfxSprite::OnQuit()
-{
-	//printf("GfxSprite::OnQuit()\n");
+	printf("GfxSprite::OnDeactivate()\n");
 }
 
-void GfxSprite::OnCreate()
+void GfxSprite::OnQuit()			// <- OnInitialize()
 {
-	//printf("GfxSprite::OnCreate()\n");
+	printf("GfxSprite::OnQuit()\n");
 
-	// create the sprite textures
-	// ...
-
-	// not yet sure what to do here... const low res, const hi-res, or dynamic?
-	// ...
-
+	// destroy 32 sprites
+	for (int t = 0; t < sprites.size(); t++)
+		delete sprites[t];
+	sprites.clear();
 }
-void GfxSprite::OnDestroy()
+
+void GfxSprite::OnCreate()			// -> OnDestroy()
 {
-	//printf("GfxSprite::OnDestroy()\n");
-
-	// destroy the tile textures
-	// ...
-
-	// not yet sure what to do here... const low res, const hi-res, dynamic, or simply individual sprites
-	// ...
+	printf("GfxSprite::OnCreate()\n");
+}
+void GfxSprite::OnDestroy()			// <- OnCreate()
+{
+	printf("GfxSprite::OnDestroy()\n");
 }
 
 
@@ -586,4 +588,56 @@ void GfxSprite::OnRender()
 
 	*****************************************************************/
 
+}
+
+
+
+
+
+
+// **** SPRITE METHOD IMPLEMENTAION ******************************************
+
+Sprite::Sprite(GfxSprite* p)
+{
+	//printf("Sprite::Sprite()\n");
+	gfx_sprite = p;
+	bus = Bus::getInstance();
+	gfx = bus->m_gfx;
+	OnCreate();
+}
+Sprite::~Sprite()
+{
+	//printf("Sprite::~Sprite()\n");
+	this->OnDestroy();
+}
+void Sprite::OnCreate()
+{
+	//printf("Sprite::OnCreate()\n");
+}
+void Sprite::OnDestroy()
+{
+	//printf("Sprite::OnDestroy()\n");
+}
+
+
+
+// ***** NOTE: these two may not be needed. **************
+void Sprite::OnActivate()
+{
+	printf("Sprite::OnActivate()\n");
+}
+void Sprite::OnDeactivate()
+{
+	printf("Sprite::OnDeactivate()\n");
+}
+// ***** NOTE: these two may not be needed. **************
+
+
+
+
+void Sprite::OnUpdate(float fElapsedTime)
+{
+}
+void Sprite::OnRender()
+{
 }

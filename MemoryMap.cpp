@@ -72,7 +72,8 @@ Word MemoryMap::end(Word offset)
 	bool bError = false;
 
 	//// Hardware Register Upper Bounds Checking:
-	Word _n = (0x2000 - 5);
+	Word _n = (0x2000 - 3);
+	//Word _n = (0x2000 - 5);
 
 
 	//// map temporary RAM to fillin where the hardware definitions lack

@@ -11,7 +11,7 @@
 
 class Sprite;
 
-
+// sprite container class
 class GfxSprite : public GfxMode
 {
 public:
@@ -53,8 +53,10 @@ private:
 	Uint32 spr_col_ena	= 0;		// 32-sprite bit-fields
 	Uint32 spr_col_typ	= 0;		// 32-sprite bit-fields
 
-#define SPRITE_MAX 32
-	Byte spr_index = 0;							// sprite index (0-31)
+#define SPRITE_MAX 32				// bitfields restrict sprites to 32 total
+	Byte spr_index = 0;				// current sprite index (0-31)
+
+	// this data should be stored within the individual sprites (move 'em there)
 	Uint32 spr_col_det[SPRITE_MAX]	{ 0 };		// 32-bit sprite bitfields
 	Sint16 spr_h_pos[SPRITE_MAX]	{ 0 };		// 16-bit signed horizontal position
 	Sint16 spr_v_pos[SPRITE_MAX]	{ 0 };		// 16-bit signed vertical position
@@ -62,15 +64,49 @@ private:
 	Sint8 spr_y_ofs[SPRITE_MAX]		{ 0 };		// 8-bit signed vertical offset
 	Uint8 spr_prio[SPRITE_MAX]		{ 0 };		// 8-bit unsigned sprite priority
 
+	// move these to the individual Sprite objects contained within the sprites vector
 	Byte spr_bmp_index[SPRITE_MAX]		{ 0 };	// sprite bitmap pixel index (Y*16+X)
 	Byte spr_bmp_data[SPRITE_MAX][256]	{ 0 };	// sprite bitmap color data
+
+	// Sprite data
+	std::vector<Sprite*> sprites;
 };
 
 
-
+// The sprite class contains the individual sprites and their actual texture image data
 class Sprite
 {
+	friend GfxSprite;
 
+public:
+	Sprite(GfxSprite* p);
+	virtual ~Sprite();
+
+	// Byte OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)  override;
+
+	// void OnEvent(SDL_Event* evnt);	// fires per SDL_Event
+	void OnCreate();					// fires when the object is created/recreated
+	void OnDestroy();					// fires when the object is destroyed/lost focus
+	void OnActivate();
+	void OnDeactivate();
+	void OnUpdate(float fElapsedTime);	// fires each frame, for updates
+	void OnRender();
+
+private:
+	Uint32 spr_col_det = 0;		// 32-bit sprite bitfields
+	Sint16 spr_h_pos = 0;		// 16-bit signed horizontal position
+	Sint16 spr_v_pos = 0;		// 16-bit signed vertical position
+	Sint8 spr_x_ofs = 0;		// 8-bit signed horizontal offset
+	Sint8 spr_y_ofs = 0;		// 8-bit signed vertical offset
+	Uint8 spr_prio = 0;			// 8-bit unsigned sprite priority
+
+	Byte spr_bmp_index = 0;		// sprite bitmap pixel index (Y*16+X)
+	Byte spr_bmp_data[256] { 0 };	// sprite bitmap color data
+
+
+	GfxSprite* gfx_sprite = nullptr;
+	Bus* bus = nullptr;
+	GFX* gfx = nullptr;
 };
 
 
