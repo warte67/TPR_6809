@@ -1,6 +1,6 @@
 /**** GfxImage.h ***************************************
  *
- *  Emulates the external 64k Static Ram Chip that is used for extra video ram.
+ *  Emulates the external 64k QSPI Static Ram Chip that is used for external video ram.
  *  Handles the SDL Images for the GfxIndexed, GfxTile16, GfxTile32, and GfxSprite modes.
  *
  *  Copyright (C) 2023 by Jay Faries
@@ -45,8 +45,35 @@ private:
 	GFX* gfx = nullptr;
 	Bus* bus = nullptr;
 
+	std::array<SDL_Texture*, 256> m_images	{ nullptr };
 };
 
 
-#endif // __GFXIMAGE_H__
+#endif // __GFXIMAGES_H__
+
+
+
+/**** NOTES: *********************************************************
+
+	s_mem_64k[65536]	internal representation of the 64k QSPI static ram chip.
+	s_mem_64k_adr		internal pointer within the 64k static ram block
+
+	m_images[256]		SDL_Texture* the array of 256 SDL Sprites and Tiles.
+
+
+	Reserved Image Blocks:
+		Images 0-191 act as the image buffer for the indexed display mode, but are
+		otherwise available when the indexed display mode is not active. The Indexed
+		display mode should reserve the first 192 image blocks for its own use. 		
+		
+		Contiguous image blocks should be able to be used as indices for the tiled 
+		display modes. Perhaps by reserving a number of blocks to use as the tilemap 
+		memory. This would mean that the tile display modes should be configurable 
+		to use either the tile memory or standard mapped memory.
+
+
+
+	
+
+**********************************************************************/
 
