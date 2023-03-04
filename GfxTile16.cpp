@@ -10,6 +10,7 @@
 #include "Bus.h"
 #include "GFX.h"
 #include "GfxMode.h"
+#include "GfxImage.h"
 #include "GfxTile16.h"
 
 
@@ -224,7 +225,7 @@ void GfxTile16::OnUpdate(float fElapsedTime)
 			{
 				//bus->write_word(GFX_EXT_ADDR, addr++);
 				//Byte data = bus->read(GFX_EXT_DATA);
-				Byte data = GfxMode::s_mem_64k[addr++];
+				Byte data = GfxImage::s_mem_64k[addr++];
 				Byte r = red(data);
 				Byte g = grn(data);
 				Byte b = blu(data);

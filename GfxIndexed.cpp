@@ -10,6 +10,7 @@
 #include "bus.h"
 #include "GFX.h"
 #include "GfxIndexed.h"
+#include "GfxImage.h"
 
 
 // Graphics Mode Unique Callback Function:
@@ -37,7 +38,7 @@ Byte GfxIndexed::OnCallback(GfxMode* mode, Word ofs, Byte data, bool bWasRead)
 
 				case 0x01:		// Clear Screen       (with color index in GFX_BG_ARG1)
 					for ( int a = _buffer_base; a < _buffer_base + (pixel_width * pixel_height); a++)
-						s_mem_64k[a] = _arg1;
+						GfxImage::s_mem_64k[a] = _arg1;
 					break;
 
 				case 0x02:		// TODO: need a new command  ...      WAS: Set Active Page  (zero or non-zero in GFX_BG_ARG1)
@@ -88,15 +89,15 @@ void GfxIndexed::cmd_scroll_left()
 		for (int y = 0; y < pixel_height; y++)
 		{
 			// fetch the first pixel
-			Byte f_pix = s_mem_64k[_buffer_base + y * pixel_width];
+			Byte f_pix = GfxImage::s_mem_64k[_buffer_base + y * pixel_width];
 			// scroll the line
 			for (int x = 1; x < pixel_width; x++)
 			{
 				Word a = _buffer_base + (y * pixel_width) + x;				
-				s_mem_64k[a - 1] = s_mem_64k[a];
+				GfxImage::s_mem_64k[a - 1] = GfxImage::s_mem_64k[a];
 			}
 			// set the last pixel
-			s_mem_64k[y * pixel_width + (pixel_width - 1)] = f_pix;
+			GfxImage::s_mem_64k[y * pixel_width + (pixel_width - 1)] = f_pix;
 		}
 	}
 }
@@ -109,15 +110,15 @@ void GfxIndexed::cmd_scroll_right()
 		for (int y = 0; y < pixel_height; y++)
 		{
 			// fetch the first pixel
-			Byte f_pix = s_mem_64k[_buffer_base + y * pixel_width + (pixel_width-1)];
+			Byte f_pix = GfxImage::s_mem_64k[_buffer_base + y * pixel_width + (pixel_width-1)];
 			// scroll the line
 			for (int x = pixel_width - 2; x >= 0; x--)
 			{
 				Word a = _buffer_base + (y * pixel_width) + x;
-				s_mem_64k[a + 1] = s_mem_64k[a];
+				GfxImage::s_mem_64k[a + 1] = GfxImage::s_mem_64k[a];
 			}
 			// set the last pixel
-			s_mem_64k[y * pixel_width] = f_pix;
+			GfxImage::s_mem_64k[y * pixel_width] = f_pix;
 		}
 	}
 }
@@ -129,17 +130,17 @@ void GfxIndexed::cmd_scroll_up()
 		for (int x = 0; x < pixel_width; x++)
 		{
 			// fetch the first pixel
-			Byte f_pix = s_mem_64k[_buffer_base + x];
+			Byte f_pix = GfxImage::s_mem_64k[_buffer_base + x];
 			// scroll the line
 			for (int y = 1; y < pixel_height; y++)
 			{
 				Word adr1 = _buffer_base + ((y-1) * pixel_width) + x;
 				Word adr2 = _buffer_base + ((y+0) * pixel_width) + x;
-				s_mem_64k[adr1] = s_mem_64k[adr2];
+				GfxImage::s_mem_64k[adr1] = GfxImage::s_mem_64k[adr2];
 			}
 			// store the pixel
 			Word adr1 = _buffer_base + ((pixel_height - 1) * pixel_width) + x;
-			s_mem_64k[adr1] = f_pix;
+			GfxImage::s_mem_64k[adr1] = f_pix;
 		}
 	}
 }
@@ -152,17 +153,17 @@ void GfxIndexed::cmd_scroll_down()
 		{
 			// fetch the first pixel
 			Word adr1 = _buffer_base + ((pixel_height - 1) * pixel_width) + x;
-			Byte f_pix = s_mem_64k[adr1];
+			Byte f_pix = GfxImage::s_mem_64k[adr1];
 			// scroll the line
 			for (int y = pixel_height-1; y > 0; y--)
 			{
 				Word adr1 = _buffer_base + ((y - 1) * pixel_width) + x;
 				Word adr2 = _buffer_base + ((y + 0) * pixel_width) + x;
-				s_mem_64k[adr2] = s_mem_64k[adr1];
+				GfxImage::s_mem_64k[adr2] = GfxImage::s_mem_64k[adr1];
 			}
 			// store the pixel
 			adr1 = _buffer_base + x;
-			s_mem_64k[adr1] = f_pix;
+			GfxImage::s_mem_64k[adr1] = f_pix;
 		}
 	}
 }
@@ -174,7 +175,7 @@ void GfxIndexed::cmd_copy_buffer()
 	Word back = 10240;
 	if (!_bUsingFirstPage) { front = 10240;  back = 0; }
 	for (int t = 0; t < 10240; t++)
-		s_mem_64k[front++] = s_mem_64k[back++];
+		GfxImage::s_mem_64k[front++] = GfxImage::s_mem_64k[back++];
 }
 
 // constructor
@@ -365,7 +366,7 @@ void GfxIndexed::OnActivate()
 							int bpp = image->format->BytesPerPixel;
 							Byte* p = (Byte*)image->pixels + (int)y * image->pitch + (int)x * bpp;
 							Byte index = *(Uint32*)p;
-							s_mem_64k[addr++] = index;
+							GfxImage::s_mem_64k[addr++] = index;
 							if (addr >= (pixel_width * pixel_height))		addr = 0;
 						}
 					}
@@ -440,7 +441,7 @@ void GfxIndexed::OnUpdate(float fElapsedTime)
 		{
 			for (int x = 0; x < pixel_width; x++)
 			{
-				Byte data = GfxMode::s_mem_64k[addr++];
+				Byte data = GfxImage::s_mem_64k[addr++];
 				Byte r = red(data);
 				Byte g = grn(data);
 				Byte b = blu(data);

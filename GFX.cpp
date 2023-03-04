@@ -26,6 +26,7 @@
 #include "GfxBmp16.h"
 #include "GfxBmp2.h"
 #include "GfxIndexed.h"
+#include "GfxImage.h"
 #include "GFX.h"
 
 
@@ -109,10 +110,10 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 				return ptrGfx->palette[m_palette_index].color & 0xFF;
 
 			// read non-paged FG graphics Hardware Registers ($0000-$4fff)
-			if (GfxMode::s_mem_64k_adr > 0x9fff) GfxMode::s_mem_64k_adr = 0x4fff;
-			if (ofs == GFX_EXT_ADDR)		data = GfxMode::s_mem_64k_adr >> 8;
-			if (ofs == GFX_EXT_ADDR + 1)	data = GfxMode::s_mem_64k_adr & 0xFF;
-			if (ofs == GFX_EXT_DATA)		data = GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr];
+			if (GfxImage::s_mem_64k_adr > 0x9fff) GfxImage::s_mem_64k_adr = 0x4fff;
+			if (ofs == GFX_EXT_ADDR)		data = GfxImage::s_mem_64k_adr >> 8;
+			if (ofs == GFX_EXT_ADDR + 1)	data = GfxImage::s_mem_64k_adr & 0xFF;
+			if (ofs == GFX_EXT_DATA)		data = GfxImage::s_mem_64k[GfxImage::s_mem_64k_adr];
 		}
 		else
 		{	// WRITTEN TO
@@ -201,22 +202,22 @@ Byte GFX::OnCallback(REG* memDev, Word ofs, Byte data, bool bWasRead)
 		// write non-paged BG graphics Hardware Registers
 		if (ofs == GFX_EXT_ADDR)		
 		{
-			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0x00ff) | data << 8;
-			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x4fff;
-			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
+			GfxImage::s_mem_64k_adr = (GfxImage::s_mem_64k_adr & 0x00ff) | data << 8;
+			if (GfxImage::s_mem_64k_adr > 0x9fff)	GfxImage::s_mem_64k_adr = 0x4fff;
+			ptrGfx->debug_write(GFX_EXT_DATA, GfxImage::s_mem_64k[GfxImage::s_mem_64k_adr]);
 			ptrGfx->debug_write(ofs, data);
 		}
 		if (ofs == GFX_EXT_ADDR + 1)	
 		{
-			GfxMode::s_mem_64k_adr = (GfxMode::s_mem_64k_adr & 0xff00) | data;
-			if (GfxMode::s_mem_64k_adr > 0x9fff)	GfxMode::s_mem_64k_adr = 0x4fff;
-			ptrGfx->debug_write(GFX_EXT_DATA, GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr]);
+			GfxImage::s_mem_64k_adr = (GfxImage::s_mem_64k_adr & 0xff00) | data;
+			if (GfxImage::s_mem_64k_adr > 0x9fff)	GfxImage::s_mem_64k_adr = 0x4fff;
+			ptrGfx->debug_write(GFX_EXT_DATA, GfxImage::s_mem_64k[GfxImage::s_mem_64k_adr]);
 			ptrGfx->debug_write(ofs, data);
 		}
 		if (ofs == GFX_EXT_DATA)
 		{
-			GfxMode::s_mem_64k[GfxMode::s_mem_64k_adr] = data;
-			bus->debug_write_word(GFX_EXT_ADDR, GfxMode::s_mem_64k_adr);
+			GfxImage::s_mem_64k[GfxImage::s_mem_64k_adr] = data;
+			bus->debug_write_word(GFX_EXT_ADDR, GfxImage::s_mem_64k_adr);
 			ptrGfx->debug_write(ofs, data);
 		}
 
@@ -275,6 +276,10 @@ GFX::GFX(Word offset, Word size) : REG(offset, size)
 	m_fg_gmodes.push_back(new GfxGlyph64());
 	m_fg_gmodes.push_back(new GfxBmp16());
 
+	// stack the GfxImage device
+	if (gfx_image == nullptr)
+		gfx_image = new GfxImage();
+
 	// initialize the Sprite sub-system
 	if (gfx_sprite == nullptr)
 		gfx_sprite = new GfxSprite();
@@ -295,20 +300,24 @@ GFX::~GFX()
 	for (auto& a : m_fg_gmodes)
 		delete a;
 
+	// Destroy gfx_image
+	if (gfx_image)
+	{
+		delete gfx_image;
+		gfx_image = nullptr;
+	}
 	// Destroy the Sprite sub-system
 	if (gfx_sprite)
 	{
 		delete gfx_sprite;
 		gfx_sprite = nullptr;
 	}
-
-
 	// Destroy gfx_debug
 	if (gfx_debug)
 	{
 		delete gfx_debug;
 		gfx_debug = nullptr;
-	}	
+	}
 	// Destroy gfx_mouse
 	if (gfx_mouse)
 	{
@@ -453,6 +462,7 @@ void GFX::OnInitialize()
 		m_bg_gmodes[t]->OnInitialize();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnInitialize();
+	gfx_image->OnInitialize();
 	gfx_sprite->OnInitialize();
 	gfx_debug->OnInitialize();
 	gfx_mouse->OnInitialize();
@@ -470,6 +480,7 @@ void GFX::OnQuit()
 		m_bg_gmodes[t]->OnQuit();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnQuit();
+	gfx_image->OnQuit();
 	gfx_sprite->OnQuit();
 	gfx_debug->OnQuit();
 	gfx_mouse->OnQuit();
@@ -544,6 +555,8 @@ void GFX::OnEvent(SDL_Event *evnt)
 	m_bg_gmodes[m_bg_mode_index]->OnEvent(evnt);
 	m_fg_gmodes[m_fg_mode_index]->OnEvent(evnt);
 
+	// run images
+	gfx_image->OnEvent(evnt);
 	// run sprites
 	gfx_sprite->OnEvent(evnt);
 	// run the debugger	
@@ -650,6 +663,7 @@ void GFX::OnCreate()
 		m_bg_gmodes[t]->OnCreate();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnCreate();
+	gfx_image->OnCreate();
 	gfx_sprite->OnCreate();
 	gfx_debug->OnCreate();
 	gfx_mouse->OnCreate();
@@ -682,6 +696,7 @@ void GFX::OnDestroy()
 		m_bg_gmodes[t]->OnDestroy();
 	for (int t = 0; t < m_fg_gmodes.size(); t++)
 		m_fg_gmodes[t]->OnDestroy();
+	gfx_image->OnDestroy();
 	gfx_sprite->OnDestroy();
 	gfx_debug->OnDestroy();
 	gfx_mouse->OnDestroy();
@@ -815,6 +830,8 @@ void GFX::OnUpdate(float fElapsedTime)
 	m_bg_gmodes[m_bg_mode_index]->OnUpdate(fElapsedTime);
 	// update the foreground graphics mode
 	m_fg_gmodes[m_fg_mode_index]->OnUpdate(fElapsedTime);
+	// update the images
+	gfx_image->OnUpdate(fElapsedTime);
 	// update the sprites
 	gfx_sprite->OnUpdate(fElapsedTime);
 	// update the mouse cursor
@@ -872,6 +889,7 @@ void GFX::_onRender()
 	// render outputs
 	m_bg_gmodes[m_bg_mode_index]->OnRender();
 	m_fg_gmodes[m_fg_mode_index]->OnRender();
+	gfx_image->OnRender();
 	gfx_sprite->OnRender();
 	if (DebugEnabled())
 		gfx_debug->OnRender();

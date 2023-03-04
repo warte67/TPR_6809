@@ -114,7 +114,7 @@ Math::~Math()
 
 void Math::OnInitialize()
 {
-	printf("Math::OnInitialize()\n");
+	//printf("Math::OnInitialize()\n");
 }
 
 void Math::OnEvent(SDL_Event* evnt) 
@@ -124,12 +124,12 @@ void Math::OnEvent(SDL_Event* evnt)
 
 void Math::OnCreate() 
 {
-	printf("Math::OnCreate()\n");
+	//printf("Math::OnCreate()\n");
 }
 
 void Math::OnDestroy() 
 {
-	printf("Math::OnDestroy()\n");
+	//printf("Math::OnDestroy()\n");
 }
 
 void Math::OnUpdate(float fElapsedTime) 
@@ -139,6 +139,6 @@ void Math::OnUpdate(float fElapsedTime)
 
 void Math::OnQuit()	
 {
-	printf("Math::OnQuit()\n");
+	//printf("Math::OnQuit()\n");
 }
 

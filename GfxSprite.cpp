@@ -365,20 +365,20 @@ Word GfxSprite::MapDevice(MemoryMap* memmap, Word offset)
 
 GfxSprite::GfxSprite()
 {
-	printf("GfxSprite::GfxSprite()\n");
+	//printf("GfxSprite::GfxSprite()\n");
 
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
 GfxSprite::~GfxSprite()
 {
-	printf("GfxSprite::~GfxSprite()\n");
+	//printf("GfxSprite::~GfxSprite()\n");
 }
 
 
 void GfxSprite::OnInitialize()		// -> OnQuit()
 {
-	printf("GfxSprite::OnInitialize()\n");
+	//printf("GfxSprite::OnInitialize()\n");
 
 	// create 32 blank sprites
 	for (int t = 0; t < SPRITE_MAX; t++)
@@ -512,16 +512,16 @@ void GfxSprite::OnInitialize()		// -> OnQuit()
 
 void GfxSprite::OnActivate()		// <- OnDeactivate()
 {
-	printf("GfxSprite::OnActivate()\n");
+	//printf("GfxSprite::OnActivate()\n");
 }
 void GfxSprite::OnDeactivate()		// -> OnActivate()
 {
-	printf("GfxSprite::OnDeactivate()\n");
+	//printf("GfxSprite::OnDeactivate()\n");
 }
 
 void GfxSprite::OnQuit()			// <- OnInitialize()
 {
-	printf("GfxSprite::OnQuit()\n");
+	//printf("GfxSprite::OnQuit()\n");
 
 	// destroy 32 sprites
 	for (int t = 0; t < sprites.size(); t++)
@@ -531,11 +531,11 @@ void GfxSprite::OnQuit()			// <- OnInitialize()
 
 void GfxSprite::OnCreate()			// -> OnDestroy()
 {
-	printf("GfxSprite::OnCreate()\n");
+	//printf("GfxSprite::OnCreate()\n");
 }
 void GfxSprite::OnDestroy()			// <- OnCreate()
 {
-	printf("GfxSprite::OnDestroy()\n");
+	//printf("GfxSprite::OnDestroy()\n");
 }
 
 

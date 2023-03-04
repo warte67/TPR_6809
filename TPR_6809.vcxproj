@@ -173,6 +173,7 @@
     <ClCompile Include="GfxDebug.cpp" />
     <ClCompile Include="GfxGlyph32.cpp" />
     <ClCompile Include="GfxGlyph64.cpp" />
+    <ClCompile Include="GfxImage.cpp" />
     <ClCompile Include="GfxIndexed.cpp" />
     <ClCompile Include="GfxMode.cpp" />
     <ClCompile Include="GfxMouse.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="GfxDebug.h" />
     <ClInclude Include="GfxGlyph32.h" />
     <ClInclude Include="GfxGlyph64.h" />
+    <ClInclude Include="GfxImage.h" />
     <ClInclude Include="GfxIndexed.h" />
     <ClInclude Include="GfxMode.h" />
     <ClInclude Include="GfxMouse.h" />

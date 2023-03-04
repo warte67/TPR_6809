@@ -17,6 +17,8 @@
 class GfxMode;
 class GfxDebug;
 class GfxMouse;
+class GfxSprite;
+class GfxImage;
 
 class GFX : public REG   // ToDo: Inherit from class Memory instead
 {
@@ -30,6 +32,7 @@ class GFX : public REG   // ToDo: Inherit from class Memory instead
     friend class GfxBmp2;
     friend class GfxIndexed;
     friend class GfxSprite;
+    friend class GfxImage;
 
 public:
     GFX();
@@ -117,12 +120,15 @@ protected:
     std::vector<GfxMode*> m_bg_gmodes;
     std::vector<GfxMode*> m_fg_gmodes;
 
-    // device objects
-    Bus* bus = nullptr;
-    Memory* memory = nullptr;
+    // gfx hardware devices
     GfxMouse* gfx_mouse = nullptr;
     GfxDebug* gfx_debug = nullptr;
     GfxSprite* gfx_sprite = nullptr;
+    GfxImage* gfx_image = nullptr;
+
+    // device objects
+    Bus* bus = nullptr;
+    Memory* memory = nullptr;
 
     // Palette Stuff
     union PALETTE {

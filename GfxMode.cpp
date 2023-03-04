@@ -7,21 +7,25 @@
 
 #include <array>
 #include "types.h"
+#include "MemoryMap.h"
 #include "Bus.h"
 #include "GFX.h"
 #include "GfxMode.h"
 
-std::array<Byte, 65536> GfxMode::s_mem_64k;
-Word GfxMode::s_mem_64k_adr = 0;
-
+//std::array<Byte, 65536> GfxMode::s_mem_64k;
+//Word GfxMode::s_mem_64k_adr = 0;
 
 GfxMode::GfxMode() 
 {
+	//printf("GfxMode::GfxMode() \n");
 	bus = Bus::getInstance();
 	gfx = bus->m_gfx;
 }
 
-GfxMode::~GfxMode() {}
+GfxMode::~GfxMode() 
+{
+	//printf("GfxMode::~GfxMode() \n");
+}
 
 
 void GfxMode::OnUpdate(float fElapsedTime)
