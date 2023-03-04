@@ -112,48 +112,17 @@ private:
 
 #endif // __GFXSPRITE_H__
 
+/**** NOTES: *******************************************************
 
+	The GfxImage device supports 64 images while in the 256-Indexed display mode or
+	up to 256 images otherwise. These images are split between sprites and tiles.
+	The Indexed display mode will use the first 192 images as a display buffer. 
 
+	The current Sprite Flags mechanism will no longer work after implementing a 
+	more dynamic image allocation strategy. SPR_ENABLE, SPR_COL_ENA, and SPR_COL_TYP
+	should be revised to a per sprite/tile implementation rather than using global flags.
 
-//		 //  Sprite Hardware Registers:
-//		SPR_BEGIN = 0x182b,        // Start of Sprite Hardware Registers
-//		
-//		//  Sprite Flag Registers:
-//		SPR_ENABLE = 0x182b,        // (4-Bytes) sprite Enable Bits. 1 bit per sprite
-//		SPR_COL_ENA = 0x182f,        // (4-Bytes) sprite collision enable. 1 bit per sprite
-//		SPR_COL_TYP = 0x1833,        // (4-Bytes) sprite collision type (0:hitbox, 1:pixel perfect)
-//		
-//		//  Sprite Palette Registers:
-//		SPR_PAL_INDX = 0x1837,        // (Byte) color palette index
-//		SPR_PAL_DATA = 0x1838,        // (Word) indexed sprite palette entry color bits RGBA4444
-//		
-//		//  Sprite Index Register:
-//		SPR_INDEX = 0x183a,        // (Byte) 0-31 indexes the 'current' sprite
-//		
-//		//  Indexed Sprite Registers:
-//		SPR_COL_DET = 0x183b,        // (4-Bytes) Collision detection bits. One bit per colliding sprite.
-//		SPR_H_POS = 0x183f,        // (Sint16) signed 16-bit integer
-//		SPR_V_POS = 0x1841,        // (Sint16) signed 16-bit integer
-//		SPR_X_OFS = 0x1843,        // (Sint8) signed 8-bit integer horizontal display offset
-//		SPR_Y_OFS = 0x1844,        // (Sint8) signed 8-bit integer vertical display offset
-//		SPR_PRIO = 0x1845,        // (Byte) Sprite Display Priority:
-//		//      0) displays directly behind all foreground modes
-//		//      1) displays infront of Glyph32 layer 0 but all other foreground modes
-//		//      2) displays infront of Glyph32 layer 1 but all other foreground modes
-//		//      3) displays infront of Glyph32 layer 2 but all other foreground modes
-//		//      4) displays infront of Glyph32 layer 3 but all other foreground modes
-//		//      5) displays infront of Debug layer, but behind the mouse cursor
-//		//      6) displays infront of Mouse Cursor layer (in index order)
-//		//      7) displays in sprite order
-//		
-//		//  Sprite Indexed Bitmap Pixel Data:
-//		SPR_BMP_INDX = 0x1846,        // (Byte) Sprite pixel offset (Y*16+X)
-//		SPR_BMP_DATA = 0x1847,        // (Byte) Sprite color palette index data
-//		
-//		//  End of Sprite Hardware Registers
-//		SPR_END = 0x1847,        // End of the Sprite Hardware Registers
-//	
-
+********************************************************************/
 
 /**** SPRITE SUB-SYSTEM NOTES: ****************************************************
 
