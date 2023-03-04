@@ -289,8 +289,14 @@ enum MEMMAP
      JOYS_2_Z2 = 0x1b78,        // (char) PAD 2 right trigger       (0 - 127)     (realtime)
       JOYS_END = 0x1b79,        // end of gamepad hardware registers
 
+//  Math Hardware Registers:
+    MATH_BEGIN = 0x1b7a,        // start of math hardware registers
+   MATH_RNDINT = 0x1b7a,        // (Word) 16-bit random integer
+  MATH_RNDHALF = 0x1b7c,        // (Word) normalized half-precision float (0.0 - 1.0)
+      MATH_END = 0x1b7e,        // end of math hardware registers
+
 //  Reserved Hardware:
-  RESERVED_HDW = 0x1b7a,        // Reserved 1153 bytes ($1B7A - $1FFB)
+  RESERVED_HDW = 0x1b7f,        // Reserved 1150 bytes ($1B7F - $1FFD)
 
 //  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
 //  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D
@@ -318,7 +324,6 @@ enum MEMMAP
       HARD_NMI = 0xfffc,        // NMI Hardware Interrupt Vector
     HARD_RESET = 0xfffe,        // RESET Hardware Interrupt Vector
 };
-
 
 
 

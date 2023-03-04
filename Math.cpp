@@ -26,10 +26,22 @@ Byte Math::OnCallback(REG* reg, Word ofs, Byte data, bool bWasRead)
 	Math* ptrMath = dynamic_cast<Math*>(reg);
 	if (ptrMath)
 	{
-		// if (ofs >= MATH_BEGIN && ofs <= MATH_END)
+		if (ofs >= MATH_BEGIN && ofs <= MATH_END)
 		{
 			if (bWasRead)
-			{
+			{	// READ
+
+				// low-level random is simply integer random
+				if (ofs >= MATH_RNDINT && ofs <= MATH_RNDHALF + 1)
+				{
+					data = Byte((rand() % 256) & 0xFF);
+					bus->debug_write(ofs, data);
+					return data;
+				}
+			}
+			else
+			{	// WRITE
+
 			}
 		}
 	}

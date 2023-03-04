@@ -242,8 +242,14 @@ JOYS_2_Z1       equ     $1b77   ; (char) PAD 2 left trigger        (0 - 127)    
 JOYS_2_Z2       equ     $1b78   ; (char) PAD 2 right trigger       (0 - 127)     (realtime)
 JOYS_END        equ     $1b79   ; end of gamepad hardware registers
 
+;  Math Hardware Registers:
+MATH_BEGIN      equ     $1b7a   ; start of math hardware registers
+MATH_RNDINT     equ     $1b7a   ; (Word) 16-bit random integer
+MATH_RNDHALF    equ     $1b7c   ; (Word) normalized half-precision float (0.0 - 1.0)
+MATH_END        equ     $1b7e   ; end of math hardware registers
+
 ;  Reserved Hardware:
-RESERVED_HDW    equ     $1b7a   ; Reserved 1153 bytes ($1B7A - $1FFB)
+RESERVED_HDW    equ     $1b7f   ; Reserved 1150 bytes ($1B7F - $1FFD)
 
 ;  Memory Bank Selects (external 2MB QSPI ISSI 16Mbit SerialRAM):
 ;  https://www.mouser.com/ProductDetail/ISSI/IS66WVS2M8BLL-104NLI?qs=doiCPypUmgFx786bHGqGiQ%3D%3D

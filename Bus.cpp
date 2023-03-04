@@ -132,7 +132,7 @@ Bus::Bus()
     m_gamepad = Gamepad::Assign_Gamepad(memmap, mem_offset);
 
     // attach a math device:
-    // m_math = Math::Assign_Math(memmap, mem_offset);
+    m_math = Math::Assign_Math(memmap, mem_offset);
 
     // add more hardware devices here:
     // ...
